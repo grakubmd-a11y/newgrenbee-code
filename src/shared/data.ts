@@ -222,6 +222,51 @@ export const SERVICES_DATA: Service[] = [
       }
     ]
   }
+  ,
+  {
+    id: "wall-mounting",
+    name: "Wall Mounting",
+    iconName: "Drill",
+    tagline: "Expert shelving, artwork, mirrors, and cabinet mounting on any wall surface.",
+    description: "From floating shelves and bathroom cabinets to large mirrors and gallery walls, we mount any item securely with stud detection, precision leveling, and load-bearing hardware rated for your item's weight.",
+    basePrice: 55,
+    unitName: "item",
+    unitLabel: "Total Items to Mount",
+    pricePerUnit: 20,
+    minUnits: 1,
+    maxUnits: 8,
+    stepUnits: 1,
+    estimatedMinutesPerUnit: 30,
+    popularUnitValue: 2,
+    includedSpecs: [
+      "Electronic stud and wire detection before every drill",
+      "Grade-rated anchors and hardware selected for item weight",
+      "Precision digital leveling to within 1mm",
+      "Pilot hole drilling with dust-controlled bit guard",
+      "Load test after mounting — tested at 2× stated capacity",
+      "Clean-up and patch of any prior anchor holes (if requested)"
+    ],
+    factors: [
+      {
+        name: "wallSurface",
+        label: "Wall Surface Material",
+        options: [
+          { label: "Standard Drywall / Wood Studs", priceModifier: 0 },
+          { label: "Tile or Glass Surface (+ $20)", priceModifier: 20 },
+          { label: "Concrete, Brick or Masonry (+ $30)", priceModifier: 30 }
+        ]
+      },
+      {
+        name: "itemWeight",
+        label: "Item Weight Class",
+        options: [
+          { label: "Light (under 25 lbs) — décor, small shelves", priceModifier: 0 },
+          { label: "Medium (25–60 lbs) — large mirrors, shelving units (+ $15)", priceModifier: 15 },
+          { label: "Heavy (60+ lbs) — cabinets, large artwork, safes (+ $30)", priceModifier: 30 }
+        ]
+      }
+    ]
+  }
 ];
 
 export const INITIAL_REVIEWS: Review[] = [
