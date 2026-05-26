@@ -1,7 +1,10 @@
 import Stripe from "stripe";
+import admin from "firebase-admin";
+import { calculatePrice, requiresTwoTechs } from "./_pricing.js";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const hasStripeSecretKey = typeof stripeSecretKey === "string" &&
+const hasStripeSecretKey =
+  typeof stripeSecretKey === "string" &&
   stripeSecretKey.trim().length > 0 &&
   !stripeSecretKey.includes("REPLACE_ME");
 const stripe = hasStripeSecretKey ? new Stripe(stripeSecretKey) : null;
@@ -14,18 +17,54 @@ function sendJson(res, status, payload) {
 function parseBody(req) {
   if (!req.body) return {};
   if (typeof req.body === "string") {
-    try {
-      return JSON.parse(req.body);
-    } catch {
-      return {};
-    }
+    try { return JSON.parse(req.body); } catch { return {}; }
   }
   return req.body;
 }
 
-function cleanMetadataValue(value) {
-  if (value === undefined || value === null) return "";
-  return String(value).slice(0, 500);
+function cleanMeta(v) {
+  if (v === undefined || v === null) return "";
+  return String(v).slice(0, 500);
+}
+
+function couponDocId(code) {
+  return String(code || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getFirestore() {
+  if (admin.apps.length) return admin.firestore();
+  const json =
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
+    process.env.FIREBASE_ADMIN_CREDENTIALS;
+  if (!json || json.includes("REPLACE_ME")) return null;
+  try {
+    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
+    return admin.firestore();
+  } catch {
+    return null;
+  }
+}
+
+async function resolveServerCouponDiscount(couponCode) {
+  const docId = couponDocId(couponCode);
+  if (!docId) return 0;
+  const db = getFirestore();
+  if (!db) return 0;
+  try {
+    const snap = await db.collection("coupons").doc(docId).get();
+    if (!snap.exists) return 0;
+    const c = snap.data() || {};
+    if (c.active === false) return 0;
+    if (c.expiresAt && new Date(c.expiresAt) < new Date()) return 0;
+    if (Number(c.usageLimit) > 0 && Number(c.usedCount || 0) >= Number(c.usageLimit)) return 0;
+    return Number(c.discountAmount || 0);
+  } catch {
+    return 0;
+  }
 }
 
 export default async function handler(req, res) {
@@ -36,50 +75,86 @@ export default async function handler(req, res) {
 
   if (!stripe) {
     return sendJson(res, 500, {
-      error: "Stripe is not configured. Add STRIPE_SECRET_KEY on the server."
+      error: "Stripe is not configured. Add STRIPE_SECRET_KEY on the server.",
     });
   }
 
   const body = parseBody(req);
-  const amount = Number(body.amount);
-  const currency = (body.currency || "usd").toLowerCase();
-  const booking = body.booking || {};
+  const {
+    serviceId,
+    units,
+    selectedFactors = {},
+    frequency = "once",
+    membership = null,
+    couponCode = "",
+    sameDayFee: clientSameDay = false,
+    booking = {},
+  } = body;
 
-  if (!Number.isInteger(amount) || amount < 50 || amount > 9999999) {
-    return sendJson(res, 400, {
-      error: "Invalid amount. Amount must be sent in cents and be at least 50."
-    });
+  if (!serviceId || units === undefined) {
+    return sendJson(res, 400, { error: "serviceId and units are required." });
   }
 
   try {
+    // Server-authoritative: re-derive 2-tech requirement from factors (never trust client)
+    const twoTechFee = requiresTwoTechs(serviceId, selectedFactors);
+
+    // Server-authoritative: only apply same-day fee when the booking date is actually today
+    const today = new Date().toISOString().split("T")[0];
+    const sameDayFee = Boolean(clientSameDay) && booking.bookingDate === today;
+
+    // Validate coupon against Firestore to get the authoritative discount
+    const couponDiscount = couponCode
+      ? await resolveServerCouponDiscount(couponCode)
+      : 0;
+
+    // Canonical price calculation — throws on unknown service or tampered modifier
+    const { totalCents, breakdown } = calculatePrice({
+      serviceId,
+      units,
+      selectedFactors,
+      frequency,
+      membership,
+      couponDiscount,
+      sameDayFee,
+      twoTechFee,
+    });
+
+    if (totalCents < 50) {
+      return sendJson(res, 400, { error: "Order total must be at least $0.50." });
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency,
+      amount: totalCents,
+      currency: "usd",
       capture_method: "manual",
       payment_method_types: ["card"],
-      description: cleanMetadataValue(`Grenbee booking for ${booking.serviceName || booking.serviceId || "service"}`),
+      description: cleanMeta(`Grenbee — ${booking.serviceName || serviceId}`),
       metadata: {
-        serviceId: cleanMetadataValue(booking.serviceId),
-        serviceName: cleanMetadataValue(booking.serviceName),
-        bookingDate: cleanMetadataValue(booking.bookingDate),
-        timeSlot: cleanMetadataValue(booking.timeSlot),
-        frequency: cleanMetadataValue(booking.frequency),
-        couponCode: cleanMetadataValue(booking.couponCode),
-        couponDiscount: cleanMetadataValue(booking.couponDiscount),
-        source: "grenbee-web"
-      }
+        serviceId:      cleanMeta(serviceId),
+        serviceName:    cleanMeta(booking.serviceName || serviceId),
+        bookingDate:    cleanMeta(booking.bookingDate),
+        timeSlot:       cleanMeta(booking.timeSlot),
+        frequency:      cleanMeta(frequency),
+        couponCode:     cleanMeta(couponCode),
+        couponDiscount: String(couponDiscount),
+        sameDayFee:     String(sameDayFee),
+        twoTechFee:     String(twoTechFee),
+        source:         "grenbee-web",
+      },
     });
 
     return sendJson(res, 200, {
-      clientSecret: paymentIntent.client_secret,
+      clientSecret:  paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      amount: paymentIntent.amount,
-      currency: paymentIntent.currency,
-      captureMethod: paymentIntent.capture_method
+      totalCents,
+      breakdown,
+      currency:      paymentIntent.currency,
+      captureMethod: paymentIntent.capture_method,
     });
   } catch (error) {
-    return sendJson(res, 500, {
-      error: error instanceof Error ? error.message : "Could not create PaymentIntent."
-    });
+    const msg = error instanceof Error ? error.message : "Could not create PaymentIntent.";
+    const status = /unknown service|tampered|invalid units/i.test(msg) ? 400 : 500;
+    return sendJson(res, status, { error: msg });
   }
 }

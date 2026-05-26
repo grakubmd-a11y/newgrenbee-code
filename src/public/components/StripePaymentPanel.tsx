@@ -16,6 +16,9 @@ interface BookingParams {
   originalCost?: number;
   couponCode?: string;
   couponDiscount?: number;
+  membership?: string | null;
+  sameDayFee?: boolean;
+  twoTechFee?: boolean;
 }
 
 interface StripePaymentPanelProps {
@@ -43,6 +46,7 @@ function isUsableStripePublishableKey(value: string) {
 
 function EmbeddedStripeForm({
   bookingParams,
+  confirmedAmountCents,
   validateBeforePayment,
   onPaymentStarted,
   onPaymentFinished,
@@ -50,10 +54,13 @@ function EmbeddedStripeForm({
   onSubmitBooking,
   buildBookingDraft,
   isProcessing
-}: Omit<StripePaymentPanelProps, "service" | "selectedDate" | "selectedSlot">) {
+}: Omit<StripePaymentPanelProps, "service" | "selectedDate" | "selectedSlot"> & { confirmedAmountCents?: number }) {
   const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState("");
+  const displayAmount = confirmedAmountCents
+    ? confirmedAmountCents / 100
+    : bookingParams.totalCost;
 
   const handleStripeSubmit = async () => {
     if (!validateBeforePayment()) {
@@ -69,7 +76,7 @@ function EmbeddedStripeForm({
     onPaymentStarted();
     onLog([
       "[SYSTEM] Preparing embedded Stripe Elements authorization...",
-      `[CLIENT] Confirming PaymentIntent for $${bookingParams.totalCost.toFixed(2)} USD inside the current page...`
+      `[CLIENT] Confirming PaymentIntent for $${displayAmount.toFixed(2)} USD inside the current page...`
     ]);
 
     try {
@@ -168,7 +175,7 @@ function EmbeddedStripeForm({
         ) : (
           <>
             <Icons.Lock size={14} strokeWidth={3} />
-            <span>Authorize ${bookingParams.totalCost.toFixed(2)} Securely</span>
+            <span>Authorize ${displayAmount.toFixed(2)} Securely</span>
           </>
         )}
       </button>
@@ -190,12 +197,35 @@ export default function StripePaymentPanel({
   isProcessing
 }: StripePaymentPanelProps) {
   const [clientSecret, setClientSecret] = useState("");
+  const [serverTotalCents, setServerTotalCents] = useState(0);
   const [setupError, setSetupError] = useState("");
   const [isLoadingIntent, setIsLoadingIntent] = useState(false);
   const [publishableKey, setPublishableKey] = useState(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
 
-  const amountInCents = useMemo(() => Math.round(bookingParams.totalCost * 100), [bookingParams.totalCost]);
   const stripePromise = useMemo(() => isUsableStripePublishableKey(publishableKey) ? loadStripe(publishableKey) : null, [publishableKey]);
+
+  // Stable key that triggers a new PaymentIntent when any pricing input changes
+  const pricingKey = useMemo(() => JSON.stringify({
+    sid: bookingParams.serviceId,
+    u: bookingParams.units,
+    fr: bookingParams.frequency,
+    mb: bookingParams.membership ?? null,
+    cc: bookingParams.couponCode ?? "",
+    sd: bookingParams.sameDayFee ?? false,
+    tt: bookingParams.twoTechFee ?? false,
+    d: selectedDate,
+    sl: selectedSlot,
+  }), [
+    bookingParams.serviceId,
+    bookingParams.units,
+    bookingParams.frequency,
+    bookingParams.membership,
+    bookingParams.couponCode,
+    bookingParams.sameDayFee,
+    bookingParams.twoTechFee,
+    selectedDate,
+    selectedSlot,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -233,18 +263,20 @@ export default function StripePaymentPanel({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            amount: amountInCents,
-            currency: "usd",
+            serviceId:       bookingParams.serviceId,
+            units:           bookingParams.units,
+            selectedFactors: bookingParams.selectedFactors,
+            frequency:       bookingParams.frequency,
+            membership:      bookingParams.membership ?? null,
+            couponCode:      bookingParams.couponCode ?? "",
+            sameDayFee:      bookingParams.sameDayFee ?? false,
+            twoTechFee:      bookingParams.twoTechFee ?? false,
             booking: {
-              serviceId: bookingParams.serviceId,
               serviceName: service.name,
               bookingDate: selectedDate,
-              timeSlot: selectedSlot,
-              frequency: bookingParams.frequency,
-              couponCode: bookingParams.couponCode || "",
-              couponDiscount: bookingParams.couponDiscount || 0
-            }
-          })
+              timeSlot:    selectedSlot,
+            },
+          }),
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
@@ -252,6 +284,7 @@ export default function StripePaymentPanel({
         }
         if (!cancelled) {
           setClientSecret(payload.clientSecret || "");
+          setServerTotalCents(payload.totalCents || 0);
         }
       } catch (error) {
         if (!cancelled) {
@@ -268,17 +301,7 @@ export default function StripePaymentPanel({
     return () => {
       cancelled = true;
     };
-  }, [
-    amountInCents,
-    bookingParams.couponCode,
-    bookingParams.couponDiscount,
-    bookingParams.frequency,
-    bookingParams.serviceId,
-    selectedDate,
-    selectedSlot,
-    service.name,
-    publishableKey
-  ]);
+  }, [pricingKey, service.name, publishableKey]);
 
   const stripeOptions = useMemo<StripeElementsOptions>(() => ({
     clientSecret,
@@ -340,6 +363,7 @@ export default function StripePaymentPanel({
     <Elements stripe={stripePromise} options={stripeOptions} key={clientSecret}>
       <EmbeddedStripeForm
         bookingParams={bookingParams}
+        confirmedAmountCents={serverTotalCents || undefined}
         validateBeforePayment={validateBeforePayment}
         onPaymentStarted={onPaymentStarted}
         onPaymentFinished={onPaymentFinished}

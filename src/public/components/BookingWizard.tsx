@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Calendar, Clock, User, MapPin, CreditCard, ArrowLeft, ArrowRight,
-  CheckCircle2, AlertTriangle, Loader, ShieldCheck, MapPinOff, HelpCircle
+  CheckCircle2, AlertTriangle, Loader, ShieldCheck, MapPinOff, HelpCircle,
+  Users, CalendarClock, ExternalLink
 } from "lucide-react";
 import { Booking, Service } from "../../shared/types";
 import { db } from "../../shared/firebase";
@@ -12,6 +13,7 @@ import StripePaymentPanel from "./StripePaymentPanel";
 type BookingDraft = Omit<Booking, "id" | "status" | "createdAt">;
 type WizardStep = 1 | 2 | 3;
 type CoverageStatus = "idle" | "checking" | "covered" | "not-covered" | "unknown";
+type AvailabilityStatus = "idle" | "checking" | "available" | "full";
 
 export interface WizardBookingParams {
   serviceId: string;
@@ -52,6 +54,15 @@ const TIME_SLOTS = [
   { label: "Midday", hours: "12:00 PM – 03:00 PM", desc: "Standard window" },
   { label: "Afternoon", hours: "03:00 PM – 06:00 PM", desc: "Evening finish" },
 ];
+
+const SAME_DAY_FEE = 35;
+const TWO_TECH_FEE = 50;
+
+function clientRequiresTwoTechs(serviceId: string, factors: WizardBookingParams["selectedFactors"]): boolean {
+  if (serviceId === "furniture-assembly") return Number(factors?.furnitureComplexity?.modifier) === 50;
+  if (serviceId === "wall-mounting") return Number(factors?.itemWeight?.modifier) === 30;
+  return false;
+}
 
 function extractZip(address: string): string {
   const m = address.match(/\b(\d{5})(?:-\d{4})?\b/);
@@ -133,12 +144,18 @@ function WizardProgress({ step }: { step: WizardStep }) {
 
 // ─── Order Summary Card ───────────────────────────────────────────────────────
 
-function OrderSummary({ service, params, selectedDate, selectedSlot }: {
+function OrderSummary({ service, params, selectedDate, selectedSlot, isSameDay, isTwoTech }: {
   service: Service;
   params: WizardBookingParams;
   selectedDate: string;
   selectedSlot: string;
+  isSameDay: boolean;
+  isTwoTech: boolean;
 }) {
+  const displayTotal = params.totalCost
+    + (isSameDay ? SAME_DAY_FEE : 0)
+    + (isTwoTech ? TWO_TECH_FEE : 0);
+
   return (
     <div className="bg-gray-900 text-white rounded-2xl p-6 space-y-4 sticky top-24">
       <div>
@@ -151,16 +168,38 @@ function OrderSummary({ service, params, selectedDate, selectedSlot }: {
         <Row label="Units" value={`${params.units} ${service.unitName}${params.units !== 1 ? "s" : ""}`} />
         <Row label="Frequency" value={params.frequency} capitalize />
       </div>
-      {params.couponCode && params.couponDiscount && (
-        <div className="text-xs font-mono space-y-1 border-t border-white/10 pt-3">
-          <Row label="Subtotal" value={`$${(params.originalCost ?? params.totalCost + params.couponDiscount).toFixed(2)}`} />
-          <Row label={`Coupon ${params.couponCode}`} value={`-$${params.couponDiscount.toFixed(2)}`} valueClass="text-emerald-400" />
+      {(params.couponCode && params.couponDiscount || isSameDay || isTwoTech) && (
+        <div className="text-xs font-mono space-y-1.5 border-t border-white/10 pt-3">
+          {params.couponCode && params.couponDiscount && (
+            <>
+              <Row label="Subtotal" value={`$${(params.originalCost ?? params.totalCost + params.couponDiscount).toFixed(2)}`} />
+              <Row label={`Coupon ${params.couponCode}`} value={`-$${params.couponDiscount.toFixed(2)}`} valueClass="text-emerald-400" />
+            </>
+          )}
+          {isSameDay && (
+            <Row label="Same-Day Fee" value={`+$${SAME_DAY_FEE}.00`} valueClass="text-amber-400" />
+          )}
+          {isTwoTech && (
+            <Row label="2nd Technician" value={`+$${TWO_TECH_FEE}.00`} valueClass="text-amber-400" />
+          )}
         </div>
       )}
       <div className="flex justify-between items-baseline border-t border-white/10 pt-4">
         <span className="text-sm font-semibold text-gray-300">Total</span>
-        <span className="text-2xl font-extrabold text-emerald-400">${params.totalCost.toFixed(2)}</span>
+        <span className="text-2xl font-extrabold text-emerald-400">${displayTotal.toFixed(2)}</span>
       </div>
+      {isTwoTech && (
+        <div className="flex items-start gap-2 text-[10px] text-amber-300 bg-amber-900/30 rounded-lg px-3 py-2">
+          <Users size={12} className="shrink-0 mt-0.5" />
+          <span>This job requires 2 technicians — a second tech fee has been added.</span>
+        </div>
+      )}
+      {isSameDay && (
+        <div className="flex items-start gap-2 text-[10px] text-amber-300 bg-amber-900/30 rounded-lg px-3 py-2">
+          <CalendarClock size={12} className="shrink-0 mt-0.5" />
+          <span>Same-day booking — a priority scheduling fee applies.</span>
+        </div>
+      )}
       <div className="flex items-center gap-2 text-[10px] text-gray-400 pt-1">
         <ShieldCheck size={12} className="text-emerald-500 shrink-0" />
         <span>Card charged only after service completion</span>
@@ -210,6 +249,7 @@ export default function BookingWizard({
   bookingParams,
   services,
   currentUser,
+  activeMembership,
   onSubmitBooking,
   onBack,
 }: BookingWizardProps) {
@@ -226,6 +266,15 @@ export default function BookingWizard({
   // ── Step 1: Schedule ──
   const [selectedDate, setSelectedDate] = useState(bookingDays[0].rawDate);
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0].hours);
+  const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>("idle");
+
+  // ── Same-day & 2-tech (computed, UI + pricing) ──
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const isSameDay = selectedDate === today;
+  const isTwoTech = useMemo(
+    () => clientRequiresTwoTechs(bookingParams.serviceId, bookingParams.selectedFactors),
+    [bookingParams.serviceId, bookingParams.selectedFactors]
+  );
 
   // ── Step 2: Details ──
   const [fullName, setFullName] = useState(currentUser?.name || "");
@@ -247,6 +296,10 @@ export default function BookingWizard({
   // ── Step 3: Pay ──
   const [isProcessing, setIsProcessing] = useState(false);
   const [apiLogs, setApiLogs] = useState<string[]>([]);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [recurringConsent, setRecurringConsent] = useState(false);
+  const [termsError, setTermsError] = useState("");
+  const needsRecurringConsent = bookingParams.frequency !== "once";
 
   // Load Maps settings
   useEffect(() => {
@@ -314,8 +367,30 @@ export default function BookingWizard({
     return Object.keys(e).length === 0;
   }
 
-  function goNext() {
+  async function checkAvailability(): Promise<boolean> {
+    setAvailabilityStatus("checking");
+    try {
+      const resp = await fetch("/api/availability", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: selectedDate, timeSlot: selectedSlot }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      const ok = data.available !== false;
+      setAvailabilityStatus(ok ? "available" : "full");
+      return ok;
+    } catch {
+      setAvailabilityStatus("available"); // fail open
+      return true;
+    }
+  }
+
+  async function goNext() {
     if (!validate()) return;
+    if (step === 1) {
+      const ok = await checkAvailability();
+      if (!ok) return;
+    }
     setStep((s) => (s + 1) as WizardStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -385,7 +460,7 @@ export default function BookingWizard({
                     <button
                       key={day.rawDate}
                       type="button"
-                      onClick={() => setSelectedDate(day.rawDate)}
+                      onClick={() => { setSelectedDate(day.rawDate); setAvailabilityStatus("idle"); }}
                       className={`flex flex-col items-center py-3 rounded-xl border transition-all cursor-pointer ${
                         selectedDate === day.rawDate
                           ? "border-brand bg-brand-light text-brand ring-1 ring-brand font-bold"
@@ -407,7 +482,7 @@ export default function BookingWizard({
                     <button
                       key={slot.hours}
                       type="button"
-                      onClick={() => setSelectedSlot(slot.hours)}
+                      onClick={() => { setSelectedSlot(slot.hours); setAvailabilityStatus("idle"); }}
                       className={`flex flex-col text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
                         selectedSlot === slot.hours
                           ? "border-brand bg-brand-light text-brand ring-1 ring-brand font-bold"
@@ -420,6 +495,24 @@ export default function BookingWizard({
                     </button>
                   ))}
                 </div>
+
+                {/* Availability feedback */}
+                {availabilityStatus === "checking" && (
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    <Loader size={12} className="animate-spin" /> Checking availability…
+                  </div>
+                )}
+                {availabilityStatus === "full" && (
+                  <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 font-semibold">
+                    <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                    <span>This window is fully booked. Please choose a different date or time.</span>
+                  </div>
+                )}
+                {availabilityStatus === "available" && (
+                  <div className="flex items-center gap-2 text-xs text-emerald-600 mt-1 font-medium">
+                    <CheckCircle2 size={12} /> Slot available — proceed to confirm.
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -510,12 +603,76 @@ export default function BookingWizard({
                 <span>We authorize (hold) your card now but <strong>only charge after the technician completes the service</strong> and you confirm the work is done.</span>
               </div>
 
+              {/* Terms & consent */}
+              <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Authorization & Consent</p>
+
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => { setTermsAccepted(e.target.checked); setTermsError(""); }}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-700 leading-relaxed">
+                    I have read and agree to the{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                      Terms of Service <ExternalLink size={10} />
+                    </a>{" "}
+                    and{" "}
+                    <a href="/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                      Cancellation Policy <ExternalLink size={10} />
+                    </a>.{" "}
+                    <span className="text-rose-500 font-bold">*</span>
+                  </span>
+                </label>
+
+                {needsRecurringConsent && (
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={recurringConsent}
+                      onChange={(e) => { setRecurringConsent(e.target.checked); setTermsError(""); }}
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-700 leading-relaxed">
+                      I authorize Greenbee to charge my card on a{" "}
+                      <span className="font-semibold capitalize">{bookingParams.frequency}</span> basis
+                      until I cancel. I understand I can cancel anytime with 24 hours' notice.{" "}
+                      <span className="text-rose-500 font-bold">*</span>
+                    </span>
+                  </label>
+                )}
+
+                {termsError && (
+                  <div className="flex items-center gap-2 text-xs text-rose-600 font-semibold">
+                    <AlertTriangle size={13} /> {termsError}
+                  </div>
+                )}
+              </div>
+
               <StripePaymentPanel
-                bookingParams={bookingParams}
+                bookingParams={{
+                  ...bookingParams,
+                  membership: activeMembership ?? null,
+                  sameDayFee: isSameDay,
+                  twoTechFee: isTwoTech,
+                }}
                 service={service}
                 selectedDate={selectedDate}
                 selectedSlot={selectedSlot}
-                validateBeforePayment={() => true}
+                validateBeforePayment={() => {
+                  if (!termsAccepted) {
+                    setTermsError("Please accept the Terms of Service and Cancellation Policy to continue.");
+                    return false;
+                  }
+                  if (needsRecurringConsent && !recurringConsent) {
+                    setTermsError("Please authorize recurring charges for your subscription.");
+                    return false;
+                  }
+                  setTermsError("");
+                  return true;
+                }}
                 onPaymentStarted={() => setIsProcessing(true)}
                 onPaymentFinished={() => setIsProcessing(false)}
                 onLog={setApiLogs}
@@ -564,6 +721,8 @@ export default function BookingWizard({
             params={bookingParams}
             selectedDate={selectedDate}
             selectedSlot={selectedSlot}
+            isSameDay={isSameDay}
+            isTwoTech={isTwoTech}
           />
         </div>
       </div>
