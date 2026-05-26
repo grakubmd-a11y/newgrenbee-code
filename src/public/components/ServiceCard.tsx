@@ -6,11 +6,16 @@ interface ServiceCardProps {
   key?: string;
   service: Service;
   onBookClick: (serviceId: string) => void;
-  avgRating: number;
-  reviewsCount: number;
+  avgRating?: number;
+  reviewsCount?: number;
 }
 
-export default function ServiceCard({ service, onBookClick, avgRating, reviewsCount }: ServiceCardProps) {
+export default function ServiceCard({ 
+  service, 
+  onBookClick, 
+  avgRating = 4.8, 
+  reviewsCount = 0 
+}: ServiceCardProps) {
   // Dynamically resolve icon from list
   const IconComponent = (Icons as any)[service.iconName] || Icons.HelpCircle;
 

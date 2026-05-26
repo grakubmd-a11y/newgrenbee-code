@@ -705,7 +705,7 @@ export default function App() {
                     <ServiceCard
                       key={service.id}
                       service={service}
-                      onSelectService={() => {
+                      onBookClick={() => {
                         setSelectedEstimatorId(service.id);
                         handleTabChange("estimator");
                       }}
@@ -752,22 +752,31 @@ export default function App() {
                 <p className="text-gray-600 text-lg">Get accurate pricing for your home service needs</p>
               </div>
               <CostEstimator
-                selectedEstimatorId={selectedEstimatorId}
-                onSelectEstimatorId={setSelectedEstimatorId}
-                onBook={(estimatorId, params) => {
+                initialServiceId={selectedEstimatorId}
+                activeMembership={activeMembership}
+                onProceedToBook={(params) => {
                   const newBooking: Booking = {
                     id: `booking-${Date.now()}`,
-                    serviceId: estimatorId,
-                    customerName: currentUser?.name || "Guest",
-                    customerEmail: currentUser?.email || "",
-                    bookingDate: new Date(),
-                    status: "pending",
-                    notes: `Service: ${params.service}, Area: ${params.sqft}`,
-                    totalCost: params.cost,
+                    serviceId: params.serviceId,
+                    userId: currentUser?.email || "guest",
+                    status: "scheduled",
+                    date: new Date().toISOString(),
+                    time: "10:00 AM",
+                    details: {
+                      units: params.units,
+                      frequency: params.frequency,
+                      selectedFactors: params.selectedFactors,
+                    },
+                    totalCost: params.totalCost,
+                    originalCost: params.originalCost,
+                    appliedCoupon: params.couponCode,
+                    couponDiscount: params.couponDiscount,
                   };
-                  setBookings([newBooking, ...bookings]);
-                  setActiveTab("bookings");
+                  setBookings([...bookings, newBooking]);
+                  alert("✅ Booking confirmed!");
+                  handleTabChange("bookings");
                 }}
+                services={services}
               />
             </div>
           </section>
@@ -781,10 +790,17 @@ export default function App() {
                 <h2 className="text-3xl md:text-4xl font-black text-gray-950">Premium Membership Plans</h2>
                 <p className="text-gray-600 text-lg">Save up to 40% with annual membership</p>
               </div>
-              <MembershipPlans onSelectPlan={(plan) => {
-                setActiveMembership(plan);
-                localStorage.setItem("hsh_membership", plan);
-              }} />
+              <MembershipPlans 
+                activeMembership={activeMembership || null}
+                onSelectMembership={(plan) => {
+                  setActiveMembership(plan);
+                  localStorage.setItem("hsh_membership", plan);
+                }}
+                onCancelMembership={() => {
+                  setActiveMembership(null);
+                  localStorage.removeItem("hsh_membership");
+                }}
+              />
             </div>
           </section>
         )}
