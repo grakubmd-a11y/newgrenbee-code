@@ -14,7 +14,6 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import { 
-  signInWithPopup, 
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider, 
@@ -593,54 +592,22 @@ export function getFirebaseAuthErrorMessage(error: unknown): string {
   }
 }
 
-/**
- * Detects if running on mobile device
- */
-function isMobileDevice(): boolean {
-  if (typeof window === 'undefined') return false;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
 export async function signInWithGooglePopup(): Promise<FirebaseUser | null> {
   const provider = createGoogleProvider();
   
   console.log("[v0] signInWithGooglePopup called");
   console.log("[v0] Current domain:", window.location.hostname);
-  console.log("[v0] isMobile:", isMobileDevice());
   
-  // On mobile, use redirect flow as popup is often blocked or fails
-  if (isMobileDevice()) {
-    console.log("[v0] Mobile detected, using redirect flow for Google Sign-In");
-    try {
-      await signInWithRedirect(auth, provider);
-    } catch (redirectError) {
-      console.error("[v0] Redirect error:", redirectError);
-      throw redirectError;
-    }
-    return null; // Will be handled by getRedirectResult on page load
-  }
-  
+  // Use redirect flow for all cases to avoid COOP (Cross-Origin-Opener-Policy) issues
+  // Popup can be blocked by browser security policies, but redirect is more reliable
+  console.log("[v0] Using redirect flow for Google Sign-In (avoids COOP/popup issues)");
   try {
-    console.log("[v0] Attempting popup sign-in...");
-    const result = await signInWithPopup(auth, provider);
-    console.log("[v0] Popup sign-in successful");
-    return result.user;
-  } catch (error) {
-    const err = error as { code?: string; message?: string };
-    console.error("[v0] Google Sign In Error code:", err?.code);
-    console.error("[v0] Google Sign In Error message:", err?.message);
-    console.error("[v0] Full error:", error);
-    
-    // If popup fails, fallback to redirect
-    if (err?.code === 'auth/popup-blocked' || 
-        err?.code === 'auth/popup-closed-by-user' ||
-        err?.code === 'auth/cancelled-popup-request') {
-      console.log("[v0] Popup failed, falling back to redirect flow");
-      await signInWithRedirect(auth, provider);
-      return null;
-    }
-    throw error;
+    await signInWithRedirect(auth, provider);
+  } catch (redirectError) {
+    console.error("[v0] Redirect error:", redirectError);
+    throw redirectError;
   }
+  return null; // Will be handled by getRedirectResult on page load
 }
 
 export async function signInWithGoogleRedirect(): Promise<void> {
