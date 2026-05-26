@@ -60,3 +60,5 @@ export function CTASection({ language, onBrowse, onContact }: CTASectionProps) {
     </section>
   );
 }
+
+export default CTASection;

@@ -36,7 +36,7 @@ const stats = [
   },
 ];
 
-export function TrustSection({ language }: TrustSectionProps) {
+export default function TrustSection({ language }: TrustSectionProps) {
   return (
     <section className="w-full py-20 md:py-32 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -90,3 +90,5 @@ export function TestimonialsSection({ language }: TestimonialsSectionProps) {
     </section>
   );
 }
+
+export default TestimonialsSection;

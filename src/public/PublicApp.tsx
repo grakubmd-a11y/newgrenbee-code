@@ -10,7 +10,7 @@ import MembershipPlans from "./components/MembershipPlans";
 import HeroSection from "./components/HeroSection";
 import FeaturesSection from "./components/FeaturesSection";
 import TestimonialsSection from "./components/TestimonialsSection";
-import { TrustSection } from "./components/TrustSection";
+import TrustSection from "./components/TrustSection";
 import CTASection from "./components/CTASection";
 
 // New page-level components for full-screen SEO structures
@@ -728,15 +728,6 @@ export default function App() {
               onContact={() => handleTabChange("about")}
             />
           </div>
-        )}
-              activeMembership={activeMembership}
-              onSelectTab={handleTabChange}
-              onUpdateUser={handleUpdateUser}
-              onEnterAdmin={() => {
-                window.location.href = "/admin";
-              }}
-            />
-          </section>
         )}
 
         {/* Tab "bookings" containing OperationsTracker or Rescheduling */}

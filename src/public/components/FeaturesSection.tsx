@@ -76,3 +76,5 @@ export function FeaturesSection({ language }: FeaturesSectionProps) {
     </section>
   );
 }
+
+export default FeaturesSection;
