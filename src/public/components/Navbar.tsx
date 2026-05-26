@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { 
-  Calendar, 
-  ShieldCheck, 
-  Sparkles, 
+import { Link } from "react-router-dom";
+import {
+  ShieldCheck,
+  Sparkles,
   Award,
   User,
   LogIn,
@@ -12,11 +12,11 @@ import {
   CheckCircle2,
   Calculator,
   BookOpen,
-  Settings,
   Truck,
   Menu,
-  Globe,
-  ChevronDown
+  MapPin,
+  HelpCircle,
+  MessageSquare,
 } from "lucide-react";
 import { Language } from "../../shared/i18n";
 
@@ -131,7 +131,7 @@ export default function Navbar({
               </span>
             </div>
 
-            {/* CENTER: Dropdown Navigation (Desktop only) */}
+            {/* CENTER: Navigation (Desktop only) */}
             <div className="hidden md:flex items-center gap-1">
               <button
                 onClick={() => setActiveTab("estimator")}
@@ -139,18 +139,24 @@ export default function Navbar({
               >
                 {language === 'en' ? 'Get Quote' : 'Cotizar'}
               </button>
-              <button
-                onClick={() => setActiveTab("about")}
+              <Link
+                to="/areas"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
-                {language === 'en' ? 'About' : 'Nosotros'}
-              </button>
-              <button
-                onClick={() => setActiveTab("blog")}
+                {language === 'en' ? 'Coverage' : 'Cobertura'}
+              </Link>
+              <Link
+                to="/faq"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
-                {language === 'en' ? 'Blog' : 'Blog'}
-              </button>
+                FAQ
+              </Link>
+              <Link
+                to="/contact"
+                className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                {language === 'en' ? 'Contact' : 'Contacto'}
+              </Link>
             </div>
 
             {/* RIGHT: Primary CTA + Auth */}
@@ -312,6 +318,31 @@ export default function Navbar({
                   </li>
                 )}
               </ul>
+
+              {/* Page links separator */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-3 mb-2">
+                  {language === 'en' ? 'Info' : 'Info'}
+                </p>
+                <ul className="space-y-1">
+                  {[
+                    { to: "/areas", label: language === 'en' ? 'Coverage Areas' : 'Áreas de Cobertura', icon: MapPin },
+                    { to: "/faq", label: "FAQ", icon: HelpCircle },
+                    { to: "/contact", label: language === 'en' ? 'Contact Us' : 'Contacto', icon: MessageSquare },
+                  ].map(({ to, label, icon: Icon }) => (
+                    <li key={to}>
+                      <Link
+                        to={to}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all"
+                      >
+                        <Icon size={18} className="text-gray-400" />
+                        <span>{label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </nav>
 
             {/* Footer with Auth */}
