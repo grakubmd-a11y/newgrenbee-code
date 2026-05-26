@@ -5,19 +5,12 @@ import { Service } from "../../shared/types";
 interface ServiceCardProps {
   key?: string;
   service: Service;
-  onBookClick?: (serviceId: string) => void;
-  onSelectService?: (serviceId: string) => void;
-  avgRating?: number;
-  reviewsCount?: number;
+  onBookClick: (serviceId: string) => void;
+  avgRating: number;
+  reviewsCount: number;
 }
 
-export default function ServiceCard({ 
-  service, 
-  onBookClick, 
-  onSelectService,
-  avgRating = 4.8, 
-  reviewsCount = 0 
-}: ServiceCardProps) {
+export default function ServiceCard({ service, onBookClick, avgRating, reviewsCount }: ServiceCardProps) {
   // Dynamically resolve icon from list
   const IconComponent = (Icons as any)[service.iconName] || Icons.HelpCircle;
 
@@ -90,7 +83,7 @@ export default function ServiceCard({
       <div className="mt-6 pt-2">
         <button
           key={`btn-book-${service.id}`}
-          onClick={() => (onBookClick || onSelectService)?.(service.id)}
+          onClick={() => onBookClick(service.id)}
           className="w-full flex items-center justify-center gap-2 cursor-pointer rounded-xl bg-gray-50 hover:bg-brand text-gray-700 hover:text-white py-3 text-sm font-semibold border border-gray-100 hover:border-brand transition-all duration-300 shadow-sm"
         >
           <span>Calculate Estimate & Book</span>
