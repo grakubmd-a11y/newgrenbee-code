@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ShieldCheck,
@@ -17,6 +17,10 @@ import {
   MapPin,
   HelpCircle,
   MessageSquare,
+  ChevronDown,
+  LogOut,
+  Settings,
+  ClipboardList,
 } from "lucide-react";
 import { Language } from "../../shared/i18n";
 
@@ -63,6 +67,18 @@ export default function Navbar({
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   
   // Input fields
   const [emailInput, setEmailInput] = useState("");
@@ -159,50 +175,107 @@ export default function Navbar({
               </Link>
             </div>
 
-            {/* RIGHT: Primary CTA + Auth */}
+            {/* RIGHT: Auth Area */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* Book Service CTA - Primary Action */}
-              {!currentUser && (
-                <button
-                  onClick={() => setActiveTab("estimator")}
-                  className="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-bold text-white bg-brand hover:bg-brand-hover transition-all cursor-pointer"
-                >
-                  Book Service
-                </button>
-              )}
 
               {currentUser ? (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("bookings")}
-                  className={`flex items-center gap-2 bg-brand-light border border-brand/20 px-3 py-2 rounded-lg transition-all hover:scale-105 cursor-pointer ${
-                    activeTab === "bookings" ? "ring-2 ring-brand" : ""
-                  }`}
-                >
-                  <div className="h-6 w-6 bg-brand text-white rounded-md flex items-center justify-center font-bold text-xs shrink-0">
-                    {currentUser.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-xs font-bold text-brand max-w-[60px] sm:max-w-none truncate hidden sm:inline">
-                    {currentUser.name}
-                  </span>
-                  {bookingsCount > 0 && (
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ml-auto">
-                      {bookingsCount}
-                    </span>
+                /* ── LOGGED IN: avatar dropdown ── */
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsUserMenuOpen((v) => !v)}
+                    className="flex items-center gap-2 bg-brand-light border border-brand/20 px-3 py-2 rounded-xl transition-all hover:bg-brand/10 cursor-pointer select-none"
+                  >
+                    {/* Avatar initial */}
+                    <div className="h-7 w-7 bg-brand text-white rounded-lg flex items-center justify-center font-black text-xs shrink-0">
+                      {currentUser.name.charAt(0).toUpperCase()}
+                    </div>
+                    {/* Greeting */}
+                    <div className="hidden sm:flex flex-col items-start leading-none">
+                      <span className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">Mi cuenta</span>
+                      <span className="text-xs font-bold text-gray-900 max-w-[90px] truncate">
+                        Hola, {currentUser.name.split(" ")[0]}
+                      </span>
+                    </div>
+                    {bookingsCount > 0 && (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                        {bookingsCount}
+                      </span>
+                    )}
+                    <ChevronDown size={13} className={`text-brand/60 transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {/* Dropdown menu */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                      {/* User info header */}
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-bold text-gray-900 truncate">{currentUser.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                      </div>
+
+                      {/* Menu items */}
+                      <div className="py-1">
+                        <button
+                          onClick={() => { setActiveTab("account"); setIsUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
+                        >
+                          <Settings size={15} className="text-gray-400 shrink-0" />
+                          <span>Mi Perfil & Configuración</span>
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab("bookings"); setIsUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
+                        >
+                          <ClipboardList size={15} className="text-gray-400 shrink-0" />
+                          <span>Mis Pedidos</span>
+                          {bookingsCount > 0 && (
+                            <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white">
+                              {bookingsCount}
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab("membership"); setIsUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
+                        >
+                          <Award size={15} className="text-gray-400 shrink-0" />
+                          <span>Membresía</span>
+                        </button>
+                      </div>
+
+                      {/* Logout */}
+                      <div className="border-t border-gray-100 pt-1">
+                        <button
+                          onClick={() => { onLogout(); setIsUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors text-left cursor-pointer"
+                        >
+                          <LogOut size={15} className="shrink-0" />
+                          <span>Cerrar Sesión</span>
+                        </button>
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setIsAuthDrawerOpen(true);
-                  }}
-                  className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-white bg-brand hover:bg-brand-hover transition-all cursor-pointer"
-                >
-                  <span className="sm:hidden">Sign Up</span>
-                  <span className="hidden sm:inline">Get Started</span>
-                </button>
+                /* ── NOT LOGGED IN: login + signup buttons ── */
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('login'); setIsAuthDrawerOpen(true); }}
+                    className="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer"
+                  >
+                    Iniciar Sesión
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('signup'); setIsAuthDrawerOpen(true); }}
+                    className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-white bg-brand hover:bg-brand-hover transition-all cursor-pointer"
+                  >
+                    <span className="sm:hidden">Entrar</span>
+                    <span className="hidden sm:inline">Crear Cuenta</span>
+                  </button>
+                </>
               )}
 
               {/* Language Toggle */}
@@ -346,17 +419,30 @@ export default function Navbar({
             </nav>
 
             {/* Footer with Auth */}
-            <div className="p-4 border-t border-gray-100 bg-slate-50/30">
+            <div className="p-4 border-t border-gray-100 bg-slate-50/30 space-y-2">
               {currentUser ? (
-                <div className="flex items-center gap-3 p-3 bg-brand-light rounded-xl">
-                  <div className="h-9 w-9 bg-brand text-white rounded-lg flex items-center justify-center font-black text-sm">
-                    {currentUser.name.charAt(0).toUpperCase()}
+                <>
+                  <div className="flex items-center gap-3 p-3 bg-brand-light rounded-xl">
+                    <div className="h-9 w-9 bg-brand text-white rounded-lg flex items-center justify-center font-black text-sm">
+                      {currentUser.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">Mi cuenta</p>
+                      <p className="text-sm font-bold text-gray-900 truncate">Hola, {currentUser.name.split(" ")[0]}</p>
+                      <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{currentUser.name}</p>
-                    <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
-                  </div>
-                </div>
+                  <button
+                    onClick={() => {
+                      onLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full py-2.5 rounded-xl border border-rose-100 text-rose-600 hover:bg-rose-50 text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <LogOut size={14} />
+                    Cerrar Sesión
+                  </button>
+                </>
               ) : (
                 <div className="space-y-2">
                   <button
@@ -367,7 +453,7 @@ export default function Navbar({
                     }}
                     className="w-full py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-bold transition-all cursor-pointer"
                   >
-                    Registrarse
+                    Crear Cuenta
                   </button>
                   <button
                     onClick={() => {
