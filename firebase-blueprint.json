@@ -1,0 +1,359 @@
+{
+  "entities": {
+    "user": {
+      "title": "User Profile",
+      "description": "User account information, metadata, and service settings.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique user identity from Firebase Auth"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the client"
+        },
+        "email": {
+          "type": "string",
+          "description": "Primary email contact address"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary voice contact phone number"
+        },
+        "address": {
+          "type": "string",
+          "description": "Domiciled active service address"
+        },
+        "activeMembership": {
+          "type": "string",
+          "description": "Active club service tier membership (none, VIP standard, etc.)"
+        },
+        "petsStatus": {
+          "type": "string",
+          "description": "Delineation of pets residing in property"
+        },
+        "keyPreferences": {
+          "type": "string",
+          "description": "Access protocol instruction (lockbox, frontdesk, present)"
+        },
+        "lockboxCode": {
+          "type": "string",
+          "description": "Lock code of external keybox"
+        },
+        "specialNote": {
+          "type": "string",
+          "description": "Special entry notes for technical operator"
+        },
+        "cardName": {
+          "type": "string",
+          "description": "Primary credit card holder name"
+        },
+        "cardNumber": {
+          "type": "string",
+          "description": "Masked credit card number"
+        },
+        "cardExpiry": {
+          "type": "string",
+          "description": "Expiration date format of primary credit card"
+        },
+        "cardProvider": {
+          "type": "string",
+          "description": "Credit card framework association (visa, mastercard)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp identifier"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp identifier"
+        }
+      },
+      "required": ["uid", "name", "email"]
+    },
+    "booking": {
+      "title": "Booking",
+      "description": "Service scheduling records, operational tracking status, and pricing details.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Secure Booking Reference Identifier code"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this booking, or 'guest'"
+        },
+        "serviceId": {
+          "type": "string",
+          "description": "Service reference code"
+        },
+        "serviceName": {
+          "type": "string",
+          "description": "Display name of service"
+        },
+        "bookingDate": {
+          "type": "string",
+          "description": "ISO date for the appointment"
+        },
+        "timeSlot": {
+          "type": "string",
+          "description": "Designated hours time window"
+        },
+        "status": {
+          "type": "string",
+          "description": "Operational pipeline progression state",
+          "enum": ["scheduled", "dispatched", "in-progress", "completed", "cancelled"]
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Recipient address name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Client communication email address"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Client contact voice number"
+        },
+        "address": {
+          "type": "string",
+          "description": "Active operational destination site"
+        },
+        "units": {
+          "type": "number",
+          "description": "Sizing multiplier units (e.g. rooms, sqft)"
+        },
+        "selectedFactors": {
+          "type": "object",
+          "description": "Map-based sub-additions and modifiers"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["once", "weekly", "bi-weekly", "monthly"]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Customer comments or specifications"
+        },
+        "totalCost": {
+          "type": "number",
+          "description": "Total final invoice price parameter"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when booking is recorded"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["card", "paypal", "cash"]
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["unpaid", "paid", "authorized"]
+        }
+      },
+      "required": ["id", "serviceId", "serviceName", "bookingDate", "timeSlot", "status", "customerName", "email", "phone", "address", "units", "frequency", "totalCost", "createdAt"]
+    },
+    "review": {
+      "title": "Review",
+      "description": "User reviews for provided home services, rating, and engagement helpful metric.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Review key identifier"
+        },
+        "serviceId": {
+          "type": "string",
+          "description": "Id of reviewed target service"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Published display reviewer name"
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating scale from 1 to 5"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Detailed review testimony text block"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date code string"
+        },
+        "helpfulCount": {
+          "type": "number",
+          "description": "Voted value helpful tracker"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Indicator if reviewer had a completed booking"
+        }
+      },
+      "required": ["id", "serviceId", "authorName", "rating", "comment", "date", "helpfulCount", "verified"]
+    },
+    "service": {
+      "title": "Service Offered",
+      "description": "Information on a home service class, pricing metrics, and optional modifiers.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "iconName": {
+          "type": "string"
+        },
+        "tagline": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "basePrice": {
+          "type": "number"
+        },
+        "unitName": {
+          "type": "string"
+        },
+        "unitLabel": {
+          "type": "string"
+        },
+        "pricePerUnit": {
+          "type": "number"
+        },
+        "minUnits": {
+          "type": "number"
+        },
+        "maxUnits": {
+          "type": "number"
+        },
+        "stepUnits": {
+          "type": "number"
+        },
+        "estimatedMinutesPerUnit": {
+          "type": "number"
+        },
+        "includedSpecs": {
+          "type": "array"
+        },
+        "factors": {
+          "type": "array"
+        },
+        "popularUnitValue": {
+          "type": "number"
+        }
+      },
+      "required": ["id", "name", "basePrice"]
+    },
+    "staff": {
+      "title": "Staff Member",
+      "description": "Team members and technicians dispatched to active service locations.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "serviceIds": {
+          "type": "array"
+        }
+      },
+      "required": ["id", "name", "email", "active"]
+    },
+    "coverage": {
+      "title": "Coverage ZIP Code",
+      "description": "Supported geographic ZIP ranges for Springfield area operations.",
+      "type": "object",
+      "properties": {
+        "zipCode": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": ["zipCode", "city", "state", "active"]
+    },
+    "settings": {
+      "title": "Business Settings",
+      "description": "General system configuration parameters, business details, and features.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "bookingEnabled": {
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "name", "bookingEnabled"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "user",
+      "description": "Access user's custom layout presets, lockbox options and accounts"
+    },
+    "bookings/{bookingId}": {
+      "schema": "booking",
+      "description": "Operations bookings collection for planning, tracking, and coordinating"
+    },
+    "reviews/{reviewId}": {
+      "schema": "review",
+      "description": "Customer feedback and reviews for transparency"
+    },
+    "services/{serviceId}": {
+      "schema": "service",
+      "description": "Configured home service classes details and cost settings"
+    },
+    "staff/{staffId}": {
+      "schema": "staff",
+      "description": "Active technicians and field specialist roster"
+    },
+    "coverage/{zipCode}": {
+      "schema": "coverage",
+      "description": "Geographical zip code boundaries and city mappings"
+    },
+    "settings/{settingsId}": {
+      "schema": "settings",
+      "description": "Store environment settings and configuration models"
+    }
+  }
+}

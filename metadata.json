@@ -1,0 +1,6 @@
+{
+  "name": "Home Services Hub",
+  "description": "An interactive booking, scheduling, and price estimation platform for professional home services including house cleaning, TV installation, lawn mowing, furniture assembly, and pressure washing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-mono: "Inter", ui-monospace, monospace;
+  
+  --color-brand: #0EAD6B;
+  --color-brand-hover: #0C955B;
+  --color-brand-light: #EEFBF4;
+  --color-brand-100: #D8F5E6;
+  --color-brand-200: #B3ECCD;
+  --color-brand-50: #EEFBF4;
+}
+
+/* Smooth background transitions on interactable elements */
+.btn-brand {
+  background-color: #0EAD6B;
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+.btn-brand:hover {
+  background-color: #0C955B;
+}
+
+/* premium subtle grid background */
+.bg-grid-pattern {
+  background-size: 20px 20px;
+  background-image: radial-gradient(circle, rgba(14, 173, 107, 0.05) 1.2px, transparent 1.2px);
+}
+

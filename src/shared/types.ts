@@ -1,0 +1,138 @@
+/**
+ * Types definition for the Home Services Hub application
+ */
+
+export interface ServiceFactorOption {
+  label: string;
+  priceModifier: number; // Flat fee or cost multiplier
+}
+
+export interface ServiceFactor {
+  name: string;
+  label: string;
+  options: ServiceFactorOption[];
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  iconName: string; // Used to match Lucide icons dynamically
+  tagline: string;
+  description: string;
+  basePrice: number;
+  unitName: string; // e.g., "room", "sq ft", "TV", "item"
+  unitLabel: string; // e.g., "Number of Rooms", "Lawn Size"
+  pricePerUnit: number;
+  minUnits: number;
+  maxUnits: number;
+  stepUnits: number;
+  estimatedMinutesPerUnit: number;
+  includedSpecs: string[];
+  factors: ServiceFactor[];
+  popularUnitValue: number;
+}
+
+export type BookingStatus = 'scheduled' | 'dispatched' | 'in-progress' | 'completed' | 'cancelled';
+
+export interface Booking {
+  id: string;
+  userId?: string;
+  serviceId: string;
+  serviceName: string;
+  bookingDate: string;
+  timeSlot: string;
+  status: BookingStatus;
+  customerName: string;
+  email: string;
+  phone: string;
+  address: string;
+  units: number;
+  selectedFactors: { [factorName: string]: { label: string; modifier: number } };
+  frequency: 'once' | 'weekly' | 'bi-weekly' | 'monthly';
+  notes: string;
+  totalCost: number;
+  originalCost?: number;
+  couponCode?: string;
+  couponDiscount?: number;
+  createdAt: string;
+  paymentMethod?: 'card' | 'paypal' | 'cash';
+  paymentStatus?: 'unpaid' | 'paid' | 'authorized';
+  stripePaymentIntentId?: string;
+  stripePaymentStatus?: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+}
+
+export interface Review {
+  id: string;
+  serviceId: string;
+  authorName: string;
+  rating: number;
+  comment: string;
+  date: string;
+  helpfulCount: number;
+  verified: boolean;
+}
+
+export interface Staff {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  active: boolean;
+  serviceIds: string[];
+}
+
+export interface Coverage {
+  zipCode: string;
+  city: string;
+  state: string;
+  active: boolean;
+}
+
+export interface BusinessSettings {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  timezone: string;
+  bookingEnabled: boolean;
+  stripeMode?: 'test' | 'live';
+  stripePublishableKey?: string;
+  googleMapsEnabled?: boolean;
+  googleMapsApiKey?: string;
+  googleMapsAutocompleteEnabled?: boolean;
+  googleAuthEnabled?: boolean;
+}
+
+export type ActivitySeverity = 'info' | 'success' | 'warning' | 'error';
+
+export interface AdminActivityEvent {
+  id: string;
+  type: string;
+  entityType: 'booking' | 'service' | 'staff' | 'coverage' | 'review' | 'settings' | 'coupon' | 'system';
+  entityId: string;
+  title: string;
+  detail: string;
+  actorName: string;
+  actorEmail: string;
+  severity: ActivitySeverity;
+  createdAt: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}
+
+export interface CouponRule {
+  id: string;
+  code: string;
+  enabled: boolean;
+  discountType: 'percent' | 'fixed';
+  value: number;
+  minimumOrderTotal: number;
+  usageLimit: number;
+  usedCount: number;
+  serviceIds: string[];
+  startsAt: string;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+}

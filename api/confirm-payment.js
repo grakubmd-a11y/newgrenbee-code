@@ -1,0 +1,130 @@
+import admin from "firebase-admin";
+import Stripe from "stripe";
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const hasStripeSecretKey = typeof stripeSecretKey === "string" &&
+  stripeSecretKey.trim().length > 0 &&
+  !stripeSecretKey.includes("REPLACE_ME");
+const stripe = hasStripeSecretKey ? new Stripe(stripeSecretKey) : null;
+
+function sendJson(res, status, payload) {
+  res.status(status).setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(payload));
+}
+
+function parseBody(req) {
+  if (!req.body) return {};
+  if (typeof req.body === "string") {
+    try {
+      return JSON.parse(req.body);
+    } catch {
+      return {};
+    }
+  }
+  return req.body;
+}
+
+function couponIdFromCode(code) {
+  return String(code || "")
+    .trim()
+    .toUpperCase()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getFirestore() {
+  if (admin.apps.length) {
+    return admin.firestore();
+  }
+
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_ADMIN_CREDENTIALS;
+  if (!serviceAccountJson || serviceAccountJson.includes("REPLACE_ME")) {
+    return null;
+  }
+
+  const serviceAccount = JSON.parse(serviceAccountJson);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+  return admin.firestore();
+}
+
+async function recordCouponUsage(couponCode) {
+  const couponId = couponIdFromCode(couponCode);
+  if (!couponId) {
+    return { recorded: false, reason: "No coupon code supplied." };
+  }
+
+  const db = getFirestore();
+  if (!db) {
+    return { recorded: false, reason: "Firebase admin credentials are not configured." };
+  }
+
+  const couponRef = db.collection("coupons").doc(couponId);
+  await db.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(couponRef);
+    if (!snapshot.exists) {
+      return;
+    }
+
+    const coupon = snapshot.data() || {};
+    const usedCount = Number(coupon.usedCount || 0);
+    const usageLimit = Number(coupon.usageLimit || 0);
+    if (usageLimit > 0 && usedCount >= usageLimit) {
+      return;
+    }
+
+    transaction.update(couponRef, {
+      usedCount: usedCount + 1,
+      updatedAt: new Date().toISOString()
+    });
+  });
+
+  return { recorded: true };
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return sendJson(res, 405, { error: "Method not allowed" });
+  }
+
+  if (!stripe) {
+    return sendJson(res, 500, {
+      error: "Stripe is not configured. Add STRIPE_SECRET_KEY on the server."
+    });
+  }
+
+  const body = parseBody(req);
+  const paymentIntentId = String(body.paymentIntentId || "");
+  if (!paymentIntentId.startsWith("pi_")) {
+    return sendJson(res, 400, { error: "Invalid PaymentIntent id." });
+  }
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const confirmedStatuses = ["requires_capture", "succeeded", "processing"];
+    if (!confirmedStatuses.includes(paymentIntent.status)) {
+      return sendJson(res, 409, {
+        error: `PaymentIntent is not confirmed. Current status: ${paymentIntent.status}`,
+        paymentIntentStatus: paymentIntent.status
+      });
+    }
+
+    const couponUsage = body.couponCode
+      ? await recordCouponUsage(body.couponCode)
+      : { recorded: false, reason: "No coupon code supplied." };
+
+    return sendJson(res, 200, {
+      ok: true,
+      paymentIntentId: paymentIntent.id,
+      paymentIntentStatus: paymentIntent.status,
+      couponUsage
+    });
+  } catch (error) {
+    return sendJson(res, 500, {
+      error: error instanceof Error ? error.message : "Could not verify payment."
+    });
+  }
+}
