@@ -729,3 +729,93 @@ export default function App() {
             />
           </div>
         )}
+              activeMembership={activeMembership}
+              onSelectTab={handleTabChange}
+              onUpdateUser={handleUpdateUser}
+              onEnterAdmin={() => {
+                window.location.href = "/admin";
+              }}
+            />
+          </section>
+        )}
+
+        {/* Tab "bookings" containing OperationsTracker or Rescheduling */}
+        {activeTab === "bookings" && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <BookingsTracker
+              bookings={bookings}
+              onUpdateStatus={handleUpdateBookingStatus}
+              onReschedule={handleRescheduleBooking}
+              onCancelBooking={handleCancelBooking}
+              onWriteReview={handleReviewShortcut}
+            />
+          </section>
+        )}
+
+      </main>
+
+      {/* Structured Footer */}
+      <footer className="bg-white border-t border-gray-100 py-12 text-xs text-gray-500 relative select-none">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          <div className="md:col-span-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-brand-light text-brand">
+                <Icons.Home size={16} strokeWidth={2.5} />
+              </div>
+              <span className="text-base font-bold text-gray-900 tracking-tight">
+                HomeServices<span className="text-brand">Hub</span>
+              </span>
+            </div>
+            <p className="leading-relaxed">
+              Springfield's premier localized operations platform providing high-integrity house cleaning, commercial pressure washing, electrical tv alignment mounting, landscaping garden care, and furniture assembly technicians.
+            </p>
+            <p className="text-[10px] text-gray-400">
+              © {new Date().getFullYear()} Home Services Hub Springfield. All rights reserved.
+            </p>
+            {isAdmin && (
+              <div className="pt-2">
+                <a
+                  href="/admin"
+                  className="text-[10px] text-gray-400 hover:text-brand font-medium transition-colors cursor-pointer flex items-center gap-1 bg-transparent border-none p-0 outline-none animate-in fade-in duration-200"
+                >
+                  <Icons.Settings size={10} />
+                  <span>Acceso Consola de Administración</span>
+                </a>
+              </div>
+            )}
+          </div>
+
+          <div className="md:col-span-4 space-y-3">
+            <h4 className="font-bold text-gray-900 tracking-wider text-[10px] uppercase">Service Offerings Code list</h4>
+            <ul className="space-y-1.5 font-medium">
+              <li>• Residential House Dusting & Deep Sanitize Cleaning</li>
+              <li>• Wall bracket placement & electrical wire concealment</li>
+              <li>• Side-cutter edge trimming and power weed mowing</li>
+              <li>• Heavy wood dresser and bunk-bed flat-pack assembly</li>
+              <li>• Commercial hot water driveway oil stains extraction</li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-4 space-y-3">
+            <h4 className="font-bold text-gray-900 tracking-wider text-[10px] uppercase">Springfield Operations Office</h4>
+            <div className="space-y-1">
+              <p className="font-bold text-gray-800">Springfield HQ Office block:</p>
+              <p>744 Concord Boulevard, Suite 500, Springfield, IL</p>
+            </div>
+            <div className="space-y-1">
+              <p className="font-bold text-gray-800">Support Hours:</p>
+              <p>Monday - Sunday (7:00 AM - 9:00 PM CST)</p>
+            </div>
+            <div className="space-y-1">
+              <p className="font-bold text-gray-800 flex items-center gap-1">
+                <Icons.Sparkles size={11} className="text-brand" />
+                <span>PCI Security Guarantee</span>
+              </p>
+              <p>Fully compliant SSL 256-Bit e-cart validation routing.</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
