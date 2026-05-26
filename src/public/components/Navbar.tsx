@@ -118,7 +118,7 @@ export default function Navbar({
               </div>
               <div className="min-w-0">
                 <span className="text-base sm:text-lg font-extrabold text-gray-950 tracking-tight block leading-none whitespace-nowrap">
-                  HomeServices<span className="text-brand">Hub</span>
+                  Gren<span className="text-brand">bee</span>
                 </span>
                 <span className="hidden sm:block text-[9px] text-gray-400 font-bold tracking-wide uppercase mt-0.5">
                   Springfield Desk
