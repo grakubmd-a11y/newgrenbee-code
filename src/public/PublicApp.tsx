@@ -772,6 +772,8 @@ export default function App() {
               activeMembership={activeMembership}
               onSelectTab={handleTabChange}
               onUpdateProfile={handleUpdateProfile}
+              onReschedule={handleRescheduleBooking}
+              onCancelBooking={handleCancelBooking}
               onEnterAdmin={() => {
                 window.location.href = "/admin";
               }}

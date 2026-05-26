@@ -21,15 +21,18 @@ import {
   LogOut,
   Settings,
   ClipboardList,
+  ArrowLeft,
+  KeyRound,
 } from "lucide-react";
 import { Language } from "../../shared/i18n";
+import { sendPasswordReset } from "../../shared/services/firebaseService";
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   bookingsCount: number;
   activeMembership?: string | null;
-  currentUser: { email: string; name: string } | null;
+  currentUser: { email: string; name: string; firstName?: string; lastName?: string } | null;
   onLogout: () => void;
   onGoogleLogin?: () => Promise<void>;
   language: Language;
@@ -66,7 +69,7 @@ export default function Navbar({
   // Auth drawer control
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +90,33 @@ export default function Navbar({
   const [isDemoAuthing, setIsDemoAuthing] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Forgot-password flow
+  const [forgotEmail, setForgotEmail]   = useState("");
+  const [isSendingReset, setIsSendingReset] = useState(false);
+  const [resetSent, setResetSent]       = useState(false);
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) { setErrorMsg("Ingresa tu correo electrónico."); return; }
+    setIsSendingReset(true);
+    setErrorMsg("");
+    try {
+      await sendPasswordReset(forgotEmail.trim());
+      setResetSent(true);
+    } catch (err: any) {
+      setErrorMsg(err?.message ?? "No se pudo enviar el correo. Inténtalo de nuevo.");
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
+
+  const openForgot = () => {
+    setAuthMode('forgot');
+    setForgotEmail(emailInput); // pre-fill from login field if user already typed it
+    setErrorMsg("");
+    setResetSent(false);
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,13 +218,13 @@ export default function Navbar({
                   >
                     {/* Avatar initial */}
                     <div className="h-7 w-7 bg-brand text-white rounded-lg flex items-center justify-center font-black text-xs shrink-0">
-                      {currentUser.name.charAt(0).toUpperCase()}
+                      {(currentUser.firstName || currentUser.name).charAt(0).toUpperCase()}
                     </div>
                     {/* Greeting */}
                     <div className="hidden sm:flex flex-col items-start leading-none">
                       <span className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">Mi cuenta</span>
                       <span className="text-xs font-bold text-gray-900 max-w-[90px] truncate">
-                        Hola, {currentUser.name.split(" ")[0]}
+                        Hola, {currentUser.firstName || currentUser.name.split(" ")[0]}
                       </span>
                     </div>
                     {bookingsCount > 0 && (
@@ -210,7 +240,9 @@ export default function Navbar({
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                       {/* User info header */}
                       <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-bold text-gray-900 truncate">{currentUser.name}</p>
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {[currentUser.firstName, currentUser.lastName].filter(Boolean).join(" ") || currentUser.name}
+                        </p>
                         <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
                       </div>
 
@@ -424,11 +456,11 @@ export default function Navbar({
                 <>
                   <div className="flex items-center gap-3 p-3 bg-brand-light rounded-xl">
                     <div className="h-9 w-9 bg-brand text-white rounded-lg flex items-center justify-center font-black text-sm">
-                      {currentUser.name.charAt(0).toUpperCase()}
+                      {(currentUser.firstName || currentUser.name).charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">Mi cuenta</p>
-                      <p className="text-sm font-bold text-gray-900 truncate">Hola, {currentUser.name.split(" ")[0]}</p>
+                      <p className="text-sm font-bold text-gray-900 truncate">Hola, {currentUser.firstName || currentUser.name.split(" ")[0]}</p>
                       <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
                     </div>
                   </div>
@@ -478,9 +510,9 @@ export default function Navbar({
       {isAuthDrawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           {/* Backdrop overlay */}
-          <div 
+          <div
             className="fixed inset-0 bg-slate-950/45 backdrop-blur-xs transition-opacity duration-300"
-            onClick={() => setIsAuthDrawerOpen(false)}
+            onClick={() => { setIsAuthDrawerOpen(false); setAuthMode('login'); setResetSent(false); setErrorMsg(""); }}
           />
 
           {/* Sliding Panel Content */}
@@ -494,7 +526,7 @@ export default function Navbar({
 
               <button
                 type="button"
-                onClick={() => setIsAuthDrawerOpen(false)}
+                onClick={() => { setIsAuthDrawerOpen(false); setAuthMode('login'); setResetSent(false); setErrorMsg(""); }}
                 className="h-8 w-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-all cursor-pointer"
               >
                 <X size={16} />
@@ -503,14 +535,76 @@ export default function Navbar({
 
             {/* Scrollable Form Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
-              
+
+              {/* ── FORGOT PASSWORD VIEW ── */}
+              {authMode === 'forgot' && (
+                <div className="space-y-5">
+                  <div className="flex items-center gap-3">
+                    <button type="button" onClick={() => { setAuthMode('login'); setErrorMsg(""); setResetSent(false); }}
+                      className="h-8 w-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-all cursor-pointer shrink-0">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <div>
+                      <h3 className="text-xl font-black text-gray-950 tracking-tight">Recuperar Contraseña</h3>
+                      <p className="text-xs text-gray-500">Te enviaremos un enlace para restablecer tu acceso.</p>
+                    </div>
+                  </div>
+
+                  {errorMsg && (
+                    <div className="p-3.5 text-xs bg-rose-50 border border-rose-100 text-rose-800 rounded-xl font-medium">
+                      ⚠️ {errorMsg}
+                    </div>
+                  )}
+
+                  {resetSent ? (
+                    <div className="flex flex-col items-center text-center gap-4 py-6 animate-in fade-in duration-300">
+                      <div className="h-14 w-14 bg-brand-light rounded-2xl flex items-center justify-center">
+                        <KeyRound size={26} className="text-brand" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-extrabold text-gray-900 mb-1">¡Correo enviado!</p>
+                        <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+                          Revisa tu bandeja de entrada (y spam) en <span className="font-bold text-gray-700">{forgotEmail}</span>. El enlace expira en 1 hora.
+                        </p>
+                      </div>
+                      <button type="button"
+                        onClick={() => { setAuthMode('login'); setResetSent(false); setForgotEmail(""); setErrorMsg(""); }}
+                        className="text-xs font-bold text-brand hover:text-brand-hover underline cursor-pointer">
+                        Volver a Iniciar Sesión
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleForgotSubmit} className="space-y-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Correo Electrónico</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-gray-400"><Mail size={14} /></span>
+                          <input type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
+                            placeholder="ejemplo@correo.com" required autoFocus
+                            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-gray-200 outline-none focus:border-brand transition-all font-semibold text-gray-800 bg-white" />
+                        </div>
+                      </div>
+                      <button type="submit" disabled={isSendingReset}
+                        className="w-full py-3 rounded-xl bg-brand hover:bg-brand-hover disabled:bg-brand/60 text-white text-xs font-black shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        {isSendingReset
+                          ? <span className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          : <Mail size={13} />}
+                        {isSendingReset ? "Enviando..." : "Enviar enlace de recuperación"}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {/* ── LOGIN / SIGNUP VIEW ── */}
+              {authMode !== 'forgot' && (<>
               <div className="space-y-1">
                 <h3 className="text-xl sm:text-2xl font-black text-gray-950 tracking-tight font-sans text-left">
                   {authMode === 'login' ? 'Iniciar Sesión' : 'Crea tu Cuenta'}
                 </h3>
                 <p className="text-xs text-gray-500 text-left">
-                  {authMode === 'login' 
-                    ? 'Ingresa tus credenciales simuladas para administrar tus servicios.' 
+                  {authMode === 'login'
+                    ? 'Ingresa tus credenciales simuladas para administrar tus servicios.'
                     : 'Regístrate hoy para asegurar un 10% adicional de descuento.'}
                 </p>
               </div>
@@ -618,6 +712,12 @@ export default function Navbar({
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Contraseña</label>
+                    {authMode === 'login' && (
+                      <button type="button" onClick={openForgot}
+                        className="text-[10px] font-bold text-brand hover:text-brand-hover underline cursor-pointer bg-transparent border-none outline-none">
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    )}
                   </div>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-gray-400">
@@ -657,11 +757,12 @@ export default function Navbar({
                   }}
                   className="text-xs text-gray-500 hover:text-brand font-semibold cursor-pointer underline bg-transparent/0 border-none outline-none"
                 >
-                  {authMode === 'login' 
-                    ? '¿No tienes cuenta? Regístrate aquí' 
+                  {authMode === 'login'
+                    ? '¿No tienes cuenta? Regístrate aquí'
                     : '¿Ya eres cliente? Inicia sesión'}
                 </button>
               </div>
+              </>)}
 
             </div>
 

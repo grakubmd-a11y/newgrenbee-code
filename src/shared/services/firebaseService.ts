@@ -20,6 +20,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  sendPasswordResetEmail,
   signOut,
   User as FirebaseUser,
   onAuthStateChanged
@@ -101,7 +105,9 @@ export async function validateFirestoreConnection(): Promise<boolean> {
 
 export interface UserProfile {
   uid: string;
-  name: string;
+  name: string;        // kept for backward-compat; always mirrors `${firstName} ${lastName}`
+  firstName?: string;
+  lastName?: string;
   email: string;
   role?: "admin" | "manager" | "staff" | "customer";
   phone?: string;
@@ -141,9 +147,19 @@ export async function saveUserProfile(uid: string, profile: Partial<UserProfile>
     const pick = <T>(incoming: T | undefined, fallback: T): T =>
       incoming !== undefined ? incoming : fallback;
 
+    // Derive the canonical display name from firstName/lastName when provided
+    const incomingFirst = profile.firstName !== undefined ? profile.firstName : existing?.firstName;
+    const incomingLast  = profile.lastName  !== undefined ? profile.lastName  : existing?.lastName;
+    const derivedName   =
+      incomingFirst || incomingLast
+        ? [incomingFirst, incomingLast].filter(Boolean).join(" ")
+        : undefined;
+
     const dataToSave = {
       uid,
-      name: pick(profile.name, existing?.name ?? ""),
+      name: derivedName ?? pick(profile.name, existing?.name ?? ""),
+      firstName: incomingFirst ?? "",
+      lastName:  incomingLast  ?? "",
       email: pick(profile.email, existing?.email ?? ""),
       role: pick(profile.role, existing?.role ?? "customer"),
       phone: pick(profile.phone, existing?.phone ?? ""),
@@ -682,4 +698,71 @@ export async function signOutUser(): Promise<void> {
 
 export function subscribeToAuthChanges(callback: (user: FirebaseUser | null) => void) {
   return onAuthStateChanged(auth, callback);
+}
+
+/**
+ * Returns true if the current user has an email/password provider linked.
+ * Google-only users don't have a password to change.
+ */
+export function currentUserHasPasswordProvider(): boolean {
+  return auth.currentUser?.providerData.some((p) => p.providerId === "password") ?? false;
+}
+
+/**
+ * Updates the password for the currently signed-in email/password user.
+ * Requires reauthentication (current password) because Firebase enforces it
+ * for security-sensitive operations.
+ */
+export async function updateUserPassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error("No hay sesión activa.");
+
+  // Reauthenticate first so Firebase allows the sensitive change
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  try {
+    await reauthenticateWithCredential(user, credential);
+  } catch (err: any) {
+    const code = err?.code ?? "";
+    if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
+      throw new Error("La contraseña actual es incorrecta.");
+    }
+    if (code === "auth/too-many-requests") {
+      throw new Error("Demasiados intentos. Espera unos minutos.");
+    }
+    throw new Error("No se pudo verificar tu identidad. Inténtalo de nuevo.");
+  }
+
+  // Now update to the new password
+  try {
+    await updatePassword(user, newPassword);
+  } catch (err: any) {
+    const code = err?.code ?? "";
+    if (code === "auth/weak-password") {
+      throw new Error("La contraseña debe tener al menos 6 caracteres.");
+    }
+    throw new Error("No se pudo actualizar la contraseña. Inténtalo de nuevo.");
+  }
+}
+
+/**
+ * Sends a password-reset email via Firebase Auth.
+ * Works for any email address registered with email/password provider.
+ */
+export async function sendPasswordReset(email: string): Promise<void> {
+  try {
+    await sendPasswordResetEmail(auth, email.trim());
+  } catch (err: any) {
+    const code = err?.code ?? "";
+    if (code === "auth/user-not-found" || code === "auth/invalid-email") {
+      // Don't reveal whether email exists — silently succeed for security
+      return;
+    }
+    if (code === "auth/too-many-requests") {
+      throw new Error("Demasiados intentos. Espera unos minutos e inténtalo de nuevo.");
+    }
+    throw new Error("No se pudo enviar el correo. Inténtalo de nuevo.");
+  }
 }
