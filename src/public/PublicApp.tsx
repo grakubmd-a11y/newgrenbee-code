@@ -4,7 +4,7 @@ import * as Icons from "lucide-react";
 import Navbar from "./components/Navbar";
 import ServiceCard from "./components/ServiceCard";
 import CostEstimator from "./components/CostEstimator";
-import BookingForm from "./components/BookingForm";
+import BookingWizard, { type WizardBookingParams } from "./components/BookingWizard";
 import BookingsTracker from "./components/BookingsTracker";
 import ReviewsSection from "./components/ReviewsSection";
 import MembershipPlans from "./components/MembershipPlans";
@@ -172,6 +172,26 @@ export default function App() {
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [services, setServices] = useState<Service[]>(SERVICES_DATA);
+  const [wizardParams, setWizardParams] = useState<WizardBookingParams | null>(null);
+
+  async function handleWizardSubmit(draft: Omit<Booking, "id" | "status" | "createdAt">) {
+    const id = `BK-${Math.floor(Math.random() * 90000) + 10000}`;
+    const fullBooking: Booking = {
+      ...draft,
+      id,
+      status: "scheduled",
+      createdAt: new Date().toISOString(),
+      userId: currentUser?.uid ?? currentUser?.email ?? "guest",
+    };
+    try {
+      await createBookingInFirestore(fullBooking);
+    } catch (err) {
+      console.error("Failed to save booking to Firestore:", err);
+    }
+    setBookings((prev) => [fullBooking, ...prev]);
+    setWizardParams(null);
+    handleTabChange("bookings");
+  }
 
   // Handle language change
   const handleLanguageChange = (newLang: Language) => {
@@ -774,7 +794,7 @@ export default function App() {
         )}
 
         {/* Estimator Tab */}
-        {activeTab === "estimator" && (
+        {activeTab === "estimator" && !wizardParams && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
             <div className="space-y-8">
               <div className="text-center space-y-2 mb-12">
@@ -784,33 +804,24 @@ export default function App() {
               <CostEstimator
                 initialServiceId={selectedEstimatorId}
                 activeMembership={activeMembership}
-                onProceedToBook={(params) => {
-                  const newBooking: Booking = {
-                    id: `booking-${Date.now()}`,
-                    serviceId: params.serviceId,
-                    userId: currentUser?.email || "guest",
-                    status: "scheduled",
-                    bookingDate: new Date().toISOString(),
-                    timeSlot: "10:00 AM",
-                    serviceName: services.find(s => s.id === params.serviceId)?.name || "Service",
-                    customerName: currentUser?.name || "Guest",
-                    email: currentUser?.email || "",
-                    phone: "",
-                    address: "",
-                    units: params.units,
-                    selectedFactors: params.selectedFactors,
-                    frequency: params.frequency,
-                    notes: "",
-                    totalCost: params.totalCost,
-                    createdAt: new Date().toISOString(),
-                  };
-                  setBookings([...bookings, newBooking]);
-                  alert("✅ Booking confirmed!");
-                  handleTabChange("bookings");
-                }}
+                onProceedToBook={(params) => setWizardParams(params)}
                 services={services}
               />
             </div>
+          </section>
+        )}
+
+        {/* Booking Wizard (shown when user proceeds from estimator) */}
+        {activeTab === "estimator" && wizardParams && (
+          <section className="max-w-7xl mx-auto pb-16">
+            <BookingWizard
+              bookingParams={wizardParams}
+              services={services}
+              currentUser={currentUser}
+              activeMembership={activeMembership}
+              onSubmitBooking={handleWizardSubmit}
+              onBack={() => setWizardParams(null)}
+            />
           </section>
         )}
 
