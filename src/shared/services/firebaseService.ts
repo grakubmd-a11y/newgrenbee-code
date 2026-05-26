@@ -604,18 +604,33 @@ function isMobileDevice(): boolean {
 export async function signInWithGooglePopup(): Promise<FirebaseUser | null> {
   const provider = createGoogleProvider();
   
+  console.log("[v0] signInWithGooglePopup called");
+  console.log("[v0] Current domain:", window.location.hostname);
+  console.log("[v0] isMobile:", isMobileDevice());
+  
   // On mobile, use redirect flow as popup is often blocked or fails
   if (isMobileDevice()) {
     console.log("[v0] Mobile detected, using redirect flow for Google Sign-In");
-    await signInWithRedirect(auth, provider);
+    try {
+      await signInWithRedirect(auth, provider);
+    } catch (redirectError) {
+      console.error("[v0] Redirect error:", redirectError);
+      throw redirectError;
+    }
     return null; // Will be handled by getRedirectResult on page load
   }
   
   try {
+    console.log("[v0] Attempting popup sign-in...");
     const result = await signInWithPopup(auth, provider);
+    console.log("[v0] Popup sign-in successful");
     return result.user;
   } catch (error) {
-    const err = error as { code?: string };
+    const err = error as { code?: string; message?: string };
+    console.error("[v0] Google Sign In Error code:", err?.code);
+    console.error("[v0] Google Sign In Error message:", err?.message);
+    console.error("[v0] Full error:", error);
+    
     // If popup fails, fallback to redirect
     if (err?.code === 'auth/popup-blocked' || 
         err?.code === 'auth/popup-closed-by-user' ||
@@ -624,7 +639,6 @@ export async function signInWithGooglePopup(): Promise<FirebaseUser | null> {
       await signInWithRedirect(auth, provider);
       return null;
     }
-    console.error("Google Sign In Error:", error);
     throw error;
   }
 }
