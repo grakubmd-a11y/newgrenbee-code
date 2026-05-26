@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { 
-  Home, 
   Calendar, 
   ShieldCheck, 
   Sparkles, 
@@ -14,7 +13,8 @@ import {
   Calculator,
   BookOpen,
   Settings,
-  Truck
+  Truck,
+  Menu
 } from "lucide-react";
 
 interface NavbarProps {
@@ -50,6 +50,7 @@ export default function Navbar({
 
   // Auth drawer control
   const [isAuthDrawerOpen, setIsAuthDrawerOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   
   // Input fields
@@ -111,19 +112,14 @@ export default function Navbar({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex min-h-[4.5rem] py-3 sm:py-0 sm:h-20 items-center justify-between gap-2 sm:gap-4">
             
-            {/* LEFT: Elegant Logo */}
-            <div className="flex min-w-0 items-center gap-2 cursor-pointer shrink-0" onClick={() => setActiveTab("services")}>
-              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-brand-light text-brand shadow-sm">
-                <Home size={20} strokeWidth={2.5} />
-              </div>
-              <div className="min-w-0">
-                <span className="text-base sm:text-lg font-extrabold text-gray-950 tracking-tight block leading-none whitespace-nowrap">
-                  Gren<span className="text-brand">bee</span>
-                </span>
-                <span className="hidden sm:block text-[9px] text-gray-400 font-bold tracking-wide uppercase mt-0.5">
-                  Springfield Desk
-                </span>
-              </div>
+            {/* LEFT: Logo */}
+            <div 
+              className="flex min-w-0 items-center cursor-pointer shrink-0" 
+              onClick={() => setActiveTab("services")}
+            >
+              <span className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight leading-none whitespace-nowrap">
+                Green<span className="text-brand">bee</span>
+              </span>
             </div>
 
             {/* CENTER: Startup Style Navigation Links */}
@@ -161,28 +157,28 @@ export default function Navbar({
               })}
             </nav>
 
-            {/* RIGHT ACTION CORNER: LOGIN / ACCOUNT (Complying exactly to spec) */}
+            {/* RIGHT ACTION CORNER: LOGIN / ACCOUNT + HAMBURGER (Mobile) */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {currentUser ? (
-                /* When the customer is logged in, show ONLY: "Hola, {nombre}" as a textual link button */
+                /* When the customer is logged in, show "Hola, {nombre}" */
                 <button
                   type="button"
                   id="btn-account-open"
                   onClick={() => setActiveTab("account")}
-                  className={`flex items-center gap-2 bg-brand-light border border-brand/20 py-2 px-3.5 rounded-xl transition-all duration-200 hover:scale-[1.01] hover:bg-brand-light/95 cursor-pointer text-left focus:outline-none ${
+                  className={`flex items-center gap-2 bg-brand-light border border-brand/20 py-2 px-3 rounded-xl transition-all duration-200 hover:scale-[1.01] hover:bg-brand-light/95 cursor-pointer text-left focus:outline-none ${
                     activeTab === "account" ? "ring-2 ring-brand" : ""
                   }`}
                 >
                   <div className="h-6 w-6 bg-brand text-white rounded-lg flex items-center justify-center font-black text-xs select-none shadow-xxs shrink-0">
                     {currentUser.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-xs font-black text-brand tracking-tight max-w-[96px] sm:max-w-none truncate">
+                  <span className="text-xs font-bold text-brand tracking-tight max-w-[80px] sm:max-w-none truncate">
                     Hola, {currentUser.name}
                   </span>
                 </button>
               ) : (
-                /* If Logged Out: Elegant CTA Triggers */
-                <div className="flex items-center gap-2">
+                /* If Logged Out: Show Login & Register buttons */
+                <>
                   <button
                     type="button"
                     id="btn-login-open"
@@ -203,55 +199,161 @@ export default function Navbar({
                       setIsAuthDrawerOpen(true);
                       setErrorMsg("");
                     }}
-                    className="px-3 sm:px-4 py-2 rounded-xl text-xs font-black text-white bg-brand hover:bg-brand-hover shadow-sm hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5"
+                    className="px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-white bg-brand hover:bg-brand-hover shadow-sm hover:shadow-md transition-all cursor-pointer"
                   >
                     <span className="sm:hidden">Acceder</span>
-                    <span className="hidden sm:inline">Registrarse</span>
+                    <span className="hidden sm:inline">Crear Cuenta</span>
                   </button>
-                </div>
+                </>
               )}
+              
+              {/* Mobile Hamburger Button - Right side */}
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden h-10 w-10 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all cursor-pointer"
+                aria-label="Abrir menú"
+              >
+                <Menu size={20} />
+              </button>
             </div>
 
           </div>
         </div>
 
-        {/* MOBILE APP TABS NAVIGATOR BAR */}
-        <div className="md:hidden flex items-center justify-around border-t border-gray-100 bg-white py-2 px-2">
-          {tabs.map((tab) => {
-            const IconComp = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center gap-1 p-1 text-center cursor-pointer flex-1 relative ${
-                  isActive ? "text-brand font-black" : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                <IconComp size={16} />
-                <span className="text-[9px] tracking-tight">{tab.label.split(" ")[0]}</span>
-                
-                {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className="absolute top-0 right-3 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-0.5 text-[8px] font-bold text-white ring-2 ring-white">
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-          {currentUser && (
-            <button
-              onClick={() => setActiveTab("account")}
-              className={`flex flex-col items-center gap-1 p-1 text-center cursor-pointer flex-1 relative ${
-                activeTab === "account" ? "text-brand font-black" : "text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              <User size={16} />
-              <span className="text-[9px] tracking-tight">Mi Cuenta</span>
-            </button>
-          )}
-        </div>
+
       </header>
+
+      {/* ============================================================== */}
+      {/* MOBILE SIDEBAR MENU (HAMBURGER)                                */}
+      {/* ============================================================== */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          {/* Backdrop overlay */}
+          <div 
+            className="fixed inset-0 bg-slate-950/45 backdrop-blur-xs transition-opacity duration-300"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Sliding Panel from Left */}
+          <div className="relative w-full max-w-[280px] h-full bg-white shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-250 ease-out border-r border-gray-100">
+            
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-slate-50/50">
+              <span className="text-lg font-extrabold text-gray-950 tracking-tight">
+                Green<span className="text-brand">bee</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="h-9 w-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-all cursor-pointer"
+                aria-label="Cerrar menú"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Navigation Items */}
+            <nav className="flex-1 overflow-y-auto py-4 px-3">
+              <ul className="space-y-1">
+                {tabs.map((tab) => {
+                  const IconComp = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <li key={tab.id}>
+                      <button
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                          isActive
+                            ? "text-brand bg-brand-light"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        }`}
+                      >
+                        <IconComp size={18} className={isActive ? "text-brand" : "text-gray-400"} />
+                        <span className="flex-1 text-left">{tab.label}</span>
+                        
+                        {tab.badge !== undefined && tab.badge > 0 && (
+                          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white">
+                            {tab.badge}
+                          </span>
+                        )}
+
+                        {tab.isPremium && (
+                          <span className="text-amber-500 text-sm" title="Membresía Activa">
+                            ★
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+                
+                {/* Account option if logged in */}
+                {currentUser && (
+                  <li>
+                    <button
+                      onClick={() => {
+                        setActiveTab("account");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                        activeTab === "account"
+                          ? "text-brand bg-brand-light"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      }`}
+                    >
+                      <User size={18} className={activeTab === "account" ? "text-brand" : "text-gray-400"} />
+                      <span className="flex-1 text-left">Mi Cuenta</span>
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </nav>
+
+            {/* Footer with Auth */}
+            <div className="p-4 border-t border-gray-100 bg-slate-50/30">
+              {currentUser ? (
+                <div className="flex items-center gap-3 p-3 bg-brand-light rounded-xl">
+                  <div className="h-9 w-9 bg-brand text-white rounded-lg flex items-center justify-center font-black text-sm">
+                    {currentUser.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">{currentUser.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setAuthMode('signup');
+                      setIsAuthDrawerOpen(true);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-bold transition-all cursor-pointer"
+                  >
+                    Registrarse
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setAuthMode('login');
+                      setIsAuthDrawerOpen(true);
+                    }}
+                    className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-bold transition-all cursor-pointer"
+                  >
+                    Iniciar Sesión
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================== */}
       {/* SLIDING LATERAL DRAWER: AUTHENTICATION PORTAL (LOGIN/SIGNUP)   */}
@@ -269,14 +371,9 @@ export default function Navbar({
             
             {/* Drawer Header */}
             <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-brand-light text-brand flex items-center justify-center shadow-xs">
-                  <Home size={15} strokeWidth={2.5} />
-                </div>
-                <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase block">
-                  ACCESO SEGURO
-                </span>
-              </div>
+              <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase block">
+                ACCESO SEGURO
+              </span>
 
               <button
                 type="button"
@@ -325,6 +422,8 @@ export default function Navbar({
                       setErrorMsg("");
                       try {
                         await onGoogleLogin();
+                        // If we get here without redirect, show success
+                        // On mobile, redirect happens and this won't execute
                         setSuccessMsg("¡Sesión iniciada correctamente con Google!");
                         setTimeout(() => {
                           setIsAuthDrawerOpen(false);
@@ -332,7 +431,9 @@ export default function Navbar({
                           setActiveTab("account");
                         }, 1200);
                       } catch (err: any) {
-                        setErrorMsg("Error al iniciar sesión con Google. Inténtalo de nuevo.");
+                        // Show the user-friendly error message
+                        const message = err?.message || "Error al iniciar sesión con Google. Inténtalo de nuevo.";
+                        setErrorMsg(message);
                       } finally {
                         setIsDemoAuthing(false);
                       }
@@ -340,8 +441,14 @@ export default function Navbar({
                     disabled={isDemoAuthing}
                     className="w-full py-3.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 disabled:bg-slate-50 text-gray-800 text-xs font-black shadow-xs hover:shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span className="h-4 w-4 rounded-full bg-red-600 text-[9px] text-white flex items-center justify-center font-black">G</span>
-                    <span className="font-extrabold text-gray-700">Continuar con Google</span>
+                    {isDemoAuthing ? (
+                      <span className="font-extrabold text-gray-500">Conectando...</span>
+                    ) : (
+                      <>
+                        <span className="h-4 w-4 rounded-full bg-red-600 text-[9px] text-white flex items-center justify-center font-black">G</span>
+                        <span className="font-extrabold text-gray-700">Continuar con Google</span>
+                      </>
+                    )}
                   </button>
 
                   <div className="relative flex py-1 items-center">

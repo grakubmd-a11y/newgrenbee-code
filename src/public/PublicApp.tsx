@@ -29,7 +29,9 @@ import {
   incrementReviewHelpfulCount,
   deleteReviewFromFirestore,
   signInWithGooglePopup,
-  signOutUser
+  signOutUser,
+  getGoogleRedirectResult,
+  getFirebaseAuthErrorMessage
 } from "../shared/services/firebaseService";
 
 const BEFORE_AFTER_DATA: Record<string, {
@@ -156,6 +158,20 @@ export default function App() {
   useEffect(() => {
     // 1. Connection check
     validateFirestoreConnection();
+
+    // 1.5 Check for Google redirect result (for mobile auth flow)
+    const checkRedirectResult = async () => {
+      try {
+        const redirectUser = await getGoogleRedirectResult();
+        if (redirectUser) {
+          console.log("[v0] Redirect sign-in successful:", redirectUser.email);
+          // Auth state change listener will handle the rest
+        }
+      } catch (err) {
+        console.error("[v0] Google redirect error:", err);
+      }
+    };
+    checkRedirectResult();
 
     // 2. Auth listener
     const unsubscribeAuth = subscribeToAuthChanges(async (firebaseUser) => {
@@ -307,42 +323,51 @@ export default function App() {
   const handleGoogleLogin = async () => {
     try {
       const firebaseUser = await signInWithGooglePopup();
-      if (firebaseUser) {
-        let hasAdminClaim = false;
-        try {
-          const tokenResult = await firebaseUser.getIdTokenResult();
-          if (tokenResult?.claims && tokenResult.claims.admin === true) {
-            hasAdminClaim = true;
-          }
-        } catch (tokError) {
-          console.warn("Could not retrieve custom claims directly from token:", tokError);
-        }
-        const profile = await getUserProfile(firebaseUser.uid);
-        hasAdminClaim = hasAdminClaim || profile?.role === "admin" || profile?.role === "manager";
-        setIsAdmin(hasAdminClaim);
-        const name = profile?.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Usuario";
-        const email = firebaseUser.email || "";
-
-        const profileData = {
-          uid: firebaseUser.uid,
-          name,
-          email,
-          activeMembership: activeMembership || null
-        };
-        await saveUserProfile(firebaseUser.uid, profileData);
-
-        const userObj = {
-          uid: firebaseUser.uid,
-          name,
-          email,
-          isAdmin: hasAdminClaim,
-          ...profileData
-        };
-        setCurrentUser(userObj);
-        localStorage.setItem("hsh_user", JSON.stringify(userObj));
+      
+      // If null, it means redirect flow was triggered (on mobile)
+      // The auth state change listener will handle the rest after redirect completes
+      if (!firebaseUser) {
+        console.log("[v0] Redirect flow initiated, waiting for redirect...");
+        return;
       }
+      
+      let hasAdminClaim = false;
+      try {
+        const tokenResult = await firebaseUser.getIdTokenResult();
+        if (tokenResult?.claims && tokenResult.claims.admin === true) {
+          hasAdminClaim = true;
+        }
+      } catch (tokError) {
+        console.warn("Could not retrieve custom claims directly from token:", tokError);
+      }
+      const profile = await getUserProfile(firebaseUser.uid);
+      hasAdminClaim = hasAdminClaim || profile?.role === "admin" || profile?.role === "manager";
+      setIsAdmin(hasAdminClaim);
+      const name = profile?.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Usuario";
+      const email = firebaseUser.email || "";
+
+      const profileData = {
+        uid: firebaseUser.uid,
+        name,
+        email,
+        activeMembership: activeMembership || null
+      };
+      await saveUserProfile(firebaseUser.uid, profileData);
+
+      const userObj = {
+        uid: firebaseUser.uid,
+        name,
+        email,
+        isAdmin: hasAdminClaim,
+        ...profileData
+      };
+      setCurrentUser(userObj);
+      localStorage.setItem("hsh_user", JSON.stringify(userObj));
     } catch (err) {
       console.error("Google Auth failed:", err);
+      // Throw with user-friendly message
+      const friendlyMessage = getFirebaseAuthErrorMessage(err);
+      throw new Error(friendlyMessage);
     }
   };
 
