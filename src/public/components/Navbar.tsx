@@ -95,10 +95,10 @@ export default function Navbar({
     <>
       <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/95 backdrop-blur-md">
         {/* Insured Security Top Banner */}
-        <div className="bg-brand text-xs text-white font-medium py-2 px-4 flex justify-between items-center select-none sm:px-6 md:px-8">
-          <div className="flex items-center gap-1.5">
+        <div className="bg-brand text-xs text-white font-medium py-2 px-4 flex flex-wrap sm:flex-nowrap justify-between items-start sm:items-center gap-y-1 select-none sm:px-6 md:px-8">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <ShieldCheck size={14} className="text-emerald-300" />
-            <span>Técnicos Certificados, Respaldo y Garantía de Satisfacción 100% Asegurada</span>
+            <span className="min-w-0 leading-tight break-words">Técnicos Certificados, Respaldo y Garantía de Satisfacción 100% Asegurada</span>
           </div>
           <div className="hidden sm:flex items-center gap-4 text-[11px]">
             <span className="opacity-90">⭐ Calificación de 4.9/5</span>
@@ -109,18 +109,18 @@ export default function Navbar({
 
         {/* Main Bar with Premium Startup Layout Grid */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-20 items-center justify-between gap-4">
+          <div className="flex min-h-[4.5rem] py-3 sm:py-0 sm:h-20 items-center justify-between gap-2 sm:gap-4">
             
             {/* LEFT: Elegant Logo */}
-            <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => setActiveTab("services")}>
+            <div className="flex min-w-0 items-center gap-2 cursor-pointer shrink-0" onClick={() => setActiveTab("services")}>
               <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-brand-light text-brand shadow-sm">
                 <Home size={20} strokeWidth={2.5} />
               </div>
-              <div>
-                <span className="text-lg font-extrabold text-gray-950 tracking-tight block leading-none">
+              <div className="min-w-0">
+                <span className="text-base sm:text-lg font-extrabold text-gray-950 tracking-tight block leading-none whitespace-nowrap">
                   HomeServices<span className="text-brand">Hub</span>
                 </span>
-                <span className="text-[9px] text-gray-400 font-bold tracking-wide uppercase mt-0.5 block">
+                <span className="hidden sm:block text-[9px] text-gray-400 font-bold tracking-wide uppercase mt-0.5">
                   Springfield Desk
                 </span>
               </div>
@@ -162,7 +162,7 @@ export default function Navbar({
             </nav>
 
             {/* RIGHT ACTION CORNER: LOGIN / ACCOUNT (Complying exactly to spec) */}
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {currentUser ? (
                 /* When the customer is logged in, show ONLY: "Hola, {nombre}" as a textual link button */
                 <button
@@ -176,7 +176,7 @@ export default function Navbar({
                   <div className="h-6 w-6 bg-brand text-white rounded-lg flex items-center justify-center font-black text-xs select-none shadow-xxs shrink-0">
                     {currentUser.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-xs font-black text-brand tracking-tight">
+                  <span className="text-xs font-black text-brand tracking-tight max-w-[96px] sm:max-w-none truncate">
                     Hola, {currentUser.name}
                   </span>
                 </button>
@@ -191,7 +191,7 @@ export default function Navbar({
                       setIsAuthDrawerOpen(true);
                       setErrorMsg("");
                     }}
-                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-50/80 transition-all cursor-pointer"
+                    className="hidden sm:inline-flex px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-50/80 transition-all cursor-pointer"
                   >
                     Iniciar Sesión
                   </button>
@@ -203,9 +203,10 @@ export default function Navbar({
                       setIsAuthDrawerOpen(true);
                       setErrorMsg("");
                     }}
-                    className="px-4 py-2 rounded-xl text-xs font-black text-white bg-brand hover:bg-brand-hover shadow-sm hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5"
+                    className="px-3 sm:px-4 py-2 rounded-xl text-xs font-black text-white bg-brand hover:bg-brand-hover shadow-sm hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5"
                   >
-                    Registrarse
+                    <span className="sm:hidden">Acceder</span>
+                    <span className="hidden sm:inline">Registrarse</span>
                   </button>
                 </div>
               )}
