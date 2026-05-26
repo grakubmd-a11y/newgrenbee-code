@@ -705,7 +705,7 @@ export default function App() {
                     <ServiceCard
                       key={service.id}
                       service={service}
-                      onSelectService={() => {
+                      onBookClick={() => {
                         setSelectedEstimatorId(service.id);
                         handleTabChange("estimator");
                       }}
@@ -740,6 +740,127 @@ export default function App() {
               onCancelBooking={handleCancelBooking}
               onWriteReview={handleReviewShortcut}
             />
+          </section>
+        )}
+
+        {/* Estimator Tab */}
+        {activeTab === "estimator" && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+            <div className="space-y-8">
+              <div className="text-center space-y-2 mb-12">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-950">Instant Cost Calculator</h2>
+                <p className="text-gray-600 text-lg">Get accurate pricing for your home service needs</p>
+              </div>
+              <CostEstimator
+                initialServiceId={selectedEstimatorId}
+                activeMembership={activeMembership}
+                onProceedToBook={(params) => {
+                  const newBooking: Booking = {
+                    id: `booking-${Date.now()}`,
+                    serviceId: params.serviceId,
+                    userId: currentUser?.email || "guest",
+                    status: "scheduled",
+                    bookingDate: new Date().toISOString(),
+                    timeSlot: "10:00 AM",
+                    serviceName: services.find(s => s.id === params.serviceId)?.name || "Service",
+                    customerName: currentUser?.name || "Guest",
+                    email: currentUser?.email || "",
+                    phone: "",
+                    address: "",
+                    units: params.units,
+                    selectedFactors: params.selectedFactors,
+                    frequency: params.frequency,
+                    notes: "",
+                    totalCost: params.totalCost,
+                    createdAt: new Date().toISOString(),
+                  };
+                  setBookings([...bookings, newBooking]);
+                  alert("✅ Booking confirmed!");
+                  handleTabChange("bookings");
+                }}
+                services={services}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Membership Tab */}
+        {activeTab === "membership" && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+            <div className="space-y-8">
+              <div className="text-center space-y-2 mb-12">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-950">Premium Membership Plans</h2>
+                <p className="text-gray-600 text-lg">Save up to 40% with annual membership</p>
+              </div>
+              <MembershipPlans 
+                activeMembership={activeMembership || null}
+                onSelectMembership={(plan) => {
+                  setActiveMembership(plan);
+                  localStorage.setItem("hsh_membership", plan);
+                }}
+                onCancelMembership={() => {
+                  setActiveMembership(null);
+                  localStorage.removeItem("hsh_membership");
+                }}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* About Tab */}
+        {activeTab === "about" && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-950">About Greenbee</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  Greenbee is Springfield's trusted platform for professional home services. We connect homeowners with certified, vetted technicians for cleaning, lawn care, TV installation, furniture assembly, and pressure washing.
+                </p>
+                <p className="text-gray-600 leading-relaxed">
+                  With over 500 satisfied customers and a 4.9/5 rating, we're committed to making home service booking simple, transparent, and reliable.
+                </p>
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div className="space-y-1 border-l-4 border-brand pl-4">
+                    <p className="text-2xl font-black text-gray-950">500+</p>
+                    <p className="text-sm text-gray-600">Happy Customers</p>
+                  </div>
+                  <div className="space-y-1 border-l-4 border-brand pl-4">
+                    <p className="text-2xl font-black text-gray-950">4.9★</p>
+                    <p className="text-sm text-gray-600">Average Rating</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-brand-light to-brand/5 rounded-2xl p-12 text-center space-y-4">
+                <div className="text-5xl">🏡</div>
+                <p className="text-gray-600">Your home care, perfected</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Blog Tab */}
+        {activeTab === "blog" && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+            <div className="space-y-12">
+              <div className="text-center space-y-2 mb-12">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-950">Home Care Tips & Insights</h2>
+                <p className="text-gray-600 text-lg">Expert advice for maintaining your home</p>
+              </div>
+              <div className="grid md:grid-cols-3 gap-8">
+                {[
+                  { title: "Spring Cleaning Checklist", desc: "Complete guide to preparing your home for spring" },
+                  { title: "TV Installation Best Practices", desc: "Tips for safe and professional TV mounting" },
+                  { title: "Lawn Care 101", desc: "Seasonal lawn maintenance and care tips" },
+                ].map((post, i) => (
+                  <div key={i} className="p-6 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
+                    <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-50 rounded-lg mb-4 flex items-center justify-center text-4xl">📝</div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{post.title}</h3>
+                    <p className="text-sm text-gray-600">{post.desc}</p>
+                    <button className="mt-4 text-sm font-bold text-brand hover:text-brand-hover">Read More →</button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </section>
         )}
 

@@ -15,7 +15,8 @@ import {
   Settings,
   Truck,
   Menu,
-  Globe
+  Globe,
+  ChevronDown
 } from "lucide-react";
 import { Language } from "../../shared/i18n";
 
@@ -101,137 +102,105 @@ export default function Navbar({
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/95 backdrop-blur-md">
-        {/* Insured Security Top Banner */}
-        <div className="bg-brand text-xs text-white font-medium py-2 px-4 flex flex-wrap sm:flex-nowrap justify-between items-start sm:items-center gap-y-1 select-none sm:px-6 md:px-8">
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            <ShieldCheck size={14} className="text-emerald-300" />
-            <span className="min-w-0 leading-tight break-words">Técnicos Certificados, Respaldo y Garantía de Satisfacción 100% Asegurada</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-4 text-[11px]">
-            <span className="opacity-90">⭐ Calificación de 4.9/5</span>
-            <span className="w-1 h-1 bg-white/40 rounded-full"></span>
-            <span className="opacity-90">Operando en Springfield e Illinois</span>
-          </div>
-        </div>
 
-        {/* Main Bar with Premium Startup Layout Grid */}
+        {/* Main Bar - Simplified Startup Style */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex min-h-[4.5rem] py-3 sm:py-0 sm:h-20 items-center justify-between gap-2 sm:gap-4">
+          <div className="flex min-h-[3.5rem] items-center justify-between gap-4">
             
             {/* LEFT: Logo */}
             <div 
-              className="flex min-w-0 items-center cursor-pointer shrink-0" 
+              className="flex items-center cursor-pointer shrink-0" 
               onClick={() => setActiveTab("services")}
             >
-              <span className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight leading-none whitespace-nowrap">
+              <span className="text-xl sm:text-2xl font-extrabold text-gray-950 tracking-tight leading-none">
                 Green<span className="text-brand">bee</span>
               </span>
             </div>
 
-            {/* CENTER: Startup Style Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-1">
-              {tabs.map((tab) => {
-                const IconComp = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    id={`nav-tab-${tab.id}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                      isActive
-                        ? "text-brand bg-brand-light"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50/70"
-                    }`}
-                  >
-                    <IconComp size={14} className={isActive ? "text-brand animate-pulse" : "text-gray-400"} />
-                    <span>{tab.label}</span>
-                    
-                    {tab.badge !== undefined && tab.badge > 0 && (
-                      <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white ring-2 ring-white animate-bounce">
-                        {tab.badge}
-                      </span>
-                    )}
+            {/* CENTER: Dropdown Navigation (Desktop only) */}
+            <div className="hidden md:flex items-center gap-1">
+              <button
+                onClick={() => setActiveTab("estimator")}
+                className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                {language === 'en' ? 'Get Quote' : 'Cotizar'}
+              </button>
+              <button
+                onClick={() => setActiveTab("about")}
+                className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                {language === 'en' ? 'About' : 'Nosotros'}
+              </button>
+              <button
+                onClick={() => setActiveTab("blog")}
+                className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                {language === 'en' ? 'Blog' : 'Blog'}
+              </button>
+            </div>
 
-                    {tab.isPremium && (
-                      <span className="ml-1 inline-block text-amber-500 text-[10px]" title="Membresía Activa">
-                        ★
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* RIGHT ACTION CORNER: LOGIN / ACCOUNT + HAMBURGER (Mobile) */}
+            {/* RIGHT: Primary CTA + Auth */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Book Service CTA - Primary Action */}
+              {!currentUser && (
+                <button
+                  onClick={() => setActiveTab("estimator")}
+                  className="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-bold text-white bg-brand hover:bg-brand-hover transition-all cursor-pointer"
+                >
+                  Book Service
+                </button>
+              )}
+
               {currentUser ? (
-                /* When the customer is logged in, show "Hola, {nombre}" */
                 <button
                   type="button"
-                  id="btn-account-open"
-                  onClick={() => setActiveTab("account")}
-                  className={`flex items-center gap-2 bg-brand-light border border-brand/20 py-2 px-3 rounded-xl transition-all duration-200 hover:scale-[1.01] hover:bg-brand-light/95 cursor-pointer text-left focus:outline-none ${
-                    activeTab === "account" ? "ring-2 ring-brand" : ""
+                  onClick={() => setActiveTab("bookings")}
+                  className={`flex items-center gap-2 bg-brand-light border border-brand/20 px-3 py-2 rounded-lg transition-all hover:scale-105 cursor-pointer ${
+                    activeTab === "bookings" ? "ring-2 ring-brand" : ""
                   }`}
                 >
-                  <div className="h-6 w-6 bg-brand text-white rounded-lg flex items-center justify-center font-black text-xs select-none shadow-xxs shrink-0">
+                  <div className="h-6 w-6 bg-brand text-white rounded-md flex items-center justify-center font-bold text-xs shrink-0">
                     {currentUser.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-xs font-bold text-brand tracking-tight max-w-[80px] sm:max-w-none truncate">
-                    Hola, {currentUser.name}
+                  <span className="text-xs font-bold text-brand max-w-[60px] sm:max-w-none truncate hidden sm:inline">
+                    {currentUser.name}
                   </span>
+                  {bookingsCount > 0 && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ml-auto">
+                      {bookingsCount}
+                    </span>
+                  )}
                 </button>
               ) : (
-                /* If Logged Out: Show Login & Register buttons */
-                <>
-                  <button
-                    type="button"
-                    id="btn-login-open"
-                    onClick={() => {
-                      setAuthMode('login');
-                      setIsAuthDrawerOpen(true);
-                      setErrorMsg("");
-                    }}
-                    className="hidden sm:inline-flex px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 hover:text-gray-900 hover:bg-gray-50/80 transition-all cursor-pointer"
-                  >
-                    Iniciar Sesión
-                  </button>
-                  <button
-                    type="button"
-                    id="btn-signup-open"
-                    onClick={() => {
-                      setAuthMode('signup');
-                      setIsAuthDrawerOpen(true);
-                      setErrorMsg("");
-                    }}
-                    className="px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-white bg-brand hover:bg-brand-hover shadow-sm hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <span className="sm:hidden">Acceder</span>
-                    <span className="hidden sm:inline">Crear Cuenta</span>
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setIsAuthDrawerOpen(true);
+                  }}
+                  className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-white bg-brand hover:bg-brand-hover transition-all cursor-pointer"
+                >
+                  <span className="sm:hidden">Sign Up</span>
+                  <span className="hidden sm:inline">Get Started</span>
+                </button>
               )}
-              
-              {/* Language Toggle Button */}
+
+              {/* Language Toggle */}
               <button
                 type="button"
                 onClick={() => onLanguageChange(language === 'en' ? 'es' : 'en')}
-                className="h-10 w-10 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all cursor-pointer hidden sm:flex"
-                title={language === 'en' ? 'Cambiar a Español' : 'Switch to English'}
+                className="h-9 w-9 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all cursor-pointer text-xs font-bold"
               >
-                <Globe size={18} />
-                <span className="text-xs font-bold ml-0.5">{language.toUpperCase()}</span>
+                {language.toUpperCase()}
               </button>
 
-              {/* Mobile Hamburger Button - Right side */}
+              {/* Mobile Hamburger */}
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden h-10 w-10 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all cursor-pointer"
-                aria-label="Abrir menú"
+                className="md:hidden h-9 w-9 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-all cursor-pointer"
               >
-                <Menu size={20} />
+                <Menu size={18} />
               </button>
             </div>
 
@@ -242,18 +211,18 @@ export default function Navbar({
       </header>
 
       {/* ============================================================== */}
-      {/* MOBILE SIDEBAR MENU (HAMBURGER)                                */}
+      {/* MOBILE SIDEBAR MENU (HAMBURGER) - FROM RIGHT                    */}
       {/* ============================================================== */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
+        <div className="fixed inset-0 z-50 flex justify-end md:hidden">
           {/* Backdrop overlay */}
           <div 
             className="fixed inset-0 bg-slate-950/45 backdrop-blur-xs transition-opacity duration-300"
             onClick={() => setIsMobileMenuOpen(false)}
           />
 
-          {/* Sliding Panel from Left */}
-          <div className="relative w-full max-w-[280px] h-full bg-white shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-250 ease-out border-r border-gray-100">
+          {/* Sliding Panel from Right */}
+          <div className="relative w-full max-w-[300px] h-full bg-white shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-250 ease-out border-l border-gray-100">
             
             {/* Drawer Header */}
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-slate-50/50">
