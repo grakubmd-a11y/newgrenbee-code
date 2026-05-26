@@ -912,11 +912,10 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Brand */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center">
-                <Icons.Leaf size={14} className="text-white" />
-              </div>
-              <span className="text-sm font-bold text-gray-900">Greenbee</span>
+            <div className="flex items-center">
+              <span className="text-base font-extrabold text-gray-950 tracking-tight leading-none">
+                Green<span className="text-brand">bee</span>
+              </span>
             </div>
             <p className="leading-relaxed">
               Professional home services — cleaning, lawn care, TV installation, furniture assembly, pressure washing, and wall mounting — booked in minutes.

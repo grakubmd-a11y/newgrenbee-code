@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Leaf } from "lucide-react";
 
 interface SEOMeta {
   title: string;
@@ -33,12 +32,9 @@ export default function PageShell({ children, seo }: PageShellProps) {
       <div className="min-h-screen flex flex-col bg-white">
         <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
-                <Leaf className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-emerald-700 group-hover:text-emerald-600 transition-colors">
-                Greenbee
+            <Link to="/" className="flex items-center cursor-pointer">
+              <span className="text-xl font-extrabold text-gray-950 tracking-tight leading-none">
+                Green<span className="text-emerald-500">bee</span>
               </span>
             </Link>
             <Link
@@ -55,11 +51,10 @@ export default function PageShell({ children, seo }: PageShellProps) {
         <footer className="bg-gray-50 border-t border-gray-100 py-10 mt-16">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-                  <Leaf className="w-3 h-3 text-white" />
-                </div>
-                <span className="text-sm font-semibold text-emerald-700">Greenbee</span>
+              <Link to="/" className="flex items-center">
+                <span className="text-sm font-extrabold text-gray-950 tracking-tight leading-none">
+                  Green<span className="text-emerald-500">bee</span>
+                </span>
               </Link>
               <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-gray-500">
                 <Link to="/terms" className="hover:text-emerald-600 transition-colors">Terms</Link>
