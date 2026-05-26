@@ -21,7 +21,7 @@ import MyAccount from "./components/MyAccount";
 import { Service, Booking, Review, BookingStatus } from "../shared/types";
 import { SERVICES_DATA, INITIAL_BOOKINGS, INITIAL_REVIEWS } from "../shared/data";
 import { Language, getInitialLanguage } from "../shared/i18n";
-import { 
+import {
   validateFirestoreConnection,
   subscribeToAuthChanges,
   getUserProfile,
@@ -35,9 +35,12 @@ import {
   incrementReviewHelpfulCount,
   deleteReviewFromFirestore,
   signInWithGooglePopup,
+  signInWithEmail,
+  signUpWithEmail,
   signOutUser,
   getGoogleRedirectResult,
-  getFirebaseAuthErrorMessage
+  getFirebaseAuthErrorMessage,
+  type UserProfile
 } from "../shared/services/firebaseService";
 
 const BEFORE_AFTER_DATA: Record<string, {
@@ -144,8 +147,10 @@ export default function App() {
     return getInitialLanguage();
   });
   
+  type AppUser = UserProfile & { isAdmin?: boolean };
+
   // User Authentication state
-  const [currentUser, setCurrentUser] = useState<{ uid?: string; email: string; name: string; isAdmin?: boolean } | null>(() => {
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
     try {
       const saved = localStorage.getItem("hsh_user");
       return saved ? JSON.parse(saved) : null;
@@ -327,16 +332,16 @@ export default function App() {
     loadBookings();
   }, [currentUser]);
 
-  // Fallback direct update for mock or email-only sign-in
-  const handleLogin = (name: string, email: string) => {
-    const user = { name, email, isAdmin: false };
-    setCurrentUser(user);
-    setIsAdmin(false);
-    try {
-      localStorage.setItem("hsh_user", JSON.stringify(user));
-    } catch (e) {
-      console.error(e);
-    }
+  const handleEmailLogin = async (email: string, password: string): Promise<void> => {
+    const firebaseUser = await signInWithEmail(email, password);
+    // onAuthStateChanged se encarga del resto al detectar el cambio de sesión
+    if (!firebaseUser) throw new Error("No se pudo iniciar sesión.");
+  };
+
+  const handleEmailSignup = async (name: string, email: string, password: string): Promise<void> => {
+    const firebaseUser = await signUpWithEmail(email, password);
+    await saveUserProfile(firebaseUser.uid, { uid: firebaseUser.uid, name, email });
+    // onAuthStateChanged carga el perfil al detectar el nuevo usuario
   };
 
   const handleGoogleLogin = async () => {
@@ -393,25 +398,28 @@ export default function App() {
   const handleLogout = async () => {
     setCurrentUser(null);
     setIsAdmin(false);
+    setBookings(INITIAL_BOOKINGS);
     try {
       localStorage.removeItem("hsh_user");
+      localStorage.removeItem("hsh_bookings_db");
       await signOutUser();
     } catch (e) {
       console.error(e);
     }
   };
 
-  const handleUpdateUser = async (updatedName: string) => {
+  const handleUpdateProfile = async (updates: Partial<UserProfile>) => {
     if (currentUser) {
-      const updated = { ...currentUser, name: updatedName };
+      const updated = { ...currentUser, ...updates };
       setCurrentUser(updated);
       try {
         localStorage.setItem("hsh_user", JSON.stringify(updated));
         if (currentUser.uid) {
-          await saveUserProfile(currentUser.uid, { name: updatedName });
+          await saveUserProfile(currentUser.uid, updates);
         }
       } catch (e) {
         console.error(e);
+        throw e;
       }
     }
   };
@@ -666,11 +674,13 @@ export default function App() {
         bookingsCount={bookings.filter((b) => b.status !== "completed" && b.status !== "cancelled").length}
         activeMembership={activeMembership}
         currentUser={currentUser}
-        onLogin={handleLogin}
         onLogout={handleLogout}
         onGoogleLogin={handleGoogleLogin}
         language={language}
         onLanguageChange={handleLanguageChange}
+        onEmailLogin={handleEmailLogin}
+        onEmailSignup={handleEmailSignup}
+        getAuthErrorMessage={getFirebaseAuthErrorMessage}
       />
 
       {/* Main Container Workspace */}
@@ -729,6 +739,25 @@ export default function App() {
             />
           </div>
         )}
+
+
+        {/* Tab "account" containing Customer authorized profile operations */}
+        {activeTab === "account" && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <MyAccount
+              currentUser={currentUser}
+              onLogout={handleLogout}
+              bookings={bookings}
+              activeMembership={activeMembership}
+              onSelectTab={handleTabChange}
+              onUpdateProfile={handleUpdateProfile}
+              onEnterAdmin={() => {
+                window.location.href = "/admin";
+              }}
+            />
+          </section>
+        )}
+
 
         {/* Tab "bookings" containing OperationsTracker or Rescheduling */}
         {activeTab === "bookings" && (

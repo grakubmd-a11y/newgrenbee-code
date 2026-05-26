@@ -13,11 +13,14 @@ import {
   getDocFromServer,
   deleteDoc
 } from "firebase/firestore";
-import { 
+import {
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
-  GoogleAuthProvider, 
-  signOut, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signOut,
   User as FirebaseUser,
   onAuthStateChanged
 } from "firebase/auth";
@@ -134,24 +137,27 @@ export async function saveUserProfile(uid: string, profile: Partial<UserProfile>
   try {
     const existing = await getUserProfile(uid);
     const now = new Date().toISOString();
-    
+
+    const pick = <T>(incoming: T | undefined, fallback: T): T =>
+      incoming !== undefined ? incoming : fallback;
+
     const dataToSave = {
       uid,
-      name: profile.name || existing?.name || "",
-      email: profile.email || existing?.email || "",
-      role: profile.role || existing?.role || "customer",
-      phone: profile.phone || existing?.phone || "",
-      address: profile.address || existing?.address || "",
-      activeMembership: profile.activeMembership !== undefined ? profile.activeMembership : (existing?.activeMembership || null),
-      petsStatus: profile.petsStatus || existing?.petsStatus || "none",
-      keyPreferences: profile.keyPreferences || existing?.keyPreferences || "lockbox",
-      lockboxCode: profile.lockboxCode || existing?.lockboxCode || "",
-      specialNote: profile.specialNote || existing?.specialNote || "",
-      cardName: profile.cardName || existing?.cardName || "",
-      cardNumber: profile.cardNumber || existing?.cardNumber || "",
-      cardExpiry: profile.cardExpiry || existing?.cardExpiry || "",
-      cardProvider: profile.cardProvider || existing?.cardProvider || "visa",
-      createdAt: existing?.createdAt || now,
+      name: pick(profile.name, existing?.name ?? ""),
+      email: pick(profile.email, existing?.email ?? ""),
+      role: pick(profile.role, existing?.role ?? "customer"),
+      phone: pick(profile.phone, existing?.phone ?? ""),
+      address: pick(profile.address, existing?.address ?? ""),
+      activeMembership: pick(profile.activeMembership, existing?.activeMembership ?? null),
+      petsStatus: pick(profile.petsStatus, existing?.petsStatus ?? "none"),
+      keyPreferences: pick(profile.keyPreferences, existing?.keyPreferences ?? "lockbox"),
+      lockboxCode: pick(profile.lockboxCode, existing?.lockboxCode ?? ""),
+      specialNote: pick(profile.specialNote, existing?.specialNote ?? ""),
+      cardName: pick(profile.cardName, existing?.cardName ?? ""),
+      cardNumber: pick(profile.cardNumber, existing?.cardNumber ?? ""),
+      cardExpiry: pick(profile.cardExpiry, existing?.cardExpiry ?? ""),
+      cardProvider: pick(profile.cardProvider, existing?.cardProvider ?? "visa"),
+      createdAt: existing?.createdAt ?? now,
       updatedAt: now
     };
 
@@ -573,22 +579,57 @@ function createGoogleProvider(): GoogleAuthProvider {
 export function getFirebaseAuthErrorMessage(error: unknown): string {
   const err = error as { code?: string; message?: string };
   switch (err?.code) {
+    // Google
     case "auth/popup-blocked":
-      return "El navegador bloqueo la ventana de Google. Usa la opcion de redireccion.";
+      return "El navegador bloqueó la ventana de Google. Usa la opción de redirección.";
     case "auth/popup-closed-by-user":
-      return "La ventana de Google se cerro antes de terminar el login.";
+      return "La ventana de Google se cerró antes de terminar el login.";
     case "auth/cancelled-popup-request":
-      return "Ya habia una ventana de login abierta. Cierra la anterior e intenta otra vez.";
+      return "Ya había una ventana de login abierta. Cierra la anterior e intenta otra vez.";
     case "auth/unauthorized-domain":
-      return "Este dominio no esta autorizado en Firebase Authentication. Agrega localhost y el dominio publicado en Firebase > Authentication > Settings > Authorized domains.";
+      return "Este dominio no está autorizado en Firebase Authentication. Agrégalo en Firebase > Authentication > Settings > Authorized domains.";
     case "auth/operation-not-allowed":
-      return "Google Sign-In no esta habilitado en Firebase Authentication > Sign-in method.";
+      return "Este método de inicio de sesión no está habilitado en Firebase Authentication > Sign-in method.";
     case "auth/network-request-failed":
-      return "Firebase no pudo conectarse. Revisa internet, bloqueadores o configuracion del proyecto.";
+      return "Firebase no pudo conectarse. Revisa tu conexión a internet.";
     case "auth/web-storage-unsupported":
-      return "El navegador esta bloqueando almacenamiento necesario para Firebase Auth.";
+      return "El navegador está bloqueando el almacenamiento necesario para Firebase Auth.";
+    // Email/contraseña
+    case "auth/user-not-found":
+    case "auth/invalid-credential":
+      return "Correo o contraseña incorrectos.";
+    case "auth/wrong-password":
+      return "Contraseña incorrecta. Inténtalo de nuevo.";
+    case "auth/email-already-in-use":
+      return "Ya existe una cuenta con ese correo. Inicia sesión en su lugar.";
+    case "auth/weak-password":
+      return "La contraseña debe tener al menos 6 caracteres.";
+    case "auth/invalid-email":
+      return "El formato del correo no es válido.";
+    case "auth/too-many-requests":
+      return "Demasiados intentos fallidos. Espera unos minutos e inténtalo de nuevo.";
     default:
-      return err?.message || "No se pudo iniciar sesion con Google.";
+      return err?.message || "No se pudo iniciar sesión. Inténtalo de nuevo.";
+  }
+}
+
+export async function signInWithEmail(email: string, password: string): Promise<FirebaseUser> {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Email Sign In Error:", error);
+    throw error;
+  }
+}
+
+export async function signUpWithEmail(email: string, password: string): Promise<FirebaseUser> {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Email Sign Up Error:", error);
+    throw error;
   }
 }
 

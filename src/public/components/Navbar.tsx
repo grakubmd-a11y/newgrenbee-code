@@ -26,24 +26,28 @@ interface NavbarProps {
   bookingsCount: number;
   activeMembership?: string | null;
   currentUser: { email: string; name: string } | null;
-  onLogin: (name: string, email: string) => void;
   onLogout: () => void;
   onGoogleLogin?: () => Promise<void>;
   language: Language;
   onLanguageChange: (lang: Language) => void;
+  onEmailLogin?: (email: string, password: string) => Promise<void>;
+  onEmailSignup?: (name: string, email: string, password: string) => Promise<void>;
+  getAuthErrorMessage?: (error: unknown) => string;
 }
 
-export default function Navbar({ 
-  activeTab, 
-  setActiveTab, 
-  bookingsCount, 
+export default function Navbar({
+  activeTab,
+  setActiveTab,
+  bookingsCount,
   activeMembership,
   currentUser,
-  onLogin,
   onLogout,
   onGoogleLogin,
   language,
-  onLanguageChange
+  onLanguageChange,
+  onEmailLogin,
+  onEmailSignup,
+  getAuthErrorMessage
 }: NavbarProps) {
   // Navigation tabs for SEO structure
   const tabs: Array<{ id: string; label: string; icon: any; isPremium?: boolean; badge?: number }> = [
@@ -63,40 +67,50 @@ export default function Navbar({
   // Input fields
   const [emailInput, setEmailInput] = useState("");
   const [nameInput, setNameInput] = useState("");
-  const [passwordInput, setPasswordInput] = useState("••••••••");
+  const [passwordInput, setPasswordInput] = useState("");
   const [isDemoAuthing, setIsDemoAuthing] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput.trim()) {
       setErrorMsg("Por favor, ingresa un correo electrónico válido.");
       return;
     }
-    if (authMode === 'signup' && !nameInput.trim()) {
+    if (authMode === "signup" && !nameInput.trim()) {
       setErrorMsg("Por favor, ingresa tu nombre completo.");
+      return;
+    }
+    if (!passwordInput) {
+      setErrorMsg("Por favor, ingresa tu contraseña.");
       return;
     }
 
     setIsDemoAuthing(true);
     setErrorMsg("");
-    
-    setTimeout(() => {
-      const finalName = authMode === 'signup' ? nameInput : (emailInput.includes("marko") ? "Marko" : emailInput.split("@")[0]);
-      onLogin(finalName, emailInput);
-      setIsDemoAuthing(false);
-      setSuccessMsg(`¡Bienvenido de vuelta, ${finalName}! Sesión iniciada.`);
-      
-      // Auto close after success and switch to Account page
+
+    try {
+      if (authMode === "signup") {
+        if (onEmailSignup) await onEmailSignup(nameInput.trim(), emailInput.trim(), passwordInput);
+      } else {
+        if (onEmailLogin) await onEmailLogin(emailInput.trim(), passwordInput);
+      }
+      const label = authMode === "signup" ? "¡Cuenta creada! Bienvenido." : "¡Sesión iniciada correctamente!";
+      setSuccessMsg(label);
       setTimeout(() => {
         setIsAuthDrawerOpen(false);
         setSuccessMsg("");
         setEmailInput("");
         setNameInput("");
-        setActiveTab("account"); // Redirect straight to account!
+        setPasswordInput("");
+        setActiveTab("account");
       }, 1200);
-    }, 850);
+    } catch (err: unknown) {
+      setErrorMsg(getAuthErrorMessage ? getAuthErrorMessage(err) : "No se pudo iniciar sesión. Inténtalo de nuevo.");
+    } finally {
+      setIsDemoAuthing(false);
+    }
   };
 
   return (
@@ -414,12 +428,13 @@ export default function Navbar({
                         setTimeout(() => {
                           setIsAuthDrawerOpen(false);
                           setSuccessMsg("");
+                          setEmailInput("");
+                          setNameInput("");
+                          setPasswordInput("");
                           setActiveTab("account");
                         }, 1200);
-                      } catch (err: any) {
-                        // Show the user-friendly error message
-                        const message = err?.message || "Error al iniciar sesión con Google. Inténtalo de nuevo.";
-                        setErrorMsg(message);
+                      } catch (err: unknown) {
+                        setErrorMsg(getAuthErrorMessage ? getAuthErrorMessage(err) : "Error al iniciar sesión con Google. Inténtalo de nuevo.");
                       } finally {
                         setIsDemoAuthing(false);
                       }

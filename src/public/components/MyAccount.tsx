@@ -25,26 +25,29 @@ import {
   Sparkle
 } from "lucide-react";
 import { Booking } from "../../shared/types";
+import type { UserProfile } from "../../shared/services/firebaseService";
+
+type AppUser = UserProfile & { isAdmin?: boolean };
 
 interface MyAccountProps {
-  currentUser: { email: string; name: string; isAdmin?: boolean } | null;
+  currentUser: AppUser | null;
   onLogout: () => void;
   bookings: Booking[];
   activeMembership?: string | null;
   onSelectTab: (tabId: string) => void;
-  onUpdateUser: (updatedName: string) => void;
+  onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   onEnterAdmin?: () => void;
 }
 
 type SubTab = "profile" | "access" | "payment" | "bookings";
 
-export default function MyAccount({ 
-  currentUser, 
-  onLogout, 
-  bookings, 
+export default function MyAccount({
+  currentUser,
+  onLogout,
+  bookings,
   activeMembership,
   onSelectTab,
-  onUpdateUser,
+  onUpdateProfile,
   onEnterAdmin
 }: MyAccountProps) {
   if (!currentUser) {
@@ -66,34 +69,80 @@ export default function MyAccount({
   // Sub-tab selection state inside the MyAccount portal
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("profile");
 
-  // Profile fields state
-  const [profileName, setProfileName] = useState(currentUser.name);
-  const [profilePhone, setProfilePhone] = useState("+1 (555) 0192-384");
-  const [profileAddress, setProfileAddress] = useState("742 Evergreen Terrace, Springfield, IL");
-  const [petsStatus, setPetsStatus] = useState<"none" | "dog" | "cat" | "both">("dog");
-  const [keyPreferences, setKeyPreferences] = useState("lockbox"); // "lockbox", "present", "frontdesk"
-  const [lockboxCode, setLockboxCode] = useState("4821");
-  const [specialNote, setSpecialNote] = useState("Tener cuidado al entrar por el jardín frontal, el portón rechina un poco.");
-  
-  // Payment simulated state
-  const [cardName, setCardName] = useState(currentUser.name);
-  const [cardNumber, setCardNumber] = useState("•••• •••• •••• 9840");
-  const [cardExpiry, setCardExpiry] = useState("08/29");
-  const [cardProvider, setCardProvider] = useState<"visa" | "mastercard">("visa");
+  // Profile fields — inicializados desde Firestore vía currentUser
+  const [profileName, setProfileName] = useState(currentUser.name ?? "");
+  const [profilePhone, setProfilePhone] = useState(currentUser.phone ?? "");
+  const [profileAddress, setProfileAddress] = useState(currentUser.address ?? "");
+  const [petsStatus, setPetsStatus] = useState<"none" | "dog" | "cat" | "both">(
+    (currentUser.petsStatus as "none" | "dog" | "cat" | "both") ?? "none"
+  );
+  const [keyPreferences, setKeyPreferences] = useState(currentUser.keyPreferences ?? "lockbox");
+  const [lockboxCode, setLockboxCode] = useState(currentUser.lockboxCode ?? "");
+  const [specialNote, setSpecialNote] = useState(currentUser.specialNote ?? "");
 
-  // Success alert
+  // Payment display fields
+  const [cardName, setCardName] = useState(currentUser.cardName ?? currentUser.name ?? "");
+  const [cardNumber] = useState(currentUser.cardNumber ?? "•••• •••• •••• ────");
+  const [cardExpiry, setCardExpiry] = useState(currentUser.cardExpiry ?? "");
+  const [cardProvider, setCardProvider] = useState<"visa" | "mastercard">(
+    (currentUser.cardProvider as "visa" | "mastercard") ?? "visa"
+  );
+
+  // Feedback states
   const [successMessage, setSuccessMessage] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleProfileSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    onUpdateUser(profileName);
-    setSuccessMessage("¡Tus configuraciones de cuenta han sido salvadas con éxito!");
+  const showSuccess = (msg: string) => {
+    setSuccessMessage(msg);
+    setSaveError("");
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  const myActiveBookings = bookings.filter(b => 
-    b.email.toLowerCase() === currentUser.email.toLowerCase() || 
-    b.customerName.toLowerCase() === currentUser.name.toLowerCase()
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      await onUpdateProfile({ name: profileName, phone: profilePhone, address: profileAddress });
+      showSuccess("¡Datos de perfil guardados correctamente!");
+    } catch {
+      setSaveError("No se pudieron guardar los cambios. Inténtalo de nuevo.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAccessSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      await onUpdateProfile({ petsStatus, keyPreferences, lockboxCode, specialNote });
+      showSuccess("¡Pautas de acceso guardadas correctamente!");
+    } catch {
+      setSaveError("No se pudieron guardar los cambios. Inténtalo de nuevo.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePaymentSave = async () => {
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      await onUpdateProfile({ cardName, cardExpiry, cardProvider });
+      showSuccess("¡Medio de pago actualizado!");
+    } catch {
+      setSaveError("No se pudo actualizar el medio de pago.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const myActiveBookings = bookings.filter(b =>
+    b.email.toLowerCase() === currentUser.email.toLowerCase() ||
+    (currentUser.uid ? b.userId === currentUser.uid : false)
   );
 
   return (
@@ -141,6 +190,11 @@ export default function MyAccount({
         <div className="p-4 bg-brand text-white rounded-2xl flex items-center gap-3 animate-in zoom-in-95 shadow-md">
           <CheckCircle2 className="text-white shrink-0" size={18} />
           <span className="text-xs font-bold leading-none">{successMessage}</span>
+        </div>
+      )}
+      {saveError && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl flex items-center gap-3 text-xs font-medium">
+          ⚠️ {saveError}
         </div>
       )}
 
@@ -283,10 +337,11 @@ export default function MyAccount({
                   <div className="pt-4 border-t border-zinc-100 flex justify-end">
                     <button
                       type="submit"
-                      className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-xs font-extrabold rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      disabled={isSaving}
+                      className="px-5 py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-60 text-white text-xs font-extrabold rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                     >
                       <Save size={14} />
-                      <span>Guardar Cambios</span>
+                      <span>{isSaving ? "Guardando..." : "Guardar Cambios"}</span>
                     </button>
                   </div>
                 </form>
@@ -301,9 +356,9 @@ export default function MyAccount({
                   <p className="text-xs text-zinc-500">Configure las directrices físicas y de seguridad para los operarios despachados.</p>
                 </div>
 
-                <form onSubmit={handleProfileSave} className="space-y-5">
+                <form onSubmit={handleAccessSave} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
+
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-zinc-500 uppercase block">¿Habrá Mascotas en Casa?</label>
                       <select
@@ -365,10 +420,11 @@ export default function MyAccount({
                   <div className="pt-4 border-t border-zinc-100 flex justify-end">
                     <button
                       type="submit"
-                      className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-xs font-extrabold rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      disabled={isSaving}
+                      className="px-5 py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-60 text-white text-xs font-extrabold rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                     >
                       <Save size={14} />
-                      <span>Guardar Pautas de Entrada</span>
+                      <span>{isSaving ? "Guardando..." : "Guardar Pautas de Entrada"}</span>
                     </button>
                   </div>
                 </form>
@@ -468,13 +524,11 @@ export default function MyAccount({
 
                     <button
                       type="button"
-                      onClick={() => {
-                        setSuccessMessage("¡Médio de cobro predeterminado actualizado!");
-                        setTimeout(() => setSuccessMessage(""), 2000);
-                      }}
-                      className="w-full py-2.5 bg-brand hover:bg-brand-hover text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-sm text-center"
+                      disabled={isSaving}
+                      onClick={handlePaymentSave}
+                      className="w-full py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-60 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-sm text-center"
                     >
-                      Actualizar Medio de Pago
+                      {isSaving ? "Guardando..." : "Actualizar Medio de Pago"}
                     </button>
                   </div>
 
