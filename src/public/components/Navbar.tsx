@@ -14,8 +14,10 @@ import {
   BookOpen,
   Settings,
   Truck,
-  Menu
+  Menu,
+  Globe
 } from "lucide-react";
+import { Language } from "../../shared/i18n";
 
 interface NavbarProps {
   activeTab: string;
@@ -26,6 +28,8 @@ interface NavbarProps {
   onLogin: (name: string, email: string) => void;
   onLogout: () => void;
   onGoogleLogin?: () => Promise<void>;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
 }
 
 export default function Navbar({ 
@@ -36,7 +40,9 @@ export default function Navbar({
   currentUser,
   onLogin,
   onLogout,
-  onGoogleLogin
+  onGoogleLogin,
+  language,
+  onLanguageChange
 }: NavbarProps) {
   // Navigation tabs for SEO structure
   const tabs: Array<{ id: string; label: string; icon: any; isPremium?: boolean; badge?: number }> = [
@@ -207,6 +213,17 @@ export default function Navbar({
                 </>
               )}
               
+              {/* Language Toggle Button */}
+              <button
+                type="button"
+                onClick={() => onLanguageChange(language === 'en' ? 'es' : 'en')}
+                className="h-10 w-10 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all cursor-pointer hidden sm:flex"
+                title={language === 'en' ? 'Cambiar a Español' : 'Switch to English'}
+              >
+                <Globe size={18} />
+                <span className="text-xs font-bold ml-0.5">{language.toUpperCase()}</span>
+              </button>
+
               {/* Mobile Hamburger Button - Right side */}
               <button
                 type="button"

@@ -1,109 +1,78 @@
 import React from "react";
-import { ArrowRight, Sparkles, Home } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Language, t } from '../../shared/i18n';
 
 interface HeroSectionProps {
-  onBooking: () => void;
-  onLearnMore: () => void;
+  language: Language;
+  onBookService: () => void;
 }
 
-export default function HeroSection({ onBooking, onLearnMore }: HeroSectionProps) {
+export default function HeroSection({ language, onBookService }: HeroSectionProps) {
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden pt-20">
-      {/* Animated background gradient */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-brand/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-      </div>
-
+    <section className="relative w-full pt-24 pb-20 md:pt-40 md:pb-32 overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-brand/5 via-transparent to-brand-hover/5" />
+      
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Column */}
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Left: Text Content */}
           <div className="space-y-8">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand/10 border border-brand/30 backdrop-blur-sm">
-              <Sparkles size={16} className="text-brand" />
-              <span className="text-sm font-semibold text-brand">Servicios a Domicilio Profesionales</span>
-            </div>
-
-            {/* Headline */}
             <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-tight">
-                Tu hogar,
-                <span className="block bg-gradient-to-r from-brand to-emerald-300 bg-clip-text text-transparent">
-                  perfectamente cuidado
-                </span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-950 leading-tight text-balance">
+                {t('hero.title', language)}
               </h1>
-              <p className="text-lg lg:text-xl text-gray-300 max-w-lg leading-relaxed">
-                Servicios profesionales de limpieza, mantenimiento y reparación. Confiables, rápidos y con garantía de satisfacción.
+              <p className="text-lg md:text-xl text-gray-600 leading-relaxed text-balance">
+                {t('hero.subtitle', language)}
               </p>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-8">
-              <button
-                onClick={onBooking}
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-brand hover:bg-brand-hover text-white font-bold transition-all duration-200 hover:shadow-lg hover:shadow-brand/50 hover:scale-105"
-              >
-                Reservar Ahora
-                <ArrowRight size={20} />
-              </button>
-              <button
-                onClick={onLearnMore}
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-lg border-2 border-gray-600 hover:border-white text-white font-bold transition-all duration-200 hover:bg-white/5"
-              >
-                Ver Servicios
-              </button>
+            {/* Trust indicators */}
+            <div className="flex flex-col sm:flex-row gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-brand shrink-0" />
+                <span className="text-gray-700">{language === 'en' ? 'Vetted Professionals' : 'Profesionales Verificados'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-brand shrink-0" />
+                <span className="text-gray-700">{language === 'en' ? 'Secure Payment' : 'Pago Seguro'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-brand shrink-0" />
+                <span className="text-gray-700">{language === 'en' ? '24/7 Support' : 'Soporte 24/7'}</span>
+              </div>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-700">
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-brand">500+</div>
-                <p className="text-sm text-gray-400">Clientes Satisfechos</p>
-              </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-brand">4.9★</div>
-                <p className="text-sm text-gray-400">Calificación Media</p>
-              </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-brand">24/7</div>
-                <p className="text-sm text-gray-400">Disponible</p>
-              </div>
-            </div>
+            {/* CTA Button */}
+            <button
+              onClick={onBookService}
+              className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-brand hover:bg-brand-hover text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              {t('hero.cta', language)}
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
 
-          {/* Right Column - Visual */}
-          <div className="relative h-96 lg:h-[600px] hidden lg:flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand/20 to-blue-500/20 rounded-3xl blur-2xl" />
-            <div className="relative bg-gradient-to-br from-slate-700 to-slate-800 rounded-3xl p-8 border border-gray-600 shadow-2xl">
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-white/5">
-                  <div className="w-12 h-12 rounded-full bg-brand/20 flex items-center justify-center">
-                    <Home size={24} className="text-brand" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Limpieza Profunda</p>
-                    <p className="text-xs text-gray-400">Por solo $49</p>
-                  </div>
+          {/* Right: Visual Element */}
+          <div className="relative h-96 md:h-full hidden md:flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-light to-brand/10 rounded-3xl" />
+            <div className="absolute inset-0 rounded-3xl overflow-hidden">
+              <div className="grid grid-cols-2 gap-4 p-8 h-full content-center">
+                <div className="bg-white rounded-2xl shadow-md p-4 text-center space-y-2 transform hover:scale-105 transition-transform">
+                  <div className="text-3xl">🧹</div>
+                  <p className="text-sm font-semibold text-gray-700">{language === 'en' ? 'Cleaning' : 'Limpieza'}</p>
                 </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-white/5">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <Home size={24} className="text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Mantenimiento</p>
-                    <p className="text-xs text-gray-400">Garantizado</p>
-                  </div>
+                <div className="bg-white rounded-2xl shadow-md p-4 text-center space-y-2 transform hover:scale-105 transition-transform">
+                  <div className="text-3xl">🌱</div>
+                  <p className="text-sm font-semibold text-gray-700">{language === 'en' ? 'Lawn Care' : 'Cuidado del Césped'}</p>
                 </div>
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-white/5">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                    <Home size={24} className="text-emerald-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Equipo Certificado</p>
-                    <p className="text-xs text-gray-400">+ 10 años experiencia</p>
-                  </div>
+                <div className="bg-white rounded-2xl shadow-md p-4 text-center space-y-2 transform hover:scale-105 transition-transform">
+                  <div className="text-3xl">📺</div>
+                  <p className="text-sm font-semibold text-gray-700">{language === 'en' ? 'TV Install' : 'Instalación TV'}</p>
+                </div>
+                <div className="bg-white rounded-2xl shadow-md p-4 text-center space-y-2 transform hover:scale-105 transition-transform">
+                  <div className="text-3xl">🛋️</div>
+                  <p className="text-sm font-semibold text-gray-700">{language === 'en' ? 'Assembly' : 'Ensamblaje'}</p>
                 </div>
               </div>
             </div>
