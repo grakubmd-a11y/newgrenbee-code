@@ -593,12 +593,37 @@ export function getFirebaseAuthErrorMessage(error: unknown): string {
   }
 }
 
+/**
+ * Detects if running on mobile device
+ */
+function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 export async function signInWithGooglePopup(): Promise<FirebaseUser | null> {
   const provider = createGoogleProvider();
+  
+  // On mobile, use redirect flow as popup is often blocked or fails
+  if (isMobileDevice()) {
+    console.log("[v0] Mobile detected, using redirect flow for Google Sign-In");
+    await signInWithRedirect(auth, provider);
+    return null; // Will be handled by getRedirectResult on page load
+  }
+  
   try {
     const result = await signInWithPopup(auth, provider);
     return result.user;
   } catch (error) {
+    const err = error as { code?: string };
+    // If popup fails, fallback to redirect
+    if (err?.code === 'auth/popup-blocked' || 
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request') {
+      console.log("[v0] Popup failed, falling back to redirect flow");
+      await signInWithRedirect(auth, provider);
+      return null;
+    }
     console.error("Google Sign In Error:", error);
     throw error;
   }
