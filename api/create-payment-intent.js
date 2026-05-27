@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import admin from "firebase-admin";
+import { getFirestore as _adminGetFs } from "firebase-admin/firestore";
 import { calculatePrice, requiresTwoTechs } from "./_pricing.js";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -35,15 +36,20 @@ function couponDocId(code) {
     .replace(/^-+|-+$/g, "");
 }
 
+let _db = null;
 function getFirestore() {
-  if (admin.apps.length) return admin.firestore();
+  if (_db) return _db;
   const json =
     process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
     process.env.FIREBASE_ADMIN_CREDENTIALS;
   if (!json || json.includes("REPLACE_ME")) return null;
   try {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
-    return admin.firestore();
+    const app = admin.apps.length
+      ? admin.apps[0]
+      : admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
+    const dbId = process.env.FIREBASE_DATABASE_ID;
+    _db = dbId ? _adminGetFs(app, dbId) : _adminGetFs(app);
+    return _db;
   } catch {
     return null;
   }
