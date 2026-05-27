@@ -32,8 +32,11 @@ import {
   Loader,
   CalendarDays,
   DollarSign,
+  Image,
+  ZoomIn,
+  FileText,
 } from "lucide-react";
-import { Booking, RecurringPlan, RecurringPlanAction } from "../../shared/types";
+import { Booking, JobPhoto, RecurringPlan, RecurringPlanAction } from "../../shared/types";
 import type { UserProfile } from "../../shared/services/firebaseService";
 import { updateUserPassword, currentUserHasPasswordProvider, fetchPublicSettingsFromFirestore } from "../../shared/services/firebaseService";
 import {
@@ -1304,27 +1307,112 @@ function ActionButton({
 function BookingCard({ booking }: { booking: Booking; key?: string }) {
   const sc = statusConfig(booking.status);
   const StatusIcon = sc.icon;
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const beforePhotos = (booking.photos ?? []).filter((p) => p.phase === "before");
+  const afterPhotos  = (booking.photos ?? []).filter((p) => p.phase === "after");
+  const hasPhotos    = (booking.photos ?? []).length > 0;
+
   return (
-    <div className="bg-white border border-zinc-150 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-extrabold text-zinc-900 text-sm">{booking.serviceName}</span>
-          <span className="text-[10px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded font-bold uppercase font-mono">
-            {booking.id.slice(0, 7)}
+    <>
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full bg-black/40 transition-colors cursor-pointer"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Foto del trabajo"
+            className="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      <div className="bg-white border border-zinc-150 rounded-2xl p-4 shadow-xs space-y-3">
+        {/* Header row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-extrabold text-zinc-900 text-sm">{booking.serviceName}</span>
+              <span className="text-[10px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded font-bold uppercase font-mono">
+                {booking.id.slice(0, 7)}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
+              <span>{booking.bookingDate}</span>
+              <span>·</span>
+              <span>{booking.timeSlot}</span>
+              <span>·</span>
+              <span className="text-brand font-extrabold">${booking.totalCost?.toFixed(0) || "0"}</span>
+            </div>
+          </div>
+          <span className={`self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${sc.tone}`}>
+            <StatusIcon size={11} />
+            {sc.label}
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
-          <span>{booking.bookingDate}</span>
-          <span>·</span>
-          <span>{booking.timeSlot}</span>
-          <span>·</span>
-          <span className="text-brand font-extrabold">${booking.totalCost?.toFixed(0) || "0"}</span>
-        </div>
+
+        {/* Completion notes */}
+        {booking.status === "completed" && booking.completionNotes && (
+          <div className="flex gap-2 p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+            <FileText size={13} className="text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">{booking.completionNotes}</p>
+          </div>
+        )}
+
+        {/* Photos gallery */}
+        {hasPhotos && (
+          <div className="space-y-2">
+            {beforePhotos.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <Image size={10} /> Antes
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {beforePhotos.map((photo) => (
+                    <PhotoThumb key={photo.url} photo={photo} onOpen={() => setLightboxUrl(photo.url)} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {afterPhotos.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <Image size={10} /> Después
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {afterPhotos.map((photo) => (
+                    <PhotoThumb key={photo.url} photo={photo} onOpen={() => setLightboxUrl(photo.url)} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      <span className={`self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${sc.tone}`}>
-        <StatusIcon size={11} />
-        {sc.label}
-      </span>
-    </div>
+    </>
+  );
+}
+
+function PhotoThumb({ photo, onOpen }: { photo: JobPhoto; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="relative h-16 w-16 rounded-xl overflow-hidden border border-zinc-200 hover:border-brand/40 hover:shadow-md transition-all cursor-pointer group shrink-0"
+    >
+      <img src={photo.url} alt={photo.phase} className="h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+        <ZoomIn size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
+      </div>
+    </button>
   );
 }

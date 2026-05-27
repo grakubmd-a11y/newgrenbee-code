@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default":    "servicios-maps",
+    "staging":    "grenbee-staging",
+    "production": "servicios-maps"
+  }
+}
