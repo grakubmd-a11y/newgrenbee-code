@@ -45,11 +45,12 @@ export const ALLOWED_MODIFIERS = {
   },
 };
 
+/** Recurring discount rates — matches WP plugin BookingServiceRecurrenceTrait & pricingService.ts */
 export const FREQUENCY_DISCOUNTS = {
   once:        0,
-  weekly:      0.20,
-  "bi-weekly": 0.15,
-  monthly:     0.10,
+  weekly:      0.15, // 15%
+  "bi-weekly": 0.10, // 10%
+  monthly:     0.05, //  5%
 };
 
 export const MEMBERSHIP_DISCOUNTS = {

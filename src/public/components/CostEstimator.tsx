@@ -3,6 +3,12 @@ import * as Icons from "lucide-react";
 import { CouponRule, Service, ServiceFactor, ServiceFactorOption } from "../../shared/types";
 import { SERVICES_DATA } from "../../shared/data";
 import { fetchPublicCouponByCode } from "../../shared/services/firebaseService";
+import {
+  calculateQuote,
+  RECURRENCE_DISCOUNT_RATES,
+  MEMBERSHIP_DISCOUNT_RATES,
+  type RecurrenceKey,
+} from "../../shared/services/pricingService";
 
 interface CostEstimatorProps {
   initialServiceId?: string;
@@ -56,6 +62,29 @@ export default function CostEstimator({
     setSelectedOptions(defaults);
   }, [activeServiceId, services]);
 
+  // ── Transform selectedOptions → selectedFactors (format expected by pricingService) ──
+  const selectedFactors = useMemo(() => {
+    const result: Record<string, { label: string; modifier: number }> = {};
+    for (const [name, opt] of Object.entries(selectedOptions) as [string, ServiceFactorOption][]) {
+      result[name] = { label: opt.label, modifier: opt.priceModifier };
+    }
+    return result;
+  }, [selectedOptions]);
+
+  // ── Canonical pricing engine ──────────────────────────────────────────────────
+  const quote = useMemo(
+    () =>
+      calculateQuote({
+        service: activeService,
+        units,
+        selectedFactors,
+        recurrence: frequency as RecurrenceKey,
+        membership: activeMembership,
+        coupon: appliedCoupon,
+      }),
+    [activeService, units, selectedFactors, frequency, activeMembership, appliedCoupon]
+  );
+
   // 3. Calculation Helpers
   const unitLabelValue = useMemo(() => {
     if (activeService.id === "lawn-mowing") {
@@ -67,129 +96,53 @@ export default function CostEstimator({
     return `${units} ${activeService.unitName}${units !== 1 ? 's' : ''}`;
   }, [units, activeService]);
 
+  // ── pricingBreakdown shim — maps canonical quote to legacy UI field names ──────
   const pricingBreakdown = useMemo(() => {
-    const base = activeService.basePrice;
-    
-    // Additional unit costs: for TV, Furniture, Pressure, Lawn, House cleaning
-    // For House Cleaning: unit is "Additional Rooms beyond standard"
-    // For TV install: unit is "Total TVs", first TV is included in base or base is flat?
-    // Let's standardise: Total units count. If it's a house cleaning: additional units * pricePerUnit.
-    // Let's check:
-    let additionalUnitsCost = 0;
-    if (activeService.id === "tv-installation") {
-      // First TV installation is included in basePrice, subsequent ones are at pricePerUnit
-      additionalUnitsCost = Math.max(0, units - 1) * activeService.pricePerUnit;
-    } else if (activeService.id === "house-cleaning") {
-      // Zero units means just standard living + kitchen. Positive units increments base.
-      additionalUnitsCost = units * activeService.pricePerUnit;
-    } else {
-      // For Lawn, Furniture, Pressure washing, base includes the first unit equivalent, additional units * pricePerUnit
-      additionalUnitsCost = Math.max(0, units - 1) * activeService.pricePerUnit;
-    }
+    const discountRate    = RECURRENCE_DISCOUNT_RATES[quote.recurrence];
+    const memberDiscountRate = MEMBERSHIP_DISCOUNT_RATES[activeMembership ?? ""] ?? 0;
 
-    // Factors costs sum
-    let factorsCost = 0;
-    const itemsList: { label: string; cost: number }[] = [];
-    
-    (Object.entries(selectedOptions) as [string, ServiceFactorOption][]).forEach(([factorName, opt]) => {
-      if (opt.priceModifier !== 0) {
-        factorsCost += opt.priceModifier;
-        itemsList.push({
-          label: opt.label.replace(/\(\+\s*\$\d+\)/, "").trim(),
-          cost: opt.priceModifier
-        });
-      }
-    });
+    // couponDiscount is negative in the quote (it's a deduction); bring to positive for display
+    const couponDiscountAmount = Math.abs(quote.couponDiscount);
+    // totalBeforeCoupon = total + |couponDiscount|  (since total = beforeCoupon + negativeDiscount)
+    const totalBeforeCoupon = quote.total - quote.couponDiscount;
 
-    const subtotal = base + additionalUnitsCost + factorsCost;
-    
-    // Frequency discount rate
-    let discountRate = 0;
-    let frequencyText = "One-Time Service";
-    if (frequency === "weekly") {
-      discountRate = 0.20;
-      frequencyText = "Weekly Subscription (-20%)";
-    } else if (frequency === "bi-weekly") {
-      discountRate = 0.15;
-      frequencyText = "Bi-Weekly Subscription (-15%)";
-    } else if (frequency === "monthly") {
-      discountRate = 0.10;
-      frequencyText = "Monthly Subscription (-10%)";
-    }
+    const addonsList = quote.lineItems
+      .filter((li) => li.type === "factor")
+      .map((li) => ({ label: li.label.replace(/\(\+\s*\$\d+\)/, "").trim(), cost: li.amount }));
 
-    // Active Membership Program discount
-    let memberDiscountRate = 0;
-    if (activeMembership === "essential") {
-      memberDiscountRate = 0.05;
-    } else if (activeMembership === "preferred") {
-      memberDiscountRate = 0.10;
-    } else if (activeMembership === "premium") {
-      memberDiscountRate = 0.15;
-    }
+    const freqPct = Math.round(discountRate * 100);
+    const frequencyLabels: Record<string, string> = {
+      once:        "One-Time Service",
+      weekly:      `Weekly Subscription (-${freqPct}%)`,
+      "bi-weekly": `Bi-Weekly Subscription (-${freqPct}%)`,
+      monthly:     `Monthly Subscription (-${freqPct}%)`,
+    };
 
-    const discountAmount = Math.round(subtotal * discountRate * 100) / 100;
-    const membershipDiscountAmount = Math.round((subtotal - discountAmount) * memberDiscountRate * 100) / 100;
-    const totalBeforeCoupon = Math.max(0, subtotal - discountAmount - membershipDiscountAmount);
-
-    let couponDiscountAmount = 0;
-    let couponInvalidReason = "";
-    if (appliedCoupon) {
-      const today = new Date();
-      const startsAt = appliedCoupon.startsAt ? new Date(`${appliedCoupon.startsAt}T00:00:00`) : null;
-      const expiresAt = appliedCoupon.expiresAt ? new Date(`${appliedCoupon.expiresAt}T23:59:59`) : null;
-      const appliesToService = appliedCoupon.serviceIds.length === 0 || appliedCoupon.serviceIds.includes(activeService.id);
-
-      if (!appliedCoupon.enabled) {
-        couponInvalidReason = "Coupon is paused.";
-      } else if (!appliesToService) {
-        couponInvalidReason = "Coupon does not apply to this service.";
-      } else if (startsAt && today < startsAt) {
-        couponInvalidReason = "Coupon is not active yet.";
-      } else if (expiresAt && today > expiresAt) {
-        couponInvalidReason = "Coupon has expired.";
-      } else if (appliedCoupon.usageLimit > 0 && appliedCoupon.usedCount >= appliedCoupon.usageLimit) {
-        couponInvalidReason = "Coupon usage limit reached.";
-      } else if (totalBeforeCoupon < appliedCoupon.minimumOrderTotal) {
-        couponInvalidReason = `Minimum order is $${appliedCoupon.minimumOrderTotal}.`;
-      } else {
-        couponDiscountAmount = appliedCoupon.discountType === "percent"
-          ? Math.round(totalBeforeCoupon * (appliedCoupon.value / 100) * 100) / 100
-          : Math.min(totalBeforeCoupon, appliedCoupon.value);
-      }
-    }
-
-    const finalTotal = Math.max(0, totalBeforeCoupon - couponDiscountAmount);
-    
-    // Estimated Time in minutes: unit time + base buffer + factors time
-    let estimatedMinutes = 30; // base buffer
-    if (activeService.id === "house-cleaning") {
-      estimatedMinutes = 90 + (units * activeService.estimatedMinutesPerUnit);
-    } else {
-      estimatedMinutes = activeService.estimatedMinutesPerUnit * units;
-    }
-    
+    const estimatedMinutes = quote.estimatedDurationMin;
     const estHours = Math.floor(estimatedMinutes / 60);
-    const estMins = estimatedMinutes % 60;
-    const estTimeStr = estHours > 0 ? `${estHours} hr ${estMins > 0 ? `${estMins} min` : ''}` : `${estMins} mins`;
+    const estMins  = estimatedMinutes % 60;
+    const estTimeStr = estHours > 0
+      ? `${estHours} hr${estMins > 0 ? ` ${estMins} min` : ""}`
+      : `${estMins} mins`;
 
     return {
-      basePrice: base,
-      additionalUnitsCost,
-      factorsCost,
-      addonsList: itemsList,
-      subtotal,
-      discountAmount,
+      basePrice:                quote.basePrice,
+      additionalUnitsCost:      quote.unitsCost,
+      factorsCost:              quote.factorsCost,
+      addonsList,
+      subtotal:                 quote.subtotal,
+      discountAmount:           Math.abs(quote.recurrenceDiscount),
       discountRate,
-      frequencyText,
+      frequencyText:            frequencyLabels[quote.recurrence] ?? "One-Time Service",
       memberDiscountRate,
-      membershipDiscountAmount,
+      membershipDiscountAmount: Math.abs(quote.membershipDiscount),
       totalBeforeCoupon,
       couponDiscountAmount,
-      couponInvalidReason,
-      finalTotal,
-      estTimeStr
+      couponInvalidReason:      quote.couponError ?? "",
+      finalTotal:               quote.total,
+      estTimeStr,
     };
-  }, [activeService, units, selectedOptions, frequency, activeMembership, appliedCoupon]);
+  }, [quote, activeMembership]);
 
   // Adjust units
   const incrementUnits = () => {
@@ -423,12 +376,12 @@ export default function CostEstimator({
             </div>
             
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-              {[
-                { id: "once", label: "One-Time", sub: "Standard", disc: 0 },
-                { id: "weekly", label: "Weekly", sub: "Save 20%", disc: 20 },
-                { id: "bi-weekly", label: "Bi-Weekly", sub: "Save 15%", disc: 15 },
-                { id: "monthly", label: "Monthly", sub: "Save 10%", disc: 10 }
-              ].map((freqItem) => {
+              {([
+                { id: "once"      , label: "One-Time" , sub: "Standard" },
+                { id: "weekly"    , label: "Weekly"   , sub: `Save ${Math.round(RECURRENCE_DISCOUNT_RATES.weekly      * 100)}%` },
+                { id: "bi-weekly" , label: "Bi-Weekly", sub: `Save ${Math.round(RECURRENCE_DISCOUNT_RATES["bi-weekly"] * 100)}%` },
+                { id: "monthly"   , label: "Monthly"  , sub: `Save ${Math.round(RECURRENCE_DISCOUNT_RATES.monthly     * 100)}%` },
+              ] as const).map((freqItem) => {
                 const isActive = frequency === freqItem.id;
                 return (
                   <button
@@ -443,7 +396,7 @@ export default function CostEstimator({
                   >
                     <span className="text-xs font-bold leading-none">{freqItem.label}</span>
                     <span className={`text-[10px] mt-1.5 px-1.5 py-0.5 rounded font-extrabold leading-none ${
-                      isActive ? "bg-brand text-white" : freqItem.disc > 0 ? "bg-brand-light text-brand" : "bg-gray-100 text-gray-400"
+                      isActive ? "bg-brand text-white" : freqItem.id !== "once" ? "bg-brand-light text-brand" : "bg-gray-100 text-gray-400"
                     }`}>
                       {freqItem.sub}
                     </span>
