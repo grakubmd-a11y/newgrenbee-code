@@ -100,5 +100,16 @@ export default async function handler(req, res) {
 
   const jobs = jobsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  return sendJson(res, 200, { ok: true, staffId, staffName, jobs });
+  // Include payout settings so the portal can show estimated earnings per job
+  const staffDoc = await db.collection("staff").doc(staffId).get().catch(() => null);
+  const staffData = staffDoc?.data() || {};
+
+  return sendJson(res, 200, {
+    ok: true,
+    staffId,
+    staffName,
+    jobs,
+    payoutModel: staffData.payoutModel || "percentage",
+    payoutRate:  staffData.payoutRate  ?? 50,
+  });
 }

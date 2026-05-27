@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     return sendJson(res, 503, { error: "Firebase Admin not configured." });
   }
 
-  const { bookingId, status } = parseBody(req);
+  const { bookingId, status, completionNotes } = parseBody(req);
 
   if (!bookingId || typeof bookingId !== "string") {
     return sendJson(res, 400, { error: "bookingId is required." });
@@ -93,10 +93,14 @@ export default async function handler(req, res) {
   }
 
   // ── Persist ───────────────────────────────────────────────────────────────
-  const now = new Date().toISOString();
-  await bookingRef.update({ status, updatedAt: now });
+  const now    = new Date().toISOString();
+  const update = { status, updatedAt: now };
+  if (status === "completed" && completionNotes) {
+    update.completionNotes = String(completionNotes).slice(0, 1000);
+  }
+  await bookingRef.update(update);
 
-  const updated = { ...booking, status, updatedAt: now };
+  const updated = { ...booking, ...update };
 
   // ── Notify customer on completion ─────────────────────────────────────────
   if (status === "completed" && booking.email) {

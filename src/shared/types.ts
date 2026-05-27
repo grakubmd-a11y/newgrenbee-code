@@ -61,6 +61,8 @@ export interface Booking {
   stripePaymentStatus?: string;
   assignedStaffId?: string;
   assignedStaffName?: string;
+  /** Notes left by the technician when closing the job */
+  completionNotes?: string;
   /** Admin-set payout override for this specific job (in $) */
   payoutOverride?: number;
   /** ISO date when this job's payout was marked as processed */
