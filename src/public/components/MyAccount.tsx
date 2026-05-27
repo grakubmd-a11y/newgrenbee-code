@@ -25,10 +25,24 @@ import {
   KeyRound,
   Eye,
   EyeOff,
+  RefreshCw,
+  PauseCircle,
+  PlayCircle,
+  SkipForward,
+  Loader,
+  CalendarDays,
+  DollarSign,
 } from "lucide-react";
-import { Booking } from "../../shared/types";
+import { Booking, RecurringPlan, RecurringPlanAction } from "../../shared/types";
 import type { UserProfile } from "../../shared/services/firebaseService";
 import { updateUserPassword, currentUserHasPasswordProvider, fetchPublicSettingsFromFirestore } from "../../shared/services/firebaseService";
+import {
+  getUserRecurringPlans,
+  managePlan,
+  RECURRENCE_LABELS,
+  STATUS_LABELS,
+  STATUS_COLORS,
+} from "../../shared/services/recurringPlanService";
 
 declare global {
   interface Window {
@@ -79,7 +93,7 @@ interface MyAccountProps {
   onEnterAdmin?: () => void;
 }
 
-type SubPage = "overview" | "profile" | "access" | "payment" | "bookings" | "security";
+type SubPage = "overview" | "profile" | "access" | "payment" | "bookings" | "security" | "plans";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -117,11 +131,12 @@ function formatDate(dateStr: string): string {
 // ── sub-page meta ─────────────────────────────────────────────────────────────
 
 const PAGES = [
-  { id: "profile"  as SubPage, label: "Mi Perfil",          desc: "Nombre, teléfono y dirección",           icon: User,        color: "text-brand",     bg: "bg-brand-light" },
-  { id: "bookings" as SubPage, label: "Mis Pedidos",         desc: "Historial y estado de visitas",           icon: Calendar,    color: "text-amber-600", bg: "bg-amber-50"    },
-  { id: "access"   as SubPage, label: "Pautas de Acceso",    desc: "Mascotas, llaves y notas de entrada",     icon: LockKeyhole, color: "text-violet-600",bg: "bg-violet-50"   },
-  { id: "payment"  as SubPage, label: "Medios de Pago",      desc: "Tarjeta guardada y método predeterminado",icon: CreditCard,  color: "text-blue-600",  bg: "bg-blue-50"     },
-  { id: "security" as SubPage, label: "Seguridad",           desc: "Cambiar contraseña de acceso",            icon: KeyRound,    color: "text-rose-600",  bg: "bg-rose-50"     },
+  { id: "profile"  as SubPage, label: "Mi Perfil",           desc: "Nombre, teléfono y dirección",             icon: User,        color: "text-brand",       bg: "bg-brand-light"  },
+  { id: "bookings" as SubPage, label: "Mis Pedidos",          desc: "Historial y estado de visitas",             icon: Calendar,    color: "text-amber-600",   bg: "bg-amber-50"     },
+  { id: "plans"    as SubPage, label: "Mis Planes",           desc: "Suscripciones y servicios recurrentes",     icon: RefreshCw,   color: "text-teal-600",    bg: "bg-teal-50"      },
+  { id: "access"   as SubPage, label: "Pautas de Acceso",     desc: "Mascotas, llaves y notas de entrada",       icon: LockKeyhole, color: "text-violet-600",  bg: "bg-violet-50"    },
+  { id: "payment"  as SubPage, label: "Medios de Pago",       desc: "Tarjeta guardada y método predeterminado",  icon: CreditCard,  color: "text-blue-600",    bg: "bg-blue-50"      },
+  { id: "security" as SubPage, label: "Seguridad",            desc: "Cambiar contraseña de acceso",              icon: KeyRound,    color: "text-rose-600",    bg: "bg-rose-50"      },
 ];
 
 // ── component ─────────────────────────────────────────────────────────────────
@@ -373,6 +388,49 @@ export default function MyAccount({
     onCancelBooking?.(bookingId);
     showSuccess("Visita cancelada.");
   };
+
+  // ── Recurring Plans state ─────────────────────────────────────────────────
+  const [plans, setPlans]               = useState<RecurringPlan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [plansError, setPlansError]     = useState("");
+  const [planActioning, setPlanActioning] = useState<string | null>(null); // planId being mutated
+
+  // Load plans when navigating to the plans page
+  useEffect(() => {
+    if (activePage !== "plans" || !currentUser?.uid) return;
+    let cancelled = false;
+    setPlansLoading(true);
+    setPlansError("");
+    getUserRecurringPlans(currentUser.uid)
+      .then((data) => { if (!cancelled) setPlans(data); })
+      .catch(() => { if (!cancelled) setPlansError("No se pudieron cargar los planes."); })
+      .finally(() => { if (!cancelled) setPlansLoading(false); });
+    return () => { cancelled = true; };
+  }, [activePage, currentUser?.uid]);
+
+  const handlePlanAction = async (planId: string, action: RecurringPlanAction) => {
+    if (action === "cancel") {
+      if (!window.confirm("¿Cancelar este plan? No se realizarán más cargos automáticos.")) return;
+    }
+    setPlanActioning(planId);
+    try {
+      const updated = await managePlan(planId, action);
+      setPlans((prev) => prev.map((p) => (p.id === planId ? updated : p)));
+      const msgs: Record<RecurringPlanAction, string> = {
+        pause:   "Plan pausado correctamente.",
+        resume:  "Plan reactivado.",
+        cancel:  "Plan cancelado.",
+        skip:    "Próxima visita omitida. La fecha fue avanzada.",
+      };
+      showSuccess(msgs[action]);
+    } catch (err: any) {
+      setSaveError(err?.message ?? "No se pudo actualizar el plan.");
+    } finally {
+      setPlanActioning(null);
+    }
+  };
+
+  const activePlansCount = plans.filter((p) => p.status === "active" || p.status === "paused").length;
 
   const goBack = () => {
     setActivePage("overview");
@@ -723,6 +781,48 @@ export default function MyAccount({
           </div>
         )}
 
+        {/* ── Mis Planes ── */}
+        {activePage === "plans" && (
+          <div className="space-y-4">
+            {plansLoading && (
+              <div className="flex items-center justify-center py-12 gap-3 text-zinc-400">
+                <Loader size={20} className="animate-spin" />
+                <span className="text-sm font-semibold">Cargando planes…</span>
+              </div>
+            )}
+            {!plansLoading && plansError && (
+              <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-medium">
+                ⚠️ {plansError}
+              </div>
+            )}
+            {!plansLoading && !plansError && plans.length === 0 && (
+              <div className="bg-white border border-dashed border-zinc-200 rounded-2xl p-10 flex flex-col items-center text-center gap-4">
+                <div className="h-14 w-14 bg-teal-50 rounded-2xl flex items-center justify-center">
+                  <RefreshCw size={24} className="text-teal-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-zinc-800 text-sm">No tienes planes recurrentes</p>
+                  <p className="text-xs text-zinc-400 mt-1 max-w-xs">
+                    Al agendar un servicio con frecuencia semanal, quincenal o mensual, tu plan aparecerá aquí.
+                  </p>
+                </div>
+                <button onClick={() => onSelectTab("estimator")}
+                  className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                  Cotizar con suscripción <ArrowRight size={14} />
+                </button>
+              </div>
+            )}
+            {!plansLoading && plans.map((plan) => (
+              <RecurringPlanCard
+                key={plan.id}
+                plan={plan}
+                actioning={planActioning === plan.id}
+                onAction={(action) => handlePlanAction(plan.id, action)}
+              />
+            ))}
+          </div>
+        )}
+
         {/* ── Bookings ── */}
         {activePage === "bookings" && (
           <div className="space-y-6">
@@ -1019,7 +1119,10 @@ export default function MyAccount({
         <div className="space-y-2">
           {PAGES.map((item) => {
             const IconComp = item.icon;
-            const badge = item.id === "bookings" && upcomingBookings.length > 0 ? upcomingBookings.length : undefined;
+            const badge =
+              item.id === "bookings" && upcomingBookings.length > 0 ? upcomingBookings.length
+              : item.id === "plans" && activePlansCount > 0 ? activePlansCount
+              : undefined;
             return (
               <button key={item.id} type="button" onClick={() => setActivePage(item.id)}
                 className="w-full flex items-center gap-4 p-4 bg-white border border-zinc-150 rounded-2xl hover:border-brand/30 hover:shadow-sm transition-all cursor-pointer text-left group">
@@ -1055,6 +1158,144 @@ export default function MyAccount({
         </div>
       </div>
     </div>
+  );
+}
+
+// ── BookingCard sub-component ──────────────────────────────────────────────────
+
+// ── RecurringPlanCard sub-component ──────────────────────────────────────────
+
+function RecurringPlanCard({
+  plan,
+  actioning,
+  onAction,
+}: {
+  plan: RecurringPlan;
+  actioning: boolean;
+  onAction: (action: RecurringPlanAction) => void;
+  key?: string;
+}) {
+  const isActive    = plan.status === "active";
+  const isPaused    = plan.status === "paused";
+  const isPastDue   = plan.status === "past_due";
+  const isCancelled = plan.status === "cancelled";
+
+  const statusCls = STATUS_COLORS[plan.status] ?? "text-zinc-500 bg-zinc-50 border-zinc-200";
+  const statusLabel = STATUS_LABELS[plan.status] ?? plan.status;
+  const recurrenceLabel = RECURRENCE_LABELS[plan.recurrence] ?? plan.recurrence;
+
+  return (
+    <div className={`bg-white border rounded-2xl p-5 shadow-xs space-y-4 ${isCancelled ? "opacity-60" : ""}`}>
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-0.5">
+          <h3 className="text-sm font-extrabold text-zinc-900">{plan.serviceName}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg">
+              <RefreshCw size={10} />
+              {recurrenceLabel}
+            </span>
+            <span className={`inline-flex items-center text-[11px] font-bold border px-2 py-0.5 rounded-lg ${statusCls}`}>
+              {statusLabel}
+            </span>
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          <span className="text-lg font-extrabold text-zinc-900">${plan.amount.toFixed(0)}</span>
+          <span className="text-[10px] text-zinc-400 block font-semibold">por visita</span>
+        </div>
+      </div>
+
+      {/* Dates row */}
+      <div className="flex flex-wrap gap-4 text-xs text-zinc-500 border-t border-zinc-100 pt-3">
+        {!isCancelled && plan.nextChargeAt && (
+          <div className="flex items-center gap-1.5">
+            <CalendarDays size={13} className="text-teal-500 shrink-0" />
+            <span>Próxima visita: <strong className="text-zinc-700">{formatDate(plan.nextChargeAt)}</strong></span>
+          </div>
+        )}
+        {plan.lastChargeAt && (
+          <div className="flex items-center gap-1.5">
+            <Clock size={13} className="text-zinc-400 shrink-0" />
+            <span>Último cobro: {formatDate(plan.lastChargeAt)}</span>
+          </div>
+        )}
+        {isPastDue && plan.failureCount > 0 && (
+          <div className="flex items-center gap-1.5 text-rose-600 font-semibold">
+            <AlertCircle size={13} className="shrink-0" />
+            <span>{plan.failureCount} intento{plan.failureCount !== 1 ? "s" : ""} fallido{plan.failureCount !== 1 ? "s" : ""}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      {!isCancelled && (
+        <div className="flex flex-wrap gap-2 pt-1">
+          {isActive && (
+            <ActionButton
+              onClick={() => onAction("pause")}
+              loading={actioning}
+              icon={<PauseCircle size={13} />}
+              label="Pausar"
+              className="border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100"
+            />
+          )}
+          {(isPaused || isPastDue) && (
+            <ActionButton
+              onClick={() => onAction("resume")}
+              loading={actioning}
+              icon={<PlayCircle size={13} />}
+              label="Reanudar"
+              className="border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100"
+            />
+          )}
+          {isActive && (
+            <ActionButton
+              onClick={() => onAction("skip")}
+              loading={actioning}
+              icon={<SkipForward size={13} />}
+              label="Saltar próxima"
+              className="border border-zinc-200 text-zinc-600 bg-zinc-50 hover:bg-zinc-100"
+            />
+          )}
+          <ActionButton
+            onClick={() => onAction("cancel")}
+            loading={actioning}
+            icon={<XCircle size={13} />}
+            label="Cancelar plan"
+            className="border border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100 ml-auto"
+          />
+        </div>
+      )}
+
+      {isCancelled && plan.cancelledAt && (
+        <p className="text-[11px] text-zinc-400 font-medium pt-1 border-t border-zinc-100">
+          Cancelado el {formatDate(plan.cancelledAt.split("T")[0])}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ActionButton({
+  onClick, loading, icon, label, className,
+}: {
+  onClick: () => void;
+  loading: boolean;
+  icon: React.ReactNode;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={loading}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    >
+      {loading ? <Loader size={12} className="animate-spin" /> : icon}
+      {label}
+    </button>
   );
 }
 
