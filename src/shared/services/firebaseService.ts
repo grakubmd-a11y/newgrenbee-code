@@ -229,7 +229,14 @@ export async function fetchAllBookingsForAdmin(): Promise<Booking[]> {
 export async function createBookingInFirestore(booking: Booking): Promise<void> {
   const path = `bookings/${booking.id}`;
   try {
-    await setDoc(doc(db, "bookings", booking.id), booking);
+    // Race against a 10-second timeout so a Firestore connectivity issue
+    // never freezes the UI — the booking is still saved locally and retried
+    // by Firestore's offline queue once connectivity is restored.
+    const writePromise = setDoc(doc(db, "bookings", booking.id), booking);
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Firestore write timed out after 10 s")), 10_000)
+    );
+    await Promise.race([writePromise, timeout]);
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
