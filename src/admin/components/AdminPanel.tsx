@@ -2,16 +2,17 @@ import React, { useState, useEffect, useMemo } from "react";
 import * as Icons from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db, auth } from "../../shared/firebase";
-import { 
-  Booking, 
-  BookingStatus, 
+import {
+  Booking,
+  BookingStatus,
   AdminActivityEvent,
   CouponRule,
-  Review, 
-  Service, 
-  Staff, 
-  Coverage, 
-  BusinessSettings 
+  Review,
+  Service,
+  Staff,
+  Coverage,
+  BusinessSettings,
+  RecurringPlan
 } from "../../shared/types";
 import { 
   fetchAllBookingsForAdmin, 
@@ -33,7 +34,8 @@ import {
   logAdminActivity,
   fetchCouponsFromFirestore,
   saveCouponInFirestore,
-  deleteCouponFromFirestore
+  deleteCouponFromFirestore,
+  fetchRecurringPlansForAdmin
 } from "../../shared/services/firebaseService";
 
 interface AdminPanelProps {
@@ -78,6 +80,8 @@ export default function AdminPanel({
   const [customersList, setCustomersList] = useState<any[]>([]);
   const [activityEvents, setActivityEvents] = useState<AdminActivityEvent[]>([]);
   const [couponList, setCouponList] = useState<CouponRule[]>([]);
+  const [recurringPlansList, setRecurringPlansList] = useState<RecurringPlan[]>([]);
+  const [metricsPeriod, setMetricsPeriod] = useState<'30d' | '90d' | '12mo' | 'all'>('30d');
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings>({
     id: "business",
     name: "Greenbee Home Services Hub",
@@ -157,7 +161,11 @@ export default function AdminPanel({
       const activity = await fetchActivityFromFirestore();
       if (activity) setActivityEvents(activity);
 
-      // 7. Registered Customers (from Users collection)
+      // 7. Recurring Plans
+      const plans = await fetchRecurringPlansForAdmin();
+      if (plans) setRecurringPlansList(plans);
+
+      // 8. Registered Customers (from Users collection)
       const usersSnap = await getDocs(collection(db, "users"));
       const users: any[] = [];
       usersSnap.forEach((doc) => {
@@ -352,6 +360,96 @@ export default function AdminPanel({
       }).sort((a, b) => b.revenue - a.revenue)
     };
   }, [couponList, globalBookings, globalServices]);
+
+  const metrics = useMemo(() => {
+    // ── Period filter ─────────────────────────────────────────────────────────
+    const now = new Date();
+    const cutoff = new Date(
+      metricsPeriod === '30d'  ? now.getTime() - 30  * 86_400_000 :
+      metricsPeriod === '90d'  ? now.getTime() - 90  * 86_400_000 :
+      metricsPeriod === '12mo' ? now.getTime() - 365 * 86_400_000 :
+      0
+    );
+    const inPeriod = (dateStr: string) =>
+      metricsPeriod === 'all' || new Date(dateStr) >= cutoff;
+
+    const periodBookings = globalBookings.filter(b => inPeriod(b.bookingDate || b.createdAt || ''));
+
+    // ── Core KPIs ─────────────────────────────────────────────────────────────
+    const completed = periodBookings.filter(b => b.status === 'completed').length;
+    const cancelled = periodBookings.filter(b => b.status === 'cancelled').length;
+    const paidRevenue = periodBookings
+      .filter(b => b.paymentStatus === 'paid' || b.status === 'completed')
+      .reduce((s, b) => s + Number(b.totalCost || 0), 0);
+
+    // ── MRR from active recurring plans ───────────────────────────────────────
+    const activePlans = recurringPlansList.filter(p => p.status === 'active');
+    const mrr = activePlans.reduce((s, p) => {
+      const amount = Number(p.amount || 0);
+      if (p.recurrence === 'weekly')    return s + amount * 4.33;
+      if (p.recurrence === 'bi-weekly') return s + amount * 2.17;
+      return s + amount; // monthly
+    }, 0);
+
+    const plansByFreq = {
+      weekly:    activePlans.filter(p => p.recurrence === 'weekly').length,
+      biWeekly:  activePlans.filter(p => p.recurrence === 'bi-weekly').length,
+      monthly:   activePlans.filter(p => p.recurrence === 'monthly').length,
+    };
+
+    // ── Monthly revenue trend (last 6 calendar months) ────────────────────────
+    const monthlyRevenue: { label: string; revenue: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const yr = d.getFullYear();
+      const mo = d.getMonth(); // 0-indexed
+      const label = d.toLocaleString('es-MX', { month: 'short', year: '2-digit' });
+      const revenue = globalBookings
+        .filter(b => {
+          const bd = new Date(b.bookingDate || b.createdAt || '');
+          return bd.getFullYear() === yr && bd.getMonth() === mo &&
+            (b.paymentStatus === 'paid' || b.status === 'completed');
+        })
+        .reduce((s, b) => s + Number(b.totalCost || 0), 0);
+      monthlyRevenue.push({ label, revenue });
+    }
+    const maxMonthRevenue = Math.max(...monthlyRevenue.map(m => m.revenue), 1);
+
+    // ── Top customers by revenue ──────────────────────────────────────────────
+    const customerRevMap = new Map<string, { name: string; email: string; revenue: number; jobs: number }>();
+    periodBookings
+      .filter(b => b.paymentStatus === 'paid' || b.status === 'completed')
+      .forEach(b => {
+        const key = b.email || b.customerName;
+        const existing = customerRevMap.get(key) || { name: b.customerName, email: b.email, revenue: 0, jobs: 0 };
+        customerRevMap.set(key, {
+          ...existing,
+          revenue: existing.revenue + Number(b.totalCost || 0),
+          jobs: existing.jobs + 1,
+        });
+      });
+    const topCustomers = Array.from(customerRevMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return {
+      periodBookings,
+      completed,
+      cancelled,
+      paidRevenue,
+      conversionRate: periodBookings.length ? (completed / periodBookings.length) * 100 : 0,
+      cancelRate:     periodBookings.length ? (cancelled / periodBookings.length) * 100 : 0,
+      aov: completed ? paidRevenue / completed : 0,
+      mrr,
+      activePlans: activePlans.length,
+      plansByFreq,
+      monthlyRevenue,
+      maxMonthRevenue,
+      topCustomers,
+      activeCoupons: couponList.filter(c => c.enabled).length,
+      servicePerformance: growthSnapshot.servicePerformance,
+    };
+  }, [globalBookings, recurringPlansList, couponList, growthSnapshot, metricsPeriod]);
 
   // Filtered Bookings for the dispatcher table
   const filteredBookings = useMemo(() => {
@@ -2058,39 +2156,140 @@ export default function AdminPanel({
       {/* 6. GROWTH METRICS TAB */}
       {!isLoading && activeSubTab === 'growth' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
+          {/* ── Period selector ─────────────────────────────────────────────── */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 className="text-sm font-extrabold text-gray-950">Business Metrics</h2>
+              <p className="text-[10px] text-gray-400">Revenue, recurrencia y retención de clientes.</p>
+            </div>
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+              {(['30d', '90d', '12mo', 'all'] as const).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setMetricsPeriod(p)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg border-none cursor-pointer transition-colors ${
+                    metricsPeriod === p
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'bg-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {p === '30d' ? '30 días' : p === '90d' ? '90 días' : p === '12mo' ? '12 meses' : 'Todo'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── KPI cards row ────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {[
-              { label: "Conversión", value: `${growthSnapshot.conversionRate.toFixed(1)}%`, note: "Completadas / reservas" },
-              { label: "Cancelación", value: `${growthSnapshot.cancelRate.toFixed(1)}%`, note: "Canceladas / reservas" },
-              { label: "Recurrencia", value: `${growthSnapshot.recurringRate.toFixed(1)}%`, note: "Weekly, bi-weekly o monthly" },
-              { label: "Ticket promedio", value: `$${growthSnapshot.averageOrderValue.toFixed(0)}`, note: "Revenue pagado / completadas" },
-              { label: "Cupones activos", value: String(growthSnapshot.activeCoupons), note: "Listos para conectar al checkout" }
-            ].map((metric) => (
-              <div key={metric.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs">
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">{metric.label}</span>
-                <strong className="text-2xl font-black text-gray-950">{metric.value}</strong>
-                <p className="text-[10px] text-gray-500 mt-1">{metric.note}</p>
+              { label: "Ingresos",      value: `$${metrics.paidRevenue.toLocaleString('es-MX', { maximumFractionDigits: 0 })}`, note: "Período seleccionado",     icon: Icons.DollarSign,    color: "text-emerald-600" },
+              { label: "MRR",           value: `$${metrics.mrr.toFixed(0)}`,                                                    note: "Planes activos",           icon: Icons.RefreshCw,     color: "text-brand" },
+              { label: "Planes activos",value: String(metrics.activePlans),                                                     note: "weekly · bi-weekly · monthly", icon: Icons.Repeat2,  color: "text-indigo-600" },
+              { label: "Conversión",    value: `${metrics.conversionRate.toFixed(1)}%`,                                         note: "Completadas / reservas",    icon: Icons.TrendingUp,    color: "text-sky-600" },
+              { label: "Ticket prom.",  value: `$${metrics.aov.toFixed(0)}`,                                                    note: "Revenue / completadas",     icon: Icons.ReceiptText,   color: "text-violet-600" },
+              { label: "Cupones activos",value: String(metrics.activeCoupons),                                                  note: "Habilitados en el sistema", icon: Icons.Tag,           color: "text-amber-600" },
+            ].map(m => (
+              <div key={m.label} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-xs flex flex-col gap-1">
+                <m.icon size={14} className={m.color} />
+                <span className="text-[9px] text-gray-400 uppercase tracking-wider font-extrabold">{m.label}</span>
+                <strong className="text-xl font-black text-gray-950 leading-none">{m.value}</strong>
+                <p className="text-[9px] text-gray-400 leading-tight">{m.note}</p>
               </div>
             ))}
           </div>
 
+          {/* ── Revenue trend chart + Recurring plan breakdown ───────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Monthly revenue bars */}
+            <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs space-y-4">
+              <div>
+                <h3 className="font-extrabold text-sm text-gray-950">Revenue mensual</h3>
+                <p className="text-[10px] text-gray-400">Últimos 6 meses · reservas pagadas o completadas.</p>
+              </div>
+              {metrics.maxMonthRevenue <= 0 ? (
+                <EmptyState icon={Icons.BarChart2} title="Sin datos de revenue" description="Las reservas pagadas futuras alimentarán este gráfico." />
+              ) : (
+                <div className="flex items-end gap-2 h-32">
+                  {metrics.monthlyRevenue.map(m => {
+                    const pct = Math.max(4, (m.revenue / metrics.maxMonthRevenue) * 100);
+                    return (
+                      <div key={m.label} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-[8px] font-bold text-gray-500 leading-none">
+                          {m.revenue > 0 ? `$${(m.revenue / 1000).toFixed(1)}k` : '–'}
+                        </span>
+                        <div className="w-full relative" style={{ height: '80px' }}>
+                          <div
+                            className="absolute bottom-0 w-full bg-brand rounded-t-md transition-all duration-500"
+                            style={{ height: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-[8px] text-gray-400 font-bold">{m.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Recurring plan breakdown */}
+            <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs space-y-4">
+              <div>
+                <h3 className="font-extrabold text-sm text-gray-950">Planes recurrentes activos</h3>
+                <p className="text-[10px] text-gray-400">MRR = weekly×4.33 + bi-weekly×2.17 + monthly×1.</p>
+              </div>
+              {metrics.activePlans === 0 ? (
+                <EmptyState icon={Icons.Repeat2} title="Sin planes activos" description="Los clientes que elijan un servicio recurrente aparecerán aquí." />
+              ) : (
+                <div className="space-y-4">
+                  {[
+                    { key: 'weekly',    label: 'Semanal (weekly)',          count: metrics.plansByFreq.weekly,   multiplier: 4.33 },
+                    { key: 'bi-weekly', label: 'Quincenal (bi-weekly)',     count: metrics.plansByFreq.biWeekly, multiplier: 2.17 },
+                    { key: 'monthly',   label: 'Mensual (monthly)',         count: metrics.plansByFreq.monthly,  multiplier: 1    },
+                  ].map(row => {
+                    const pct = metrics.activePlans > 0 ? Math.round((row.count / metrics.activePlans) * 100) : 0;
+                    return (
+                      <div key={row.key} className="space-y-1">
+                        <div className="flex justify-between text-xs font-bold">
+                          <span>{row.label}</span>
+                          <span className="text-gray-500">{row.count} plan{row.count !== 1 ? 'es' : ''} · {pct}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-brand rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="pt-2 border-t border-gray-100 flex justify-between text-xs">
+                    <span className="text-gray-500 font-bold">MRR estimado</span>
+                    <span className="font-black text-brand">${metrics.mrr.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* ── Service performance + Top customers ─────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Service performance */}
             <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs space-y-4">
               <div>
                 <h3 className="font-extrabold text-sm text-gray-950">Performance por servicio</h3>
-                <p className="text-[10px] text-gray-500">Base para conectar campañas, fuentes y recuperación de checkout más adelante.</p>
+                <p className="text-[10px] text-gray-400">Participación en revenue total · todos los períodos.</p>
               </div>
-              {growthSnapshot.servicePerformance.every((row) => row.bookings === 0) ? (
+              {metrics.servicePerformance.every(r => r.bookings === 0) ? (
                 <EmptyState icon={Icons.TrendingUp} title="Sin datos de performance" description="Las reservas futuras alimentarán este tablero automáticamente." />
               ) : (
                 <div className="space-y-3">
-                  {growthSnapshot.servicePerformance.map((row) => {
+                  {metrics.servicePerformance.map(row => {
                     const pct = stats.totalRevenue > 0 ? Math.min(100, (row.revenue / stats.totalRevenue) * 100) : 0;
                     return (
                       <div key={row.id} className="space-y-1">
                         <div className="flex justify-between text-xs font-bold">
                           <span>{row.name}</span>
-                          <span>{row.bookings} jobs · ${row.revenue.toLocaleString()}</span>
+                          <span className="text-gray-500">{row.bookings} jobs · ${row.revenue.toLocaleString()}</span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div className="h-full bg-brand rounded-full" style={{ width: `${pct}%` }} />
@@ -2102,25 +2301,34 @@ export default function AdminPanel({
               )}
             </section>
 
-            <section className="bg-stone-900 text-stone-100 rounded-2xl p-5 shadow-md space-y-4">
-              <span className="text-[9px] bg-brand text-stone-950 px-2.5 py-0.5 font-bold uppercase rounded tracking-wider">Conectores futuros</span>
-              <h3 className="font-black text-base">Qué queda listo para enchufar</h3>
-              <div className="space-y-3 text-xs text-stone-300">
-                <div className="flex gap-2.5">
-                  <Icons.Mail size={14} className="text-brand shrink-0 mt-0.5" />
-                  <span>Recovery emails para reservas abandonadas y cupones de retención.</span>
-                </div>
-                <div className="flex gap-2.5">
-                  <Icons.Webhook size={14} className="text-brand shrink-0 mt-0.5" />
-                  <span>Webhooks de CRM, Stripe o Zapier usando los eventos del Activity Log.</span>
-                </div>
-                <div className="flex gap-2.5">
-                  <Icons.BadgeDollarSign size={14} className="text-brand shrink-0 mt-0.5" />
-                  <span>Payout rules por técnico, servicio o tipo de trabajo.</span>
-                </div>
+            {/* Top customers */}
+            <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs space-y-4">
+              <div>
+                <h3 className="font-extrabold text-sm text-gray-950">Top clientes</h3>
+                <p className="text-[10px] text-gray-400">Por revenue en el período seleccionado.</p>
               </div>
+              {metrics.topCustomers.length === 0 ? (
+                <EmptyState icon={Icons.Users} title="Sin datos de clientes" description="Los clientes con reservas pagadas aparecerán aquí." />
+              ) : (
+                <div className="space-y-3">
+                  {metrics.topCustomers.map((c, i) => (
+                    <div key={c.email} className="flex items-center gap-3">
+                      <span className="w-5 h-5 rounded-full bg-brand/10 text-brand text-[9px] font-black flex items-center justify-center shrink-0">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-gray-900 truncate">{c.name}</p>
+                        <p className="text-[9px] text-gray-400 truncate">{c.email}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs font-black text-brand">${c.revenue.toLocaleString()}</p>
+                        <p className="text-[9px] text-gray-400">{c.jobs} job{c.jobs !== 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
+
         </div>
       )}
 

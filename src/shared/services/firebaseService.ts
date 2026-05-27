@@ -29,7 +29,7 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 import { db, auth } from "../firebase";
-import { AdminActivityEvent, Booking, BookingStatus, CouponRule, Review, Service, Staff, Coverage, BusinessSettings } from "../types";
+import { AdminActivityEvent, Booking, BookingStatus, CouponRule, Review, Service, Staff, Coverage, BusinessSettings, RecurringPlan } from "../types";
 
 // Operation types for the error reporter
 export enum OperationType {
@@ -764,5 +764,17 @@ export async function sendPasswordReset(email: string): Promise<void> {
       throw new Error("Demasiados intentos. Espera unos minutos e inténtalo de nuevo.");
     }
     throw new Error("No se pudo enviar el correo. Inténtalo de nuevo.");
+  }
+}
+
+/** Fetch all recurring plans for admin analytics, newest first. */
+export async function fetchRecurringPlansForAdmin(): Promise<RecurringPlan[]> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "recurringPlans"), orderBy("createdAt", "desc"))
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as RecurringPlan);
+  } catch {
+    return [];
   }
 }
