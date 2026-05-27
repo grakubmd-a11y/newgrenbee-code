@@ -27,6 +27,7 @@
  */
 
 import { getFirestore, verifyIdToken, sendJson, parseBody } from "./_recurring.js";
+import { sendEmail, buildStaffAssignmentEmail } from "./_mailer.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -153,6 +154,12 @@ export default async function handler(req, res) {
     assignedStaffName: best.name || "",
     updatedAt:         now,
   });
+
+  // ── Notify technician by email (fire-and-forget) ─────────────────────────
+  if (best.email) {
+    const { subject, html } = buildStaffAssignmentEmail(booking, best);
+    sendEmail(best.email, subject, html).catch(() => {/* non-fatal */});
+  }
 
   return sendJson(res, 200, {
     ok:                true,

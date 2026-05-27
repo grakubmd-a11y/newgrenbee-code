@@ -190,6 +190,24 @@ export default function App() {
       console.error("Failed to save booking to Firestore:", err);
     }
 
+    // ── Booking confirmation email (fire-and-forget, signed-in users only) ─
+    if (currentUser?.uid) {
+      const sendConfirmation = async () => {
+        const { auth } = await import('../shared/firebase');
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) return;
+        const idToken = await firebaseUser.getIdToken();
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+          body: JSON.stringify({ event: 'booking_confirmed', bookingId: fullBooking.id }),
+        });
+      };
+      sendConfirmation().catch((err) => {
+        console.warn("[Notify] Could not send confirmation email:", err?.message ?? err);
+      });
+    }
+
     // ── Auto-assign staff (fire-and-forget, signed-in users only) ─────────
     if (currentUser?.uid) {
       autoAssignStaff(fullBooking.id).catch((err) => {

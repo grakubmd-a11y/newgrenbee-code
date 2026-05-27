@@ -22,6 +22,7 @@
 
 import Stripe from "stripe";
 import { getFirestore, calculateNextChargeDate, sendJson } from "./_recurring.js";
+import { sendEmail, buildRecurringReceiptEmail } from "./_mailer.js";
 
 // ── Stripe init ───────────────────────────────────────────────────────────────
 
@@ -164,6 +165,16 @@ export default async function handler(req, res) {
         failureCount:          0,
         updatedAt:             now,
       });
+
+      // ── Email receipt to customer (fire-and-forget) ─────────────────────
+      const customerEmail = plan.templatePayload?.email;
+      if (customerEmail) {
+        const { subject, html } = buildRecurringReceiptEmail(
+          { ...plan, id: planDoc.id, nextChargeAt: nextCharge },
+          newBooking
+        );
+        sendEmail(customerEmail, subject, html).catch(() => {/* non-fatal */});
+      }
 
       results.processed++;
 

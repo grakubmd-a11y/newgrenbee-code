@@ -796,6 +796,21 @@ export default function AdminPanel({
         detail: `${booking.customerName} paso a estado ${status}.`,
         severity: status === "cancelled" ? "warning" : "success"
       });
+
+      // Send status-update email for milestones the customer cares about
+      if (status === "dispatched" || status === "completed") {
+        const firebaseUser = auth.currentUser;
+        if (firebaseUser) {
+          firebaseUser.getIdToken().then((idToken) =>
+            fetch("/api/notify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+              body: JSON.stringify({ event: "status_update", bookingId: booking.id }),
+            })
+          ).catch(() => {/* non-fatal */});
+        }
+      }
+
       triggerSuccess(`Reserva ${booking.id} actualizada a ${status}.`);
     } catch (err: any) {
       setErrorMessage("Error al actualizar reserva: " + err.message);
