@@ -3,6 +3,7 @@ import * as Icons from "lucide-react";
 import StaffPortal from "./components/StaffPortal";
 import {
   subscribeToAuthChanges,
+  signInWithGooglePopup,
   signInWithGoogleRedirect,
   getGoogleRedirectResult,
   getFirebaseAuthErrorMessage,
@@ -157,8 +158,17 @@ export default function StaffRoute() {
           onClick={async () => {
             setAuthError("");
             setLoginBusy(true);
-            try { await signInWithGoogleRedirect(); }
-            catch (e) { setAuthError(getFirebaseAuthErrorMessage(e)); setLoginBusy(false); }
+            try {
+              await signInWithGooglePopup();
+            } catch (e: any) {
+              if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
+                try { await signInWithGoogleRedirect(); return; }
+                catch (re) { setAuthError(getFirebaseAuthErrorMessage(re)); }
+              } else {
+                setAuthError(getFirebaseAuthErrorMessage(e));
+              }
+              setLoginBusy(false);
+            }
           }}
           disabled={loginBusy}
           className="w-full bg-brand hover:bg-brand-hover disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2 transition-colors"

@@ -658,30 +658,13 @@ export async function signUpWithEmail(email: string, password: string): Promise<
 
 export async function signInWithGooglePopup(): Promise<FirebaseUser | null> {
   const provider = createGoogleProvider();
-  
-  console.log("[v0] signInWithGooglePopup called");
-  console.log("[v0] Current domain:", window.location.hostname);
-  
-  // Use redirect flow for all cases to avoid COOP (Cross-Origin-Opener-Policy) issues
-  // Popup can be blocked by browser security policies, but redirect is more reliable
-  console.log("[v0] Using redirect flow for Google Sign-In (avoids COOP/popup issues)");
-  try {
-    await signInWithRedirect(auth, provider);
-  } catch (redirectError) {
-    console.error("[v0] Redirect error:", redirectError);
-    throw redirectError;
-  }
-  return null; // Will be handled by getRedirectResult on page load
+  const result = await signInWithPopup(auth, provider);
+  return result.user;
 }
 
 export async function signInWithGoogleRedirect(): Promise<void> {
   const provider = createGoogleProvider();
-  try {
-    await signInWithRedirect(auth, provider);
-  } catch (error) {
-    console.error("Google Redirect Sign In Error:", error);
-    throw error;
-  }
+  await signInWithRedirect(auth, provider);
 }
 
 export async function getGoogleRedirectResult(): Promise<FirebaseUser | null> {

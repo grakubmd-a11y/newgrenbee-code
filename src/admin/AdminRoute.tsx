@@ -5,6 +5,7 @@ import { Booking, BookingStatus, Review, Service } from "../shared/types";
 import { INITIAL_BOOKINGS, INITIAL_REVIEWS, SERVICES_DATA } from "../shared/data";
 import {
   subscribeToAuthChanges,
+  signInWithGooglePopup,
   signInWithGoogleRedirect,
   getGoogleRedirectResult,
   getFirebaseAuthErrorMessage,
@@ -127,14 +128,24 @@ export default function AdminRoute() {
     return unsubscribe;
   }, []);
 
-  const handleGoogleRedirectLogin = async () => {
+  const handleGoogleLogin = async () => {
     setAuthError("");
     setLoginBusy(true);
     try {
-      await signInWithGoogleRedirect();
-    } catch (error) {
-      console.error("Admin redirect login failed:", error);
-      setAuthError(getFirebaseAuthErrorMessage(error));
+      // Popup is more reliable for admin portals — no authDomain redirect dependency.
+      // Falls back to redirect if popup is blocked by the browser.
+      await signInWithGooglePopup();
+    } catch (error: any) {
+      if (error?.code === "auth/popup-blocked" || error?.code === "auth/popup-closed-by-user") {
+        try {
+          await signInWithGoogleRedirect();
+          return; // page will navigate away
+        } catch (redirectError) {
+          setAuthError(getFirebaseAuthErrorMessage(redirectError));
+        }
+      } else {
+        setAuthError(getFirebaseAuthErrorMessage(error));
+      }
       setLoginBusy(false);
     }
   };
@@ -187,7 +198,7 @@ export default function AdminRoute() {
         {authError && <p className="text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">{authError}</p>}
         <button
           type="button"
-          onClick={handleGoogleRedirectLogin}
+          onClick={handleGoogleLogin}
           disabled={loginBusy}
           className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2"
         >
