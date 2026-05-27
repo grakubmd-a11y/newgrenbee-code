@@ -19,6 +19,7 @@ import AboutSection from "./components/AboutSection";
 import BlogSection from "./components/BlogSection";
 import MyAccount from "./components/MyAccount";
 
+import { useLocation } from "react-router-dom";
 import { Service, Booking, Review, BookingStatus } from "../shared/types";
 import { createRecurringPlanFromBooking, autoAssignStaff } from "../shared/services/recurringPlanService";
 import { SERVICES_DATA, INITIAL_BOOKINGS, INITIAL_REVIEWS } from "../shared/data";
@@ -137,8 +138,19 @@ const FAQ_DATA = [
 ];
 
 export default function App() {
+  const location = useLocation();
+
+  // Detect path-based tab: /book → estimator, /bookings → bookings, /account → account
+  function getInitialTab(): string {
+    const path = location.pathname;
+    if (path === "/book" || path === "/estimate") return "estimator";
+    if (path === "/bookings") return "bookings";
+    if (path === "/account") return "account";
+    return "services";
+  }
+
   // 1. Core navigation states
-  const [activeTab, setActiveTab ] = useState<string>("services");
+  const [activeTab, setActiveTab ] = useState<string>(getInitialTab());
   const [selectedEstimatorId, setSelectedEstimatorId] = useState<string>("house-cleaning");
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [language, setLanguage] = useState<Language>(() => {
@@ -173,7 +185,17 @@ export default function App() {
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [services, setServices] = useState<Service[]>(SERVICES_DATA);
-  const [wizardParams, setWizardParams] = useState<WizardBookingParams | null>(null);
+  const [wizardParams, setWizardParams] = useState<WizardBookingParams | null>(() => {
+    // Restore wizard params forwarded from the home page estimator (via /book)
+    try {
+      const stored = sessionStorage.getItem("gbee_wizard_params");
+      if (stored) {
+        sessionStorage.removeItem("gbee_wizard_params");
+        return JSON.parse(stored) as WizardBookingParams;
+      }
+    } catch { /* ignore */ }
+    return null;
+  });
 
   async function handleWizardSubmit(draft: Omit<Booking, "id" | "status" | "createdAt">) {
     // StripePaymentPanel may attach private metadata to the draft:
@@ -782,8 +804,6 @@ export default function App() {
         currentUser={currentUser}
         onLogout={handleLogout}
         onGoogleLogin={handleGoogleLogin}
-        language={language}
-        onLanguageChange={handleLanguageChange}
         onEmailLogin={handleEmailLogin}
         onEmailSignup={handleEmailSignup}
         getAuthErrorMessage={getFirebaseAuthErrorMessage}
@@ -795,27 +815,24 @@ export default function App() {
           <div className="space-y-0 animate-in fade-in duration-300">
             {/* Professional Hero Section */}
             <HeroSection
-              language={language}
               onBookService={() => handleTabChange("estimator")}
             />
 
             {/* Features Section */}
-            <FeaturesSection language={language} />
+            <FeaturesSection />
 
             {/* Services Grid */}
             <section className="w-full py-20 md:py-32 bg-white">
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-950 mb-4 text-balance">
-                    {language === 'en' ? 'Our Services' : 'Nuestros Servicios'}
+                    Our Services
                   </h2>
                   <p className="text-lg text-gray-600 max-w-2xl mx-auto text-balance">
-                    {language === 'en'
-                      ? 'Choose from our comprehensive range of professional home services'
-                      : 'Elige de nuestro completo rango de servicios profesionales para el hogar'}
+                    Choose from our comprehensive range of professional home services
                   </p>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                   {services.map((service) => (
                     <ServiceCard
@@ -832,14 +849,13 @@ export default function App() {
             </section>
 
             {/* Testimonials Section */}
-            <TestimonialsSection language={language} />
+            <TestimonialsSection />
 
             {/* Trust Section */}
-            <TrustSection language={language} />
+            <TrustSection />
 
             {/* CTA Section */}
             <CTASection
-              language={language}
               onBrowse={() => handleTabChange("estimator")}
               onContact={() => handleTabChange("about")}
             />

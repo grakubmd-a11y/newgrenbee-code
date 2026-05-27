@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ShieldCheck,
   Sparkles,
@@ -24,7 +25,6 @@ import {
   ArrowLeft,
   KeyRound,
 } from "lucide-react";
-import { Language } from "../../shared/i18n";
 import { sendPasswordReset } from "../../shared/services/firebaseService";
 
 interface NavbarProps {
@@ -35,8 +35,6 @@ interface NavbarProps {
   currentUser: { email: string; name: string; firstName?: string; lastName?: string } | null;
   onLogout: () => void;
   onGoogleLogin?: () => Promise<void>;
-  language: Language;
-  onLanguageChange: (lang: Language) => void;
   onEmailLogin?: (email: string, password: string) => Promise<void>;
   onEmailSignup?: (name: string, email: string, password: string) => Promise<void>;
   getAuthErrorMessage?: (error: unknown) => string;
@@ -50,20 +48,34 @@ export default function Navbar({
   currentUser,
   onLogout,
   onGoogleLogin,
-  language,
-  onLanguageChange,
   onEmailLogin,
   onEmailSignup,
   getAuthErrorMessage
 }: NavbarProps) {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { country } = useParams<{ country: string }>();
+  const location = useLocation();
+
+  const switchLanguage = () => {
+    const countryPrefix = `/${country ?? "us"}`;
+    if (i18n.language === "en") {
+      const pathAfterCountry = location.pathname.slice(countryPrefix.length);
+      navigate(`${countryPrefix}/es${pathAfterCountry || "/"}`);
+    } else {
+      const pathAfterCountry = location.pathname.slice(countryPrefix.length);
+      const withoutEs = pathAfterCountry.replace(/^\/es/, "") || "/";
+      navigate(`${countryPrefix}${withoutEs}`);
+    }
+  };
   // Navigation tabs for SEO structure
   const tabs: Array<{ id: string; label: string; icon: any; isPremium?: boolean; badge?: number }> = [
-    { id: "services", label: "Nuestros Servicios", icon: Sparkles },
-    { id: "estimator", label: "Cotizador Al Instante", icon: Calculator },
-    { id: "membership", label: "Membresía", icon: Award, isPremium: !!activeMembership },
-    { id: "bookings", label: "Operaciones", icon: Truck, badge: bookingsCount > 0 ? bookingsCount : undefined },
-    { id: "about", label: "Nosotros & Eco", icon: ShieldCheck },
-    { id: "blog", label: "Consejos Blog", icon: BookOpen },
+    { id: "services", label: t("nav.services", "Services"), icon: Sparkles },
+    { id: "estimator", label: t("nav.getQuote"), icon: Calculator },
+    { id: "membership", label: t("nav.membership", "Membership"), icon: Award, isPremium: !!activeMembership },
+    { id: "bookings", label: t("nav.bookings", "My Bookings"), icon: Truck, badge: bookingsCount > 0 ? bookingsCount : undefined },
+    { id: "about", label: t("nav.about", "About"), icon: ShieldCheck },
+    { id: "blog", label: t("nav.blog", "Blog"), icon: BookOpen },
   ];
 
   // Auth drawer control
@@ -183,13 +195,13 @@ export default function Navbar({
                 onClick={() => setActiveTab("estimator")}
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
-                {language === 'en' ? 'Get Quote' : 'Cotizar'}
+                {t("nav.getQuote")}
               </button>
               <Link
                 to="/areas"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
-                {language === 'en' ? 'Coverage' : 'Cobertura'}
+                {t("nav.coverage")}
               </Link>
               <Link
                 to="/faq"
@@ -201,7 +213,7 @@ export default function Navbar({
                 to="/contact"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
-                {language === 'en' ? 'Contact' : 'Contacto'}
+                {t("nav.contact")}
               </Link>
             </div>
 
@@ -222,9 +234,9 @@ export default function Navbar({
                     </div>
                     {/* Greeting */}
                     <div className="hidden sm:flex flex-col items-start leading-none">
-                      <span className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">Mi cuenta</span>
+                      <span className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">{t("nav.myAccount")}</span>
                       <span className="text-xs font-bold text-gray-900 max-w-[90px] truncate">
-                        Hola, {currentUser.firstName || currentUser.name.split(" ")[0]}
+                        {t("nav.hello")}, {currentUser.firstName || currentUser.name.split(" ")[0]}
                       </span>
                     </div>
                     {bookingsCount > 0 && (
@@ -253,14 +265,14 @@ export default function Navbar({
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
                         >
                           <Settings size={15} className="text-gray-400 shrink-0" />
-                          <span>Mi Perfil & Configuración</span>
+                          <span>{t("nav.myAccount")}</span>
                         </button>
                         <button
                           onClick={() => { setActiveTab("bookings"); setIsUserMenuOpen(false); }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
                         >
                           <ClipboardList size={15} className="text-gray-400 shrink-0" />
-                          <span>Mis Pedidos</span>
+                          <span>{t("nav.bookings", "My Bookings")}</span>
                           {bookingsCount > 0 && (
                             <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white">
                               {bookingsCount}
@@ -272,7 +284,7 @@ export default function Navbar({
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
                         >
                           <Award size={15} className="text-gray-400 shrink-0" />
-                          <span>Membresía</span>
+                          <span>{t("nav.membership", "Membership")}</span>
                         </button>
                       </div>
 
@@ -283,7 +295,7 @@ export default function Navbar({
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors text-left cursor-pointer"
                         >
                           <LogOut size={15} className="shrink-0" />
-                          <span>Cerrar Sesión</span>
+                          <span>{t("nav.signOut", "Sign Out")}</span>
                         </button>
                       </div>
                     </div>
@@ -297,15 +309,15 @@ export default function Navbar({
                     onClick={() => { setAuthMode('login'); setIsAuthDrawerOpen(true); }}
                     className="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-semibold text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer"
                   >
-                    Iniciar Sesión
+                    {t("nav.signIn")}
                   </button>
                   <button
                     type="button"
                     onClick={() => { setAuthMode('signup'); setIsAuthDrawerOpen(true); }}
                     className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-white bg-brand hover:bg-brand-hover transition-all cursor-pointer"
                   >
-                    <span className="sm:hidden">Entrar</span>
-                    <span className="hidden sm:inline">Crear Cuenta</span>
+                    <span className="sm:hidden">{t("nav.signIn")}</span>
+                    <span className="hidden sm:inline">{t("nav.createAccount")}</span>
                   </button>
                 </>
               )}
@@ -313,10 +325,10 @@ export default function Navbar({
               {/* Language Toggle */}
               <button
                 type="button"
-                onClick={() => onLanguageChange(language === 'en' ? 'es' : 'en')}
+                onClick={switchLanguage}
                 className="h-9 w-9 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all cursor-pointer text-xs font-bold"
               >
-                {language.toUpperCase()}
+                {i18n.language.toUpperCase()}
               </button>
 
               {/* Mobile Hamburger */}
@@ -418,7 +430,7 @@ export default function Navbar({
                       }`}
                     >
                       <User size={18} className={activeTab === "account" ? "text-brand" : "text-gray-400"} />
-                      <span className="flex-1 text-left">Mi Cuenta</span>
+                      <span className="flex-1 text-left">{t("nav.myAccount")}</span>
                     </button>
                   </li>
                 )}
@@ -427,13 +439,13 @@ export default function Navbar({
               {/* Page links separator */}
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-3 mb-2">
-                  {language === 'en' ? 'Info' : 'Info'}
+                  {t("nav.info")}
                 </p>
                 <ul className="space-y-1">
                   {[
-                    { to: "/areas", label: language === 'en' ? 'Coverage Areas' : 'Áreas de Cobertura', icon: MapPin },
+                    { to: "/areas", label: t("nav.coverageAreas"), icon: MapPin },
                     { to: "/faq", label: "FAQ", icon: HelpCircle },
-                    { to: "/contact", label: language === 'en' ? 'Contact Us' : 'Contacto', icon: MessageSquare },
+                    { to: "/contact", label: t("nav.contactUs"), icon: MessageSquare },
                   ].map(({ to, label, icon: Icon }) => (
                     <li key={to}>
                       <Link
@@ -459,8 +471,8 @@ export default function Navbar({
                       {(currentUser.firstName || currentUser.name).charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">Mi cuenta</p>
-                      <p className="text-sm font-bold text-gray-900 truncate">Hola, {currentUser.firstName || currentUser.name.split(" ")[0]}</p>
+                      <p className="text-[10px] font-semibold text-brand/60 uppercase tracking-wide">{t("nav.myAccount")}</p>
+                      <p className="text-sm font-bold text-gray-900 truncate">{t("nav.hello")}, {currentUser.firstName || currentUser.name.split(" ")[0]}</p>
                       <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
                     </div>
                   </div>
@@ -472,7 +484,7 @@ export default function Navbar({
                     className="w-full py-2.5 rounded-xl border border-rose-100 text-rose-600 hover:bg-rose-50 text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
                   >
                     <LogOut size={14} />
-                    Cerrar Sesión
+                    {t("nav.signOut", "Sign Out")}
                   </button>
                 </>
               ) : (
@@ -485,7 +497,7 @@ export default function Navbar({
                     }}
                     className="w-full py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-bold transition-all cursor-pointer"
                   >
-                    Crear Cuenta
+                    {t("nav.createAccount")}
                   </button>
                   <button
                     onClick={() => {
@@ -495,7 +507,7 @@ export default function Navbar({
                     }}
                     className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-bold transition-all cursor-pointer"
                   >
-                    Iniciar Sesión
+                    {t("nav.signIn")}
                   </button>
                 </div>
               )}
