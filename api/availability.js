@@ -1,3 +1,24 @@
+/**
+ * api/availability.js
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Check slot availability for a given date.
+ *
+ * Two modes (both POST):
+ *
+ *   Single-slot check  { date, timeSlot }
+ *     → { available, slotsRemaining }
+ *
+ *   Bulk check (all slots for a date)  { date }
+ *     → { slots: { [timeSlot]: { available, slotsRemaining } } }
+ *
+ * In both modes a single Firestore query retrieves all bookings for the date;
+ * the bulk mode groups results by timeSlot server-side instead of requiring
+ * one round-trip per slot.
+ *
+ * Fails open (available=true) when Firebase Admin is not configured, so the
+ * booking flow is never hard-blocked by a missing env var.
+ */
+
 import admin from "firebase-admin";
 
 function sendJson(res, status, payload) {
@@ -36,39 +57,81 @@ export default async function handler(req, res) {
   }
 
   const { date, timeSlot } = parseBody(req);
-  if (!date || !timeSlot) {
-    return sendJson(res, 400, { error: "date and timeSlot are required." });
+  if (!date) {
+    return sendJson(res, 400, { error: "date is required." });
   }
 
   const db = getFirestore();
+
+  // ── Fail-open when Firebase Admin is not configured ───────────────────────
   if (!db) {
+    if (timeSlot) {
+      return sendJson(res, 200, {
+        available:      true,
+        slotsRemaining: MAX_CONCURRENT,
+        reason:         "availability-check-skipped",
+      });
+    }
     return sendJson(res, 200, {
-      available: true,
-      slotsRemaining: MAX_CONCURRENT,
+      slots:  {},
       reason: "availability-check-skipped",
     });
   }
 
   try {
+    // One query for all active bookings on the requested date
     const snap = await db
       .collection("bookings")
       .where("bookingDate", "==", date)
-      .where("timeSlot", "==", timeSlot)
-      .where("status", "in", ["scheduled", "confirmed"])
+      .where("status", "in", ["scheduled", "dispatched", "in-progress", "confirmed"])
       .get();
 
-    const count = snap.size;
-    const slotsRemaining = Math.max(0, MAX_CONCURRENT - count);
+    // Count bookings per time-slot
+    const counts = {};
+    for (const doc of snap.docs) {
+      const ts = doc.data().timeSlot;
+      if (ts) counts[ts] = (counts[ts] || 0) + 1;
+    }
 
-    return sendJson(res, 200, {
-      available: slotsRemaining > 0,
-      slotsRemaining,
-    });
+    // ── Single-slot response ────────────────────────────────────────────────
+    if (timeSlot) {
+      const count          = counts[timeSlot] || 0;
+      const slotsRemaining = Math.max(0, MAX_CONCURRENT - count);
+      return sendJson(res, 200, {
+        available:      slotsRemaining > 0,
+        slotsRemaining,
+      });
+    }
+
+    // ── Bulk response — all known slots ────────────────────────────────────
+    // Return status for every slot that had at least one booking PLUS any
+    // slot the caller might not know about (so the UI can show all statuses).
+    // We also include the standard 3 time-window keys so the UI always gets
+    // a full picture even if no bookings exist yet.
+    const KNOWN_SLOTS = [
+      "09:00 AM – 12:00 PM",
+      "12:00 PM – 03:00 PM",
+      "03:00 PM – 06:00 PM",
+    ];
+
+    const allSlotKeys = new Set([...KNOWN_SLOTS, ...Object.keys(counts)]);
+    const slots = {};
+    for (const ts of allSlotKeys) {
+      const count          = counts[ts] || 0;
+      const slotsRemaining = Math.max(0, MAX_CONCURRENT - count);
+      slots[ts] = { available: slotsRemaining > 0, slotsRemaining };
+    }
+
+    return sendJson(res, 200, { slots });
+
   } catch {
-    return sendJson(res, 200, {
-      available: true,
-      slotsRemaining: MAX_CONCURRENT,
-      reason: "check-error",
-    });
+    if (timeSlot) {
+      return sendJson(res, 200, {
+        available:      true,
+        slotsRemaining: MAX_CONCURRENT,
+        reason:         "check-error",
+      });
+    }
+    return sendJson(res, 200, { slots: {}, reason: "check-error" });
   }
 }

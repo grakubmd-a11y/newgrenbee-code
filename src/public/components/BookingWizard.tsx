@@ -14,6 +14,8 @@ type BookingDraft = Omit<Booking, "id" | "status" | "createdAt">;
 type WizardStep = 1 | 2 | 3;
 type CoverageStatus = "idle" | "checking" | "covered" | "not-covered" | "unknown";
 type AvailabilityStatus = "idle" | "checking" | "available" | "full";
+type SlotInfo = { available: boolean; slotsRemaining: number };
+type SlotsMap  = Record<string, SlotInfo>;
 
 export interface WizardBookingParams {
   serviceId: string;
@@ -267,6 +269,8 @@ export default function BookingWizard({
   const [selectedDate, setSelectedDate] = useState(bookingDays[0].rawDate);
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0].hours);
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>("idle");
+  const [slotsMap, setSlotsMap] = useState<SlotsMap>({});
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   // ── Same-day & 2-tech (computed, UI + pricing) ──
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
@@ -355,6 +359,39 @@ export default function BookingWizard({
     return () => { cancelled = true; };
   }, [zip]);
 
+  // Bulk slot-availability check when date changes (step 1 only)
+  useEffect(() => {
+    if (step !== 1) return;
+    let cancelled = false;
+    setSlotsMap({});
+    setSlotsLoading(true);
+    setAvailabilityStatus("idle");
+
+    fetch("/api/availability", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selectedDate }),
+    })
+      .then((r) => r.json())
+      .then((data: { slots?: SlotsMap }) => {
+        if (cancelled) return;
+        const map: SlotsMap = data.slots || {};
+        setSlotsMap(map);
+
+        // If the currently-selected slot just became full, auto-pick first available
+        const current = map[selectedSlot];
+        if (current && !current.available) {
+          const firstOk = TIME_SLOTS.find((s) => map[s.hours]?.available !== false);
+          if (firstOk) setSelectedSlot(firstOk.hours);
+        }
+      })
+      .catch(() => { /* fail open — no visual indicators */ })
+      .finally(() => { if (!cancelled) setSlotsLoading(false); });
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate, step]);
+
   // ── Validation ──
   function validate(): boolean {
     if (step !== 2) return true;
@@ -388,6 +425,13 @@ export default function BookingWizard({
   async function goNext() {
     if (!validate()) return;
     if (step === 1) {
+      // Fast-path: if bulk check already says full, block immediately
+      const cached = slotsMap[selectedSlot];
+      if (cached && !cached.available) {
+        setAvailabilityStatus("full");
+        return;
+      }
+      // Otherwise do a fresh single-slot confirmation check
       const ok = await checkAvailability();
       if (!ok) return;
     }
@@ -476,27 +520,57 @@ export default function BookingWizard({
 
               {/* Time slot picker */}
               <div className="space-y-3">
-                <Label icon={<Clock size={13} className="text-brand" />}>Arrival Window</Label>
+                <Label icon={<Clock size={13} className="text-brand" />}>
+                  Arrival Window
+                  {slotsLoading && <Loader size={11} className="animate-spin ml-1.5 text-gray-400 inline-block" />}
+                </Label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {TIME_SLOTS.map((slot) => (
-                    <button
-                      key={slot.hours}
-                      type="button"
-                      onClick={() => { setSelectedSlot(slot.hours); setAvailabilityStatus("idle"); }}
-                      className={`flex flex-col text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
-                        selectedSlot === slot.hours
-                          ? "border-brand bg-brand-light text-brand ring-1 ring-brand font-bold"
-                          : "border-gray-100 hover:border-gray-200 text-gray-600"
-                      }`}
-                    >
-                      <span className="text-xs font-bold">{slot.label}</span>
-                      <span className="text-xs font-extrabold text-gray-900 mt-0.5">{slot.hours}</span>
-                      <span className="text-[9px] text-gray-400 mt-1">{slot.desc}</span>
-                    </button>
-                  ))}
+                  {TIME_SLOTS.map((slot) => {
+                    const info      = slotsMap[slot.hours];
+                    const isFull    = info ? !info.available : false;
+                    const isAlmost  = info && info.available && info.slotsRemaining === 1;
+                    const isSelected = selectedSlot === slot.hours;
+
+                    return (
+                      <button
+                        key={slot.hours}
+                        type="button"
+                        disabled={isFull}
+                        onClick={() => { setSelectedSlot(slot.hours); setAvailabilityStatus("idle"); }}
+                        className={`relative flex flex-col text-left p-3.5 rounded-xl border transition-all ${
+                          isFull
+                            ? "border-gray-150 bg-gray-50 text-gray-300 cursor-not-allowed opacity-60"
+                            : isSelected
+                              ? "border-brand bg-brand-light text-brand ring-1 ring-brand font-bold cursor-pointer"
+                              : "border-gray-100 hover:border-gray-200 text-gray-600 cursor-pointer"
+                        }`}
+                      >
+                        <span className="text-xs font-bold">{slot.label}</span>
+                        <span className="text-xs font-extrabold text-gray-900 mt-0.5">{slot.hours}</span>
+                        <span className="text-[9px] text-gray-400 mt-1">{slot.desc}</span>
+
+                        {/* Status badge */}
+                        {isFull && (
+                          <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 border border-rose-200">
+                            Full
+                          </span>
+                        )}
+                        {isAlmost && !isFull && (
+                          <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
+                            1 left
+                          </span>
+                        )}
+                        {info && info.available && !isAlmost && (
+                          <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                            Open
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Availability feedback */}
+                {/* Availability feedback (shown after clicking Next) */}
                 {availabilityStatus === "checking" && (
                   <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                     <Loader size={12} className="animate-spin" /> Checking availability…
