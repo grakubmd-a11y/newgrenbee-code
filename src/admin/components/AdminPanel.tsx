@@ -12,7 +12,9 @@ import {
   Staff,
   Coverage,
   BusinessSettings,
-  RecurringPlan
+  RecurringPlan,
+  Lead,
+  LeadStatus,
 } from "../../shared/types";
 import { 
   fetchAllBookingsForAdmin, 
@@ -35,7 +37,8 @@ import {
   fetchCouponsFromFirestore,
   saveCouponInFirestore,
   deleteCouponFromFirestore,
-  fetchRecurringPlansForAdmin
+  fetchRecurringPlansForAdmin,
+  fetchLeadsForAdmin,
 } from "../../shared/services/firebaseService";
 
 interface AdminPanelProps {
@@ -56,7 +59,7 @@ interface AdminPanelProps {
   onExit?: () => void;
 }
 
-type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews';
+type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews';
 
 export default function AdminPanel({
   bookings,
@@ -82,6 +85,12 @@ export default function AdminPanel({
   const [couponList, setCouponList] = useState<CouponRule[]>([]);
   const [recurringPlansList, setRecurringPlansList] = useState<RecurringPlan[]>([]);
   const [metricsPeriod, setMetricsPeriod] = useState<'30d' | '90d' | '12mo' | 'all'>('30d');
+
+  // Leads
+  const [leadsList, setLeadsList] = useState<Lead[]>([]);
+  const [leadsFilter, setLeadsFilter] = useState<LeadStatus | 'all'>('all');
+  const [leadsBusy, setLeadsBusy] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState("");
 
   // Payroll
   const [payrollPeriod, setPayrollPeriod] = useState<'current' | 'last' | 'all'>('current');
@@ -173,6 +182,10 @@ export default function AdminPanel({
       // 7. Recurring Plans
       const plans = await fetchRecurringPlansForAdmin();
       if (plans) setRecurringPlansList(plans);
+
+      // 8b. Leads
+      const leads = await fetchLeadsForAdmin();
+      if (leads) setLeadsList(leads);
 
       // 8. Registered Customers (from Users collection)
       const usersSnap = await getDocs(collection(db, "users"));
@@ -1054,6 +1067,7 @@ export default function AdminPanel({
             { id: "pricing", label: "Tarifas & Cupones", icon: Icons.DollarSign, badge: couponList.filter(c => c.enabled).length },
             { id: "payroll", label: "Payroll", icon: Icons.ReceiptText, badge: payrollRows.length },
             { id: "growth", label: "Growth Metrics", icon: Icons.TrendingUp },
+            { id: "leads", label: "Leads / CRM", icon: Icons.Inbox, badge: leadsList.filter(l => l.status === 'new').length },
             { id: "activity", label: "Activity Log", icon: Icons.History, badge: activityEvents.length },
             { id: "staff", label: "Personal / Staff", icon: Icons.Wrench, badge: staffList.length },
             { id: "coverage", label: "Zonas / ZIP", icon: Icons.Map, badge: coverageList.length },
@@ -1205,6 +1219,7 @@ export default function AdminPanel({
                     { id: "pricing", label: "Tarifas & Cupones" },
                     { id: "payroll", label: "Payroll" },
                     { id: "growth", label: "Growth Metrics" },
+                    { id: "leads", label: "Leads / CRM" },
                     { id: "activity", label: "Activity Log" },
                     { id: "staff", label: "Personal" },
                     { id: "coverage", label: "Zonas / ZIP" },
@@ -2548,7 +2563,195 @@ export default function AdminPanel({
         </div>
       )}
 
-      {/* 7. ACTIVITY LOG TAB */}
+      {/* 7. LEADS / CRM TAB */}
+      {!isLoading && activeSubTab === 'leads' && (() => {
+        const filtered  = leadsFilter === 'all' ? leadsList : leadsList.filter(l => l.status === leadsFilter);
+        const newCount  = leadsList.filter(l => l.status === 'new').length;
+        const contacted = leadsList.filter(l => l.status === 'contacted').length;
+        const recovered = leadsList.filter(l => l.status === 'recovered').length;
+        const lost      = leadsList.filter(l => l.status === 'lost').length;
+
+        const statusColor: Record<string, string> = {
+          new:       'bg-blue-50 text-blue-700 border-blue-200',
+          contacted: 'bg-amber-50 text-amber-700 border-amber-200',
+          recovered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          lost:      'bg-rose-50 text-rose-600 border-rose-200',
+        };
+
+        const handleLeadStatus = async (leadId: string, status: LeadStatus) => {
+          const token = await auth.currentUser?.getIdToken();
+          if (!token) return;
+          setLeadsBusy(leadId);
+          try {
+            const resp = await fetch('/api/update-lead', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ leadId, status }),
+            });
+            if (resp.ok) {
+              setLeadsList(prev => prev.map(l => l.id === leadId ? { ...l, status, updatedAt: new Date().toISOString() } : l));
+              triggerSuccess(`Lead marcado como "${status}".`);
+            }
+          } finally { setLeadsBusy(null); }
+        };
+
+        const handleWebhookTest = async () => {
+          if (!webhookUrl) return;
+          setLeadsBusy('webhook-test');
+          try {
+            await fetch('/api/update-lead', {
+              method:  'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await auth.currentUser?.getIdToken()}` },
+              body:    JSON.stringify({ leadId: '__test__', _webhookTest: true, webhookUrl }),
+            });
+          } finally { setLeadsBusy(null); }
+        };
+
+        return (
+          <div className="space-y-6 animate-in fade-in duration-200">
+
+            {/* KPI strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Nuevos',     count: newCount,  color: 'text-blue-600',    bg: 'bg-blue-50'    },
+                { label: 'Contactados',count: contacted, color: 'text-amber-600',   bg: 'bg-amber-50'   },
+                { label: 'Recuperados',count: recovered, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { label: 'Perdidos',   count: lost,      color: 'text-rose-500',    bg: 'bg-rose-50'    },
+              ].map(s => (
+                <div key={s.label} className={`${s.bg} rounded-2xl border border-white p-4 shadow-xs`}>
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wider font-extrabold block">{s.label}</span>
+                  <strong className={`text-2xl font-black ${s.color}`}>{s.count}</strong>
+                </div>
+              ))}
+            </div>
+
+            {/* Filters + CRM webhook URL */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+                {(['all', 'new', 'contacted', 'recovered', 'lost'] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setLeadsFilter(f)}
+                    className={`px-3 py-1 text-xs font-bold rounded-lg border-none cursor-pointer transition-colors capitalize ${
+                      leadsFilter === f ? 'bg-white text-gray-900 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {f === 'all' ? 'Todos' : f}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => loadDatabaseData()}
+                className="ml-auto p-2 rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 cursor-pointer border-solid"
+                title="Recargar leads"
+              >
+                <Icons.RefreshCw size={13} />
+              </button>
+            </div>
+
+            {/* Leads table */}
+            {filtered.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center shadow-xs">
+                <Icons.Inbox size={32} className="mx-auto text-gray-200 mb-3" />
+                <p className="text-sm font-bold text-gray-400">No hay leads {leadsFilter !== 'all' ? `con estado "${leadsFilter}"` : 'todavía'}</p>
+                <p className="text-xs text-gray-300 mt-1">Los leads se crean automáticamente cuando un cliente llega al paso de pago y no completa la reserva.</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-gray-50 text-[9px] uppercase text-gray-400 font-black">
+                    <tr>
+                      <th className="p-3">Cliente</th>
+                      <th className="p-3 hidden sm:table-cell">Servicio</th>
+                      <th className="p-3 hidden md:table-cell">Valor est.</th>
+                      <th className="p-3 hidden lg:table-cell">Fecha</th>
+                      <th className="p-3">Estado</th>
+                      <th className="p-3 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {filtered.map(lead => (
+                      <tr key={lead.id} className="hover:bg-gray-50/60">
+                        <td className="p-3">
+                          <p className="font-bold text-gray-900 truncate max-w-[140px]">{lead.customerName}</p>
+                          <p className="text-[10px] text-gray-400 truncate">{lead.email}</p>
+                          {lead.phone && <p className="text-[10px] text-gray-400">{lead.phone}</p>}
+                        </td>
+                        <td className="p-3 hidden sm:table-cell text-gray-600 truncate max-w-[120px]">{lead.serviceName || '—'}</td>
+                        <td className="p-3 hidden md:table-cell font-bold text-gray-700">
+                          {lead.estimatedValue ? `$${Number(lead.estimatedValue).toFixed(0)}` : '—'}
+                        </td>
+                        <td className="p-3 hidden lg:table-cell text-gray-400 font-mono">
+                          {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : '—'}
+                        </td>
+                        <td className="p-3">
+                          <span className={`text-[8px] font-black uppercase rounded-full px-2 py-0.5 border ${statusColor[lead.status] || 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                            {lead.status}
+                          </span>
+                          {lead.convertedBookingId && (
+                            <p className="text-[8px] text-emerald-600 font-bold mt-0.5">→ {lead.convertedBookingId}</p>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-1 justify-end flex-wrap">
+                            {lead.status === 'new' && (
+                              <button
+                                disabled={leadsBusy === lead.id}
+                                onClick={() => handleLeadStatus(lead.id, 'contacted')}
+                                className="px-2 py-1 text-[9px] font-black bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg border-none cursor-pointer disabled:opacity-60 transition-colors"
+                              >Contactar</button>
+                            )}
+                            {(lead.status === 'new' || lead.status === 'contacted') && (
+                              <button
+                                disabled={leadsBusy === lead.id}
+                                onClick={() => handleLeadStatus(lead.id, 'recovered')}
+                                className="px-2 py-1 text-[9px] font-black bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg border-none cursor-pointer disabled:opacity-60 transition-colors"
+                              >Recuperado</button>
+                            )}
+                            {lead.status !== 'lost' && lead.status !== 'recovered' && (
+                              <button
+                                disabled={leadsBusy === lead.id}
+                                onClick={() => handleLeadStatus(lead.id, 'lost')}
+                                className="px-2 py-1 text-[9px] font-black bg-rose-100 hover:bg-rose-200 text-rose-600 rounded-lg border-none cursor-pointer disabled:opacity-60 transition-colors"
+                              >Perdido</button>
+                            )}
+                            {leadsBusy === lead.id && <Icons.Loader2 size={12} className="animate-spin text-gray-400 mt-1" />}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* CRM Webhook config */}
+            <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs space-y-3">
+              <div>
+                <h3 className="font-extrabold text-sm text-gray-950 flex items-center gap-2">
+                  <Icons.Webhook size={14} className="text-brand" /> CRM Webhook
+                </h3>
+                <p className="text-[10px] text-gray-400">Recibe eventos de leads en Zapier, Make, HubSpot o cualquier webhook. Configura la URL en Ajustes.</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3 text-[10px] font-mono text-gray-500 space-y-1">
+                <p className="font-black text-gray-700 text-xs mb-1">Eventos enviados:</p>
+                {['lead.contacted', 'lead.recovered', 'lead.lost', 'lead.recovery_email_sent'].map(e => (
+                  <div key={e} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-brand shrink-0" />
+                    {e}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-gray-400">
+                URL actual: <span className="font-bold text-gray-600">{businessSettings.crmWebhookUrl || 'No configurada — ir a Ajustes'}</span>
+              </p>
+            </section>
+
+          </div>
+        );
+      })()}
+
+      {/* 8. ACTIVITY LOG TAB */}
       {!isLoading && activeSubTab === 'activity' && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden animate-in fade-in duration-200">
           <div className="p-5 border-b border-gray-100 flex items-center justify-between">
@@ -3437,6 +3640,19 @@ export default function AdminPanel({
                 <option value="Eastern Standard Time (EST)">Eastern Standard Time (EST)</option>
                 <option value="Pacific Standard Time (PST)">Pacific Standard Time (PST)</option>
               </select>
+            </div>
+
+            {/* CRM Webhook URL */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 block">CRM Webhook URL</label>
+              <input
+                type="url"
+                placeholder="https://hooks.zapier.com/... o https://webhook.site/..."
+                value={businessSettings.crmWebhookUrl || ""}
+                onChange={e => setBusinessSettings({ ...businessSettings, crmWebhookUrl: e.target.value })}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono"
+              />
+              <p className="text-[10px] text-gray-400">Recibe eventos de leads (contactado, recuperado, perdido, email enviado) en tu CRM, Zapier o Make.</p>
             </div>
 
             <div className="bg-amber-50/30 border border-amber-900/10 p-4 rounded-xl flex items-center justify-between">

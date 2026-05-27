@@ -213,6 +213,39 @@ export function buildStatusUpdateEmail(booking) {
   };
 }
 
+// ── Abandoned checkout recovery email ────────────────────────────────────────
+
+/**
+ * @param {{ customerName:string, serviceName?:string, estimatedValue?:number }} lead
+ * @param {{ bookingUrl?:string }} opts
+ */
+export function buildAbandonedCheckoutEmail(lead, opts = {}) {
+  const name    = lead.customerName?.split(" ")[0] || "there";
+  const service = lead.serviceName  || "our service";
+  const value   = lead.estimatedValue > 0 ? `$${Number(lead.estimatedValue).toFixed(0)}` : null;
+  const bookingUrl = opts.bookingUrl || "https://grenbee.com/#booking";
+
+  const body = `
+    ${p(`Hi ${name} 👋`)}
+    ${p(`We noticed you started booking <strong>${service}</strong> with us but didn't complete your reservation.`)}
+    ${p("It only takes a minute to finish — your details are ready and waiting:")}
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${bookingUrl}"
+         style="background:${GREEN};color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-weight:800;font-size:15px;display:inline-block;">
+        Complete My Booking${value ? ` — ${value}` : ""}
+      </a>
+    </div>
+    ${p("If you have any questions or need a custom quote, just reply to this email.", "color:#888;font-size:13px;")}
+    ${divider()}
+    ${p("You received this because you started a booking on Greenbee. If this wasn't you, please ignore it.", "color:#aaa;font-size:11px;")}
+  `;
+
+  return {
+    subject: `Did you forget something? Your ${service} booking is waiting`,
+    html:    wrap("Your booking is waiting ✨", body),
+  };
+}
+
 // ── Send helper ───────────────────────────────────────────────────────────────
 
 /**

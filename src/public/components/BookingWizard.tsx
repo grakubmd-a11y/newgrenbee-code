@@ -445,6 +445,25 @@ export default function BookingWizard({
       setShowCoveragePrompt(true);
       return;
     }
+
+    // ── Capture lead when moving to payment step (fire-and-forget) ────────────
+    // User has entered contact info; if they abandon checkout this becomes a lead.
+    if (step === 2) {
+      fetch("/api/capture-lead", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          customerName: fullName,
+          phone,
+          serviceId:      bookingParams.serviceId,
+          serviceName:    service.name,
+          address,
+          estimatedValue: bookingParams.totalCost,
+        }),
+      }).catch(() => {/* non-fatal */});
+    }
+
     setStep((s) => (s + 1) as WizardStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }

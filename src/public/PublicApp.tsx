@@ -245,6 +245,18 @@ export default function App() {
       });
     }
 
+    // ── Mark lead as recovered if one exists (fire-and-forget) ──────────────
+    fetch("/api/capture-lead", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email:        fullBooking.email,
+        customerName: fullBooking.customerName,
+        _recovered:   true,
+        _bookingId:   fullBooking.id,
+      }),
+    }).catch(() => {/* non-fatal */});
+
     setBookings((prev) => [fullBooking, ...prev]);
     setWizardParams(null);
     handleTabChange("bookings");

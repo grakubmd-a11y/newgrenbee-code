@@ -13,6 +13,10 @@
     {
       "path": "/api/process-recurring-plans",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/process-abandoned-leads",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

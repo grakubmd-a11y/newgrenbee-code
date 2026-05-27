@@ -128,6 +128,34 @@ export interface BusinessSettings {
   googleMapsApiKey?: string;
   googleMapsAutocompleteEnabled?: boolean;
   googleAuthEnabled?: boolean;
+  /** Outgoing webhook URL for CRM integrations (Zapier, Make, HubSpot, etc.) */
+  crmWebhookUrl?: string;
+}
+
+// ── Leads ─────────────────────────────────────────────────────────────────────
+
+export type LeadStatus = 'new' | 'contacted' | 'recovered' | 'lost';
+export type LeadSource = 'abandoned_checkout' | 'manual';
+
+export interface Lead {
+  id: string;
+  email: string;
+  customerName: string;
+  phone?: string;
+  serviceId?: string;
+  serviceName?: string;
+  address?: string;
+  estimatedValue?: number;
+  status: LeadStatus;
+  source: LeadSource;
+  /** bookingId if this lead was converted into a completed booking */
+  convertedBookingId?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  lastContactedAt?: string;
+  recoveryEmailSentAt?: string;
+  crmWebhookSentAt?: string;
 }
 
 export type ActivitySeverity = 'info' | 'success' | 'warning' | 'error';

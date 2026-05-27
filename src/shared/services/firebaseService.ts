@@ -778,3 +778,15 @@ export async function fetchRecurringPlansForAdmin(): Promise<RecurringPlan[]> {
     return [];
   }
 }
+
+/** Fetch all leads for admin view, newest first. */
+export async function fetchLeadsForAdmin(): Promise<import("../types").Lead[]> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "leads"), orderBy("createdAt", "desc"))
+    );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as import("../types").Lead);
+  } catch {
+    return [];
+  }
+}
