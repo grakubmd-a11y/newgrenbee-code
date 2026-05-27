@@ -87,6 +87,10 @@ export default function AdminPanel({
   const [payrollPeriod, setPayrollPeriod] = useState<'current' | 'last' | 'all'>('current');
   const [expandedPayrollStaff, setExpandedPayrollStaff] = useState<string | null>(null);
   const [payrollBusy, setPayrollBusy] = useState<string | null>(null);
+
+  // Photo viewer
+  const [photoModalBooking, setPhotoModalBooking] = useState<Booking | null>(null);
+  const [photoLightboxIdx,  setPhotoLightboxIdx]  = useState<number | null>(null);
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings>({
     id: "business",
     name: "Greenbee Home Services Hub",
@@ -1517,6 +1521,20 @@ export default function AdminPanel({
                               </button>
                             </>
                           )}
+                          {/* Photos button */}
+                          <button
+                            onClick={() => setPhotoModalBooking(booking)}
+                            title={`Ver fotos (${(booking.photos ?? []).length})`}
+                            className="p-1 rounded-md border border-gray-200 bg-white hover:bg-indigo-50 hover:border-indigo-300 text-indigo-500 transition-colors cursor-pointer relative"
+                          >
+                            <Icons.Camera size={12} />
+                            {(booking.photos ?? []).length > 0 && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 text-white text-[7px] font-black rounded-full flex items-center justify-center">
+                                {(booking.photos ?? []).length}
+                              </span>
+                            )}
+                          </button>
+
                           <button
                             onClick={() => {
                               if (confirm("¿Cancelar esta reserva en Firestore?")) {
@@ -3455,6 +3473,136 @@ export default function AdminPanel({
       )}
         </div>
       </div>
+
+      {/* ── Photo Modal ───────────────────────────────────────────────────────── */}
+      {photoModalBooking && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 flex items-center justify-center p-4"
+          onClick={() => { setPhotoModalBooking(null); setPhotoLightboxIdx(null); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <div>
+                <h3 className="text-sm font-extrabold text-gray-950">Fotos del job</h3>
+                <p className="text-[10px] text-gray-400">{photoModalBooking.customerName} · {photoModalBooking.bookingDate} · {photoModalBooking.serviceName}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setPhotoModalBooking(null); setPhotoLightboxIdx(null); }}
+                className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 border-none cursor-pointer text-gray-500 transition-colors"
+              >
+                <Icons.X size={14} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-5">
+              {(!photoModalBooking.photos || photoModalBooking.photos.length === 0) ? (
+                <div className="text-center py-10 space-y-2">
+                  <Icons.Camera size={32} className="mx-auto text-gray-200" />
+                  <p className="text-sm text-gray-400 font-bold">Sin fotos todavía</p>
+                  <p className="text-xs text-gray-300">El técnico asignado puede subir fotos antes/después desde el Staff Portal.</p>
+                </div>
+              ) : (
+                (['before', 'after'] as const).map(phase => {
+                  const phasePhotos = photoModalBooking.photos!.filter(p => p.phase === phase);
+                  if (phasePhotos.length === 0) return null;
+                  return (
+                    <div key={phase} className="space-y-2">
+                      <h4 className={`text-xs font-black uppercase tracking-wider ${phase === 'before' ? 'text-sky-600' : 'text-violet-600'}`}>
+                        {phase === 'before' ? '▸ Before' : '▸ After'}
+                      </h4>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {phasePhotos.map((photo, i) => (
+                          <div key={photo.url} className="relative group">
+                            <button
+                              type="button"
+                              onClick={() => setPhotoLightboxIdx(photoModalBooking.photos!.indexOf(photo))}
+                              className="w-full aspect-square rounded-xl overflow-hidden border border-gray-100 cursor-pointer p-0 hover:opacity-90 transition-opacity"
+                            >
+                              <img src={photo.url} alt={photo.phase} className="w-full h-full object-cover" />
+                            </button>
+                            {/* Delete button */}
+                            <button
+                              type="button"
+                              title="Eliminar foto"
+                              onClick={async () => {
+                                if (!confirm("¿Eliminar esta foto?")) return;
+                                const token = await auth.currentUser?.getIdToken();
+                                if (!token) return;
+                                const resp = await fetch('/api/delete-job-photo', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                                  body: JSON.stringify({ bookingId: photoModalBooking.id, photoUrl: photo.url }),
+                                });
+                                if (resp.ok) {
+                                  const updated = { ...photoModalBooking, photos: photoModalBooking.photos!.filter(p => p.url !== photo.url) };
+                                  setPhotoModalBooking(updated);
+                                  setGlobalBookings(prev => prev.map(b => b.id === updated.id ? updated : b));
+                                }
+                              }}
+                              className="absolute top-1 right-1 w-5 h-5 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border-none cursor-pointer"
+                            >
+                              <Icons.X size={9} />
+                            </button>
+                            <p className="text-[8px] text-gray-400 mt-0.5 truncate">
+                              {new Date(photo.uploadedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Lightbox */}
+          {photoLightboxIdx !== null && photoModalBooking.photos && (
+            <div
+              className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4"
+              onClick={() => setPhotoLightboxIdx(null)}
+            >
+              <button
+                type="button"
+                className="absolute top-4 right-4 text-white/70 hover:text-white border-none bg-transparent cursor-pointer p-2"
+                onClick={() => setPhotoLightboxIdx(null)}
+              >
+                <Icons.X size={22} />
+              </button>
+              <img
+                src={photoModalBooking.photos[photoLightboxIdx]?.url}
+                alt="photo"
+                className="max-w-full max-h-[85vh] object-contain rounded-xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+              {photoModalBooking.photos.length > 1 && (
+                <div className="flex items-center gap-3 mt-4" onClick={e => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoLightboxIdx(i => Math.max((i ?? 0) - 1, 0))}
+                    disabled={photoLightboxIdx === 0}
+                    className="px-4 py-1.5 rounded-lg bg-white/10 text-white text-xs font-bold disabled:opacity-30 border-none cursor-pointer hover:bg-white/20"
+                  >← Prev</button>
+                  <span className="text-white/60 text-xs">{photoLightboxIdx + 1} / {photoModalBooking.photos.length}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoLightboxIdx(i => Math.min((i ?? 0) + 1, photoModalBooking.photos!.length - 1))}
+                    disabled={photoLightboxIdx === photoModalBooking.photos.length - 1}
+                    className="px-4 py-1.5 rounded-lg bg-white/10 text-white text-xs font-bold disabled:opacity-30 border-none cursor-pointer hover:bg-white/20"
+                  >Next →</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }

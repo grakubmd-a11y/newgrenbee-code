@@ -65,6 +65,16 @@ export interface Booking {
   payoutOverride?: number;
   /** ISO date when this job's payout was marked as processed */
   payrollPaidAt?: string;
+  /** Before/after photos uploaded by the assigned technician */
+  photos?: JobPhoto[];
+}
+
+export interface JobPhoto {
+  url: string;
+  phase: 'before' | 'after';
+  fileName: string;
+  uploadedAt: string;
+  uploadedBy: string; // staffId
 }
 
 export interface Review {

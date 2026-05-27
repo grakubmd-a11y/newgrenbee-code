@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Briefcase, MapPin, Clock, Phone, User, CheckCircle2,
   RotateCw, Loader2, LogOut, ChevronDown, ChevronUp,
   Calendar, Wrench, History, AlertCircle, Navigation,
-  ClipboardList, RefreshCw,
+  ClipboardList, RefreshCw, Camera, ImagePlus, X, Upload,
 } from "lucide-react";
-import type { Booking } from "../../shared/types";
-import { auth } from "../../shared/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import type { Booking, JobPhoto } from "../../shared/types";
+import { auth, storage } from "../../shared/firebase";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,31 @@ function friendlyDate(dateStr: string) {
   return label;
 }
 
+/** Compress + resize an image file to max 1280px, JPEG 0.82, < ~500 KB */
+async function compressImage(file: File, maxPx = 1280, quality = 0.82): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const ratio  = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w      = Math.round(img.width  * ratio);
+      const h      = Math.round(img.height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width  = w;
+      canvas.height = h;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error("Compression failed")),
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not load image")); };
+    img.src = url;
+  });
+}
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
   scheduled:    { label: "Scheduled",   color: "text-blue-700",   bg: "bg-blue-50",   border: "border-blue-200" },
   dispatched:   { label: "En Camino",   color: "text-amber-700",  bg: "bg-amber-50",  border: "border-amber-200" },
@@ -55,18 +81,195 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// ─── Photo Upload Button ──────────────────────────────────────────────────────
+
+function PhotoUploadButton({
+  phase,
+  bookingId,
+  onUploaded,
+  disabled,
+}: {
+  phase: 'before' | 'after';
+  bookingId: string;
+  onUploaded: (photo: JobPhoto) => void;
+  disabled: boolean;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err,  setErr]  = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setErr("");
+    setBusy(true);
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) throw new Error("Not authenticated.");
+
+      // 1. Compress
+      const blob     = await compressImage(file);
+      const fileName = `${phase}_${Date.now()}.jpg`;
+
+      // 2. Upload to Firebase Storage
+      const storageRef = ref(storage, `jobs/${bookingId}/${fileName}`);
+      await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
+      const url = await getDownloadURL(storageRef);
+
+      // 3. Persist to Firestore via API
+      const idToken = await firebaseUser.getIdToken();
+      const resp = await fetch("/api/save-job-photo", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+        body:    JSON.stringify({ bookingId, phase, url, fileName }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || "Failed to save photo.");
+
+      onUploaded(data.photo as JobPhoto);
+    } catch (ex: any) {
+      setErr(ex?.message || "Upload failed.");
+    } finally {
+      setBusy(false);
+      // Reset so same file can be re-selected
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFile}
+        disabled={busy || disabled}
+      />
+      <button
+        type="button"
+        disabled={busy || disabled}
+        onClick={() => inputRef.current?.click()}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border-none cursor-pointer disabled:opacity-60 transition-colors ${
+          phase === 'before'
+            ? 'bg-sky-100 text-sky-700 hover:bg-sky-200'
+            : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
+        }`}
+      >
+        {busy ? <Loader2 size={12} className="animate-spin" /> : <ImagePlus size={12} />}
+        {phase === 'before' ? 'Add Before' : 'Add After'}
+      </button>
+      {err && <p className="text-[10px] text-rose-500 mt-1">{err}</p>}
+    </div>
+  );
+}
+
+// ─── Photo Thumbnail ─────────────────────────────────────────────────────────
+
+function PhotoThumb({ photo, onClick }: { photo: JobPhoto; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative w-16 h-16 rounded-lg overflow-hidden border-2 border-white shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+    >
+      <img src={photo.url} alt={photo.phase} className="w-full h-full object-cover" />
+      <span className={`absolute bottom-0 left-0 right-0 text-[8px] font-black text-center py-0.5 ${
+        photo.phase === 'before' ? 'bg-sky-600/80 text-white' : 'bg-violet-600/80 text-white'
+      }`}>
+        {photo.phase.toUpperCase()}
+      </span>
+    </button>
+  );
+}
+
+// ─── Lightbox ────────────────────────────────────────────────────────────────
+
+function Lightbox({ photos, startIndex, onClose }: { photos: JobPhoto[]; startIndex: number; onClose: () => void }) {
+  const [idx, setIdx] = useState(startIndex);
+  const photo = photos[idx];
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setIdx(i => Math.min(i + 1, photos.length - 1));
+      if (e.key === "ArrowLeft")  setIdx(i => Math.max(i - 1, 0));
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose, photos.length]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white/70 hover:text-white border-none bg-transparent cursor-pointer p-2"
+      >
+        <X size={22} />
+      </button>
+
+      <div className="relative max-w-full max-h-[80vh]" onClick={e => e.stopPropagation()}>
+        <img
+          src={photo.url}
+          alt={photo.phase}
+          className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+        />
+        <span className={`absolute top-2 left-2 text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+          photo.phase === 'before' ? 'bg-sky-600 text-white' : 'bg-violet-600 text-white'
+        }`}>
+          {photo.phase}
+        </span>
+      </div>
+
+      {photos.length > 1 && (
+        <div className="flex items-center gap-3 mt-4">
+          <button
+            type="button"
+            onClick={() => setIdx(i => Math.max(i - 1, 0))}
+            disabled={idx === 0}
+            className="px-4 py-1.5 rounded-lg bg-white/10 text-white text-xs font-bold disabled:opacity-30 border-none cursor-pointer hover:bg-white/20"
+          >
+            ← Prev
+          </button>
+          <span className="text-white/60 text-xs">{idx + 1} / {photos.length}</span>
+          <button
+            type="button"
+            onClick={() => setIdx(i => Math.min(i + 1, photos.length - 1))}
+            disabled={idx === photos.length - 1}
+            className="px-4 py-1.5 rounded-lg bg-white/10 text-white text-xs font-bold disabled:opacity-30 border-none cursor-pointer hover:bg-white/20"
+          >
+            Next →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Job Card ─────────────────────────────────────────────────────────────────
 
 function JobCard({
   job,
   onUpdateStatus,
+  onPhotoAdded,
   updating,
 }: {
   job: Booking;
   onUpdateStatus: (bookingId: string, status: "in-progress" | "completed") => void;
+  onPhotoAdded: (bookingId: string, photo: JobPhoto) => void;
   updating: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded,     setExpanded]     = useState(false);
+  const [lightboxIdx,  setLightboxIdx]  = useState<number | null>(null);
+
+  const photos      = job.photos ?? [];
+  const beforePhotos = photos.filter(p => p.phase === 'before');
+  const afterPhotos  = photos.filter(p => p.phase === 'after');
 
   const isActive    = job.status === "scheduled" || job.status === "dispatched";
   const isProgress  = job.status === "in-progress";
@@ -78,7 +281,7 @@ function JobCard({
     <div className={`bg-white rounded-2xl border shadow-xs overflow-hidden transition-all ${
       isToday && !isDone ? "border-brand ring-1 ring-brand/20" : "border-gray-150"
     }`}>
-      {/* Card header */}
+      {/* ── Card header ── */}
       <div
         className="flex items-start gap-3 p-4 cursor-pointer"
         onClick={() => setExpanded((v) => !v)}
@@ -105,6 +308,11 @@ function JobCard({
           <p className="text-xs text-gray-500 mt-0.5 truncate flex items-center gap-1">
             <MapPin size={10} className="shrink-0" /> {job.address}
           </p>
+          {photos.length > 0 && (
+            <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+              <Camera size={9} /> {photos.length} foto{photos.length !== 1 ? 's' : ''}
+            </p>
+          )}
         </div>
 
         <div className="shrink-0 text-gray-400 mt-1">
@@ -112,9 +320,10 @@ function JobCard({
         </div>
       </div>
 
-      {/* Expanded details */}
+      {/* ── Expanded details ── */}
       {expanded && (
         <div className="border-t border-gray-100 px-4 pb-4 space-y-3">
+
           {/* Customer info */}
           <div className="bg-gray-50 rounded-xl p-3 space-y-2 mt-3">
             <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Customer</p>
@@ -132,7 +341,7 @@ function JobCard({
             )}
           </div>
 
-          {/* Address with maps link */}
+          {/* Address */}
           <div className="space-y-1">
             <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Address</p>
             <a
@@ -146,7 +355,7 @@ function JobCard({
             </a>
           </div>
 
-          {/* Units & service notes */}
+          {/* Units & notes */}
           {(job.units > 1 || job.notes) && (
             <div className="space-y-1">
               {job.units > 1 && (
@@ -164,6 +373,63 @@ function JobCard({
               )}
             </div>
           )}
+
+          {/* ── Photos section ── */}
+          <div className="space-y-2 pt-1">
+            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center gap-1">
+              <Camera size={10} /> Photos
+            </p>
+
+            {/* Before photos */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black uppercase tracking-wider text-sky-600">Before</span>
+                {beforePhotos.length === 0 && <span className="text-[9px] text-gray-300">No photos yet</span>}
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
+                {beforePhotos.map((p, i) => (
+                  <PhotoThumb
+                    key={p.url}
+                    photo={p}
+                    onClick={() => setLightboxIdx(photos.indexOf(p))}
+                  />
+                ))}
+                {!isDone && (
+                  <PhotoUploadButton
+                    phase="before"
+                    bookingId={job.id}
+                    onUploaded={(photo) => onPhotoAdded(job.id, photo)}
+                    disabled={updating}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* After photos */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black uppercase tracking-wider text-violet-600">After</span>
+                {afterPhotos.length === 0 && <span className="text-[9px] text-gray-300">No photos yet</span>}
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
+                {afterPhotos.map((p, i) => (
+                  <PhotoThumb
+                    key={p.url}
+                    photo={p}
+                    onClick={() => setLightboxIdx(photos.indexOf(p))}
+                  />
+                ))}
+                {!isDone && (
+                  <PhotoUploadButton
+                    phase="after"
+                    bookingId={job.id}
+                    onUploaded={(photo) => onPhotoAdded(job.id, photo)}
+                    disabled={updating}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Action buttons */}
           {!isDone && (
@@ -198,6 +464,15 @@ function JobCard({
             </div>
           )}
         </div>
+      )}
+
+      {/* ── Lightbox ── */}
+      {lightboxIdx !== null && photos.length > 0 && (
+        <Lightbox
+          photos={photos}
+          startIndex={lightboxIdx}
+          onClose={() => setLightboxIdx(null)}
+        />
       )}
     </div>
   );
@@ -257,7 +532,6 @@ export default function StaffPortal({ currentUser, onLogout }: StaffPortalProps)
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) throw new Error(data.error || "Update failed.");
 
-      // Optimistic update
       setJobs((prev) =>
         prev.map((j) => (j.id === bookingId ? { ...j, status } : j))
           .filter((j) => showHistory || !["completed", "cancelled"].includes(j.status))
@@ -269,6 +543,17 @@ export default function StaffPortal({ currentUser, onLogout }: StaffPortalProps)
     }
   };
 
+  // ── Optimistic photo add ───────────────────────────────────────────────────
+  const handlePhotoAdded = (bookingId: string, photo: JobPhoto) => {
+    setJobs((prev) =>
+      prev.map((j) =>
+        j.id === bookingId
+          ? { ...j, photos: [...(j.photos ?? []), photo] }
+          : j
+      )
+    );
+  };
+
   // ── Derived stats ──────────────────────────────────────────────────────────
   const todayStr   = new Date().toISOString().split("T")[0];
   const todayJobs  = jobs.filter((j) => j.bookingDate === todayStr);
@@ -276,7 +561,7 @@ export default function StaffPortal({ currentUser, onLogout }: StaffPortalProps)
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      {/* ── Header ────────────────────────────────────────────────────────── */}
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
       <header className="bg-[#0a2e1e] text-white sticky top-0 z-20 shadow-lg">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -311,9 +596,9 @@ export default function StaffPortal({ currentUser, onLogout }: StaffPortalProps)
         {/* ── Stats strip ─────────────────────────────────────────────────── */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Today",  value: todayJobs.length,  icon: Calendar,     color: "text-brand" },
-            { label: "Active", value: activeJobs.length, icon: Wrench,        color: "text-amber-600" },
-            { label: "Total",  value: jobs.length,        icon: Briefcase,    color: "text-slate-500" },
+            { label: "Today",  value: todayJobs.length,  icon: Calendar,  color: "text-brand" },
+            { label: "Active", value: activeJobs.length, icon: Wrench,    color: "text-amber-600" },
+            { label: "Total",  value: jobs.length,        icon: Briefcase, color: "text-slate-500" },
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="bg-white rounded-xl border border-gray-150 p-3 text-center shadow-xs">
               <Icon size={16} className={`mx-auto mb-1 ${color}`} />
@@ -380,6 +665,7 @@ export default function StaffPortal({ currentUser, onLogout }: StaffPortalProps)
             key={job.id}
             job={job}
             onUpdateStatus={handleUpdateStatus}
+            onPhotoAdded={handlePhotoAdded}
             updating={updating === job.id}
           />
         ))}
