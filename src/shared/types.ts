@@ -314,3 +314,77 @@ export interface MembershipSizeGuide {
   description: string;
   examples: string;
 }
+
+// ── Media Library ─────────────────────────────────────────────────────────────
+
+export interface MediaItem {
+  id: string;
+  url: string;            // Firebase Storage public download URL
+  storagePath: string;    // e.g. "media/areas/miami-hero.jpg"
+  filename: string;
+  alt: string;
+  /** Free-form tags: "hero", "service", "team", "area", service id, area slug… */
+  tags: string[];
+  sizeBytes: number;
+  mimeType: string;
+  uploadedAt: string;
+  uploadedBy: string;     // admin email
+}
+
+// ── Area Landing Pages ────────────────────────────────────────────────────────
+
+export interface AreaTestimonial {
+  name: string;
+  location: string;       // e.g. "Brickell, Miami"
+  text: string;
+  rating: number;
+}
+
+export interface AreaFaq {
+  question: string;
+  answer: string;
+}
+
+export interface AreaServiceBlock {
+  serviceId: string;
+  serviceName: string;
+  localDescription: string;   // city-specific copy
+  photoId?: string;           // MediaItem.id
+  photoUrl?: string;          // resolved at render time
+}
+
+export interface AreaContent {
+  /** Matches the /coverage doc ID (e.g. "miami") */
+  id: string;
+  slug: string;
+  city: string;
+  state: string;
+  active: boolean;
+
+  // Hero
+  heroPhotoId?: string;
+  heroPhotoUrl?: string;
+  heroHeadline: string;        // "Professional Home Services in Miami, FL"
+  heroSubtitle: string;
+
+  // Body copy
+  introParagraph: string;
+
+  // Services shown on this landing
+  serviceBlocks: AreaServiceBlock[];
+
+  // Social proof
+  testimonials: AreaTestimonial[];
+
+  // SEO neighborhood links
+  neighborhoods: string[];
+
+  // FAQ
+  faqs: AreaFaq[];
+
+  // SEO
+  seoTitle: string;
+  seoDescription: string;
+
+  updatedAt: string;
+}

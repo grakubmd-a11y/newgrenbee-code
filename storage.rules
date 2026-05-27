@@ -13,6 +13,16 @@ service firebase.storage {
                    && request.resource.contentType.matches('image/.*');
     }
 
+    // ── Media library (admin-uploaded photos for landing pages) ─────────────
+    // Public read so area landing pages can show photos without auth.
+    // Write only for authenticated users (admin flow enforces role client-side).
+    match /media/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size < 20 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
     // ── Deny everything else ─────────────────────────────────────────────────
     match /{allPaths=**} {
       allow read, write: if false;

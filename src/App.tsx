@@ -4,6 +4,7 @@ import StaffRoute from "./staff/StaffRoute";
 import PublicApp from "./public/PublicApp";
 import PlansPage from "./public/components/PlansPage";
 import AreasPage from "./pages/AreasPage";
+import AreaLandingPage from "./pages/AreaLandingPage";
 import FAQPage from "./pages/FAQPage";
 import ContactPage from "./pages/ContactPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/staff/*" element={<StaffRoute />} />
       <Route path="/plans" element={<PlansPage />} />
       <Route path="/areas" element={<AreasPage />} />
+      <Route path="/areas/:areaSlug" element={<AreaLandingPage />} />
       <Route path="/faq" element={<FAQPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/terms" element={<TermsPage />} />

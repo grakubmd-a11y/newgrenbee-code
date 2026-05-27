@@ -3,6 +3,8 @@ import * as Icons from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db, auth } from "../../shared/firebase";
 import PlansAdminTab from "./PlansAdminTab";
+import MediaLibraryTab from "./MediaLibraryTab";
+import AreaContentTab from "./AreaContentTab";
 import {
   Booking,
   BookingStatus,
@@ -60,7 +62,7 @@ interface AdminPanelProps {
   onExit?: () => void;
 }
 
-type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews' | 'plans';
+type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews' | 'plans' | 'media' | 'areas';
 
 export default function AdminPanel({
   bookings,
@@ -1104,6 +1106,8 @@ export default function AdminPanel({
             { id: "leads", label: "Leads / CRM", icon: Icons.Inbox, badge: leadsList.filter(l => l.status === 'new').length },
             { id: "activity", label: "Activity Log", icon: Icons.History, badge: activityEvents.length },
             { id: "plans", label: "Membresías", icon: Icons.BadgePercent },
+            { id: "media", label: "Media", icon: Icons.Images },
+            { id: "areas", label: "Áreas / SEO", icon: Icons.MapPin },
             { id: "staff", label: "Personal / Staff", icon: Icons.Wrench, badge: staffList.length },
             { id: "coverage", label: "Zonas / ZIP", icon: Icons.Map, badge: coverageList.length },
             { id: "customers", label: "Clientes", icon: Icons.Users, badge: customersList.length },
@@ -3128,6 +3132,16 @@ export default function AdminPanel({
       {/* PLANS TAB */}
       {!isLoading && activeSubTab === 'plans' && (
         <PlansAdminTab />
+      )}
+
+      {/* MEDIA LIBRARY TAB */}
+      {!isLoading && activeSubTab === 'media' && (
+        <MediaLibraryTab />
+      )}
+
+      {/* AREAS / SEO TAB */}
+      {!isLoading && activeSubTab === 'areas' && (
+        <AreaContentTab />
       )}
 
       {/* 6. COVERAGE CRUD TAB */}

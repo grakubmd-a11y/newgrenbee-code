@@ -28,8 +28,9 @@ import {
   User as FirebaseUser,
   onAuthStateChanged
 } from "firebase/auth";
-import { db, auth } from "../firebase";
-import { AdminActivityEvent, Booking, BookingStatus, CouponRule, MembershipPlan, Review, Service, Staff, Coverage, BusinessSettings, RecurringPlan } from "../types";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db, auth, storage } from "../firebase";
+import { AdminActivityEvent, AreaContent, Booking, BookingStatus, CouponRule, MediaItem, MembershipPlan, Review, Service, Staff, Coverage, BusinessSettings, RecurringPlan } from "../types";
 
 // Operation types for the error reporter
 export enum OperationType {
@@ -810,4 +811,102 @@ export async function saveMembershipPlanInFirestore(plan: MembershipPlan): Promi
 /** Delete a membership plan. */
 export async function deleteMembershipPlanFromFirestore(planId: string): Promise<void> {
   await deleteDoc(doc(db, "membershipPlans", planId));
+}
+
+// ── Media Library ─────────────────────────────────────────────────────────────
+
+/** Upload a file to Firebase Storage and save metadata to Firestore. */
+export async function uploadMediaItem(
+  file: File,
+  tags: string[] = [],
+  alt: string = "",
+  uploaderEmail: string = ""
+): Promise<MediaItem> {
+  const ext      = file.name.split(".").pop() ?? "bin";
+  const safeBase = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+  const path     = `media/${Date.now()}-${safeBase}`;
+  const storageRef = ref(storage, path);
+
+  await uploadBytes(storageRef, file, { contentType: file.type });
+  const url = await getDownloadURL(storageRef);
+
+  const id  = `media-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const item: MediaItem = {
+    id,
+    url,
+    storagePath: path,
+    filename: file.name,
+    alt: alt || file.name,
+    tags,
+    sizeBytes: file.size,
+    mimeType: file.type,
+    uploadedAt: new Date().toISOString(),
+    uploadedBy: uploaderEmail,
+  };
+
+  await setDoc(doc(db, "media", id), item);
+  return item;
+}
+
+/** Fetch all media items, newest first. */
+export async function fetchMediaItems(tag?: string): Promise<MediaItem[]> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "media"), orderBy("uploadedAt", "desc"))
+    );
+    const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as MediaItem);
+    if (tag) return items.filter((m) => m.tags.includes(tag));
+    return items;
+  } catch {
+    return [];
+  }
+}
+
+/** Update alt text and tags for a media item. */
+export async function updateMediaItem(id: string, patch: Partial<Pick<MediaItem, "alt" | "tags">>): Promise<void> {
+  await updateDoc(doc(db, "media", id), patch);
+}
+
+/** Delete a media item from Storage + Firestore. */
+export async function deleteMediaItem(item: MediaItem): Promise<void> {
+  try { await deleteObject(ref(storage, item.storagePath)); } catch { /* already gone */ }
+  await deleteDoc(doc(db, "media", item.id));
+}
+
+// ── Area Content ──────────────────────────────────────────────────────────────
+
+/** Fetch all area landing page content docs. */
+export async function fetchAreaContents(): Promise<AreaContent[]> {
+  try {
+    const snap = await getDocs(collection(db, "areaContent"));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as AreaContent);
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch a single area content doc by slug. */
+export async function fetchAreaContent(slug: string): Promise<AreaContent | null> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "areaContent"), where("slug", "==", slug))
+    );
+    if (snap.empty) return null;
+    return { id: snap.docs[0].id, ...snap.docs[0].data() } as AreaContent;
+  } catch {
+    return null;
+  }
+}
+
+/** Save (create or update) area content. */
+export async function saveAreaContent(content: AreaContent): Promise<void> {
+  await setDoc(doc(db, "areaContent", content.id), {
+    ...content,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/** Delete area content. */
+export async function deleteAreaContent(id: string): Promise<void> {
+  await deleteDoc(doc(db, "areaContent", id));
 }

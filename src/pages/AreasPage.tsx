@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { MapPin, CheckCircle2, Clock, Bell } from "lucide-react";
+import { Link } from "react-router-dom";
+import { MapPin, CheckCircle2, Clock, Bell, ArrowRight } from "lucide-react";
 import PageShell from "./shared/PageShell";
 import { db } from "../shared/firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -104,16 +105,20 @@ export default function AreasPage() {
               </h2>
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {active.map((area) => (
-                  <div
+                  <Link
                     key={area.id}
-                    className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3"
+                    to={`/areas/${area.id}`}
+                    className="flex items-center justify-between gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group"
                   >
-                    <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{area.city}</p>
-                      <p className="text-xs text-gray-400">{area.state}</p>
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{area.city}</p>
+                        <p className="text-xs text-gray-400">{area.state}</p>
+                      </div>
                     </div>
-                  </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
                 ))}
               </div>
             </section>
