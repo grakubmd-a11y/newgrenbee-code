@@ -134,6 +134,37 @@ export async function createRecurringPlanFromBooking(params: {
   return data.plan as RecurringPlan;
 }
 
+// ── Auto-assignment ───────────────────────────────────────────────────────────
+
+/**
+ * Ask the server to auto-assign the best available staff member to a booking.
+ * Silently resolves when no eligible staff exists (non-fatal).
+ * Throws only on auth or network failure.
+ *
+ * @param bookingId  Firestore booking document ID
+ * @param force      Re-assign even if staff is already set (default false)
+ */
+export async function autoAssignStaff(
+  bookingId: string,
+  force = false
+): Promise<{ ok: boolean; assignedStaffId?: string; assignedStaffName?: string; reason?: string }> {
+  const firebaseUser = auth.currentUser;
+  if (!firebaseUser) throw new Error('Must be signed in to trigger auto-assignment.');
+  const idToken = await firebaseUser.getIdToken();
+
+  const resp = await fetch('/api/auto-assign-staff', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ bookingId, force }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(data.error || 'Auto-assign failed.');
+  return data;
+}
+
 // ── Display helpers ───────────────────────────────────────────────────────────
 
 export const RECURRENCE_LABELS: Record<string, string> = {

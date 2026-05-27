@@ -20,7 +20,7 @@ import BlogSection from "./components/BlogSection";
 import MyAccount from "./components/MyAccount";
 
 import { Service, Booking, Review, BookingStatus } from "../shared/types";
-import { createRecurringPlanFromBooking } from "../shared/services/recurringPlanService";
+import { createRecurringPlanFromBooking, autoAssignStaff } from "../shared/services/recurringPlanService";
 import { SERVICES_DATA, INITIAL_BOOKINGS, INITIAL_REVIEWS } from "../shared/data";
 import { Language, getInitialLanguage } from "../shared/i18n";
 import {
@@ -188,6 +188,13 @@ export default function App() {
       await createBookingInFirestore(fullBooking);
     } catch (err) {
       console.error("Failed to save booking to Firestore:", err);
+    }
+
+    // ── Auto-assign staff (fire-and-forget, signed-in users only) ─────────
+    if (currentUser?.uid) {
+      autoAssignStaff(fullBooking.id).catch((err) => {
+        console.warn("[AutoAssign] Could not auto-assign staff:", err?.message ?? err);
+      });
     }
 
     // ── Recurring plan: create after booking is saved ──────────────────────

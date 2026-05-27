@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import * as Icons from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../shared/firebase";
+import { db, auth } from "../../shared/firebase";
 import { 
   Booking, 
   BookingStatus, 
@@ -627,6 +627,42 @@ export default function AdminPanel({
     }
   };
 
+  // AUTO-ASSIGN STAFF TO BOOKING
+  const handleAutoAssignStaff = async (bookingId: string, force = false) => {
+    const actionId = `auto-assign-${bookingId}`;
+    beginAction(actionId, "Auto-asignando...");
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) throw new Error("Sesión expirada. Recarga la página.");
+      const idToken = await firebaseUser.getIdToken();
+      const resp = await fetch("/api/auto-assign-staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ bookingId, force }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || "Auto-asignación fallida.");
+      if (data.reason === "no_eligible_staff") {
+        triggerSuccess("No hay técnicos disponibles para este servicio en esa fecha.");
+      } else {
+        await recordActivity({
+          type: "booking_assigned",
+          entityType: "booking",
+          entityId: bookingId,
+          title: "Auto-asignación de técnico",
+          detail: `Se asignó automáticamente ${data.assignedStaffName || data.assignedStaffId} a la reserva ${bookingId}.`,
+          severity: "success",
+        });
+        triggerSuccess(`Asignado: ${data.assignedStaffName || data.assignedStaffId}`);
+        await loadDatabaseData();
+      }
+    } catch (err: any) {
+      setErrorMessage("Error en auto-asignación: " + err.message);
+    } finally {
+      endAction(actionId);
+    }
+  };
+
   // DIRECT CREATION OF REVIEWS BY ADMIN
   const handleCreateReviewAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1241,19 +1277,32 @@ export default function AdminPanel({
                         </span>
                       </td>
                       <td className="p-4">
-                        <select
-                          value={(booking as any).assignedStaffId || ""}
-                          onChange={(e) => handleAssignStaff(booking.id, e.target.value)}
-                          disabled={isActionPending(`assign-staff-${booking.id}`)}
-                          className="text-[11px] font-bold p-1 border border-gray-200 rounded-lg bg-white max-w-[150px] outline-none text-gray-800 disabled:opacity-60 disabled:cursor-wait"
-                        >
-                          <option value="">-- Sin Asignar --</option>
-                          {staffList.map((st) => (
-                            <option key={st.id} value={st.id}>
-                              {st.name} {st.active ? "" : "(Inactivo)"}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center gap-1">
+                          <select
+                            value={(booking as any).assignedStaffId || ""}
+                            onChange={(e) => handleAssignStaff(booking.id, e.target.value)}
+                            disabled={isActionPending(`assign-staff-${booking.id}`) || isActionPending(`auto-assign-${booking.id}`)}
+                            className="text-[11px] font-bold p-1 border border-gray-200 rounded-lg bg-white max-w-[130px] outline-none text-gray-800 disabled:opacity-60 disabled:cursor-wait"
+                          >
+                            <option value="">-- Sin Asignar --</option>
+                            {staffList.map((st) => (
+                              <option key={st.id} value={st.id}>
+                                {st.name} {st.active ? "" : "(Inactivo)"}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => handleAutoAssignStaff(booking.id, !!(booking as any).assignedStaffId)}
+                            disabled={isActionPending(`auto-assign-${booking.id}`) || isActionPending(`assign-staff-${booking.id}`)}
+                            title={(booking as any).assignedStaffId ? "Re-asignar automáticamente" : "Auto-asignar técnico"}
+                            className="p-1 rounded-md border border-gray-200 bg-white hover:bg-teal-50 hover:border-teal-300 disabled:opacity-50 disabled:cursor-wait text-teal-600 transition-colors cursor-pointer shrink-0"
+                          >
+                            {isActionPending(`auto-assign-${booking.id}`)
+                              ? <Icons.RotateCw size={11} className="animate-spin" />
+                              : <Icons.Wand2 size={11} />
+                            }
+                          </button>
+                        </div>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex gap-1 justify-end">
