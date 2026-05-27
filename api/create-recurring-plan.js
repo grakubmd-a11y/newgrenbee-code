@@ -70,6 +70,9 @@ export default async function handler(req, res) {
     notes = "",
     totalCost = 0,
     stripePaymentIntentId = "",
+    customerName = "",
+    email = "",
+    phone = "",
   } = body;
 
   if (!bookingId || typeof bookingId !== "string") {
@@ -141,6 +144,9 @@ export default async function handler(req, res) {
       address:         String(address || "").slice(0, 300),
       timeSlot:        String(timeSlot || "").slice(0, 60),
       notes:           String(notes || "").slice(0, 1000),
+      customerName:    String(customerName || "").slice(0, 100),
+      email:           String(email || "").slice(0, 100),
+      phone:           String(phone || "").slice(0, 30),
     },
     createdAt: now,
     updatedAt: now,

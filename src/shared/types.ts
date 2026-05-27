@@ -158,6 +158,9 @@ export interface RecurringPlan {
     address: string;
     timeSlot: string;
     notes: string;
+    customerName: string;
+    email: string;
+    phone: string;
   };
   createdAt: string;
   updatedAt: string;

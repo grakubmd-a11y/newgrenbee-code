@@ -113,6 +113,9 @@ export async function createRecurringPlanFromBooking(params: {
   notes: string;
   totalCost: number;
   stripePaymentIntentId?: string;
+  customerName?: string;
+  email?: string;
+  phone?: string;
 }): Promise<RecurringPlan> {
   const firebaseUser = auth.currentUser;
   if (!firebaseUser) throw new Error('Must be signed in to create a plan.');

@@ -211,6 +211,9 @@ export default function App() {
         notes:                 fullBooking.notes,
         totalCost:             fullBooking.totalCost,
         stripePaymentIntentId: fullBooking.stripePaymentIntentId ?? "",
+        customerName:          fullBooking.customerName,
+        email:                 fullBooking.email,
+        phone:                 fullBooking.phone,
       }).catch((err) => {
         // Non-blocking: booking is already confirmed; log and continue
         console.warn("[RecurringPlan] Could not create recurring plan:", err?.message ?? err);

@@ -49,6 +49,35 @@ function getFirestore() {
   }
 }
 
+/**
+ * Returns an existing Stripe Customer ID for the user, or creates a new one.
+ * Stores the stripeCustomerId on the Firestore user document for future lookups.
+ * Never throws — returns null on any error so the PI creation isn't blocked.
+ */
+async function getOrCreateStripeCustomer({ userId, email, name, db, stripe }) {
+  if (!userId || !db || !stripe) return null;
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const userSnap = await userRef.get();
+    if (userSnap.exists) {
+      const userData = userSnap.data() || {};
+      if (userData.stripeCustomerId) return userData.stripeCustomerId;
+    }
+    // Create a new Stripe Customer
+    const customer = await stripe.customers.create({
+      ...(email ? { email } : {}),
+      ...(name  ? { name  } : {}),
+      metadata: { userId, source: "grenbee-web" },
+    });
+    // Persist so future recurring PIs reuse the same customer
+    const now = new Date().toISOString();
+    await userRef.set({ stripeCustomerId: customer.id, updatedAt: now }, { merge: true });
+    return customer.id;
+  } catch {
+    return null;
+  }
+}
+
 async function resolveServerCouponDiscount(couponCode) {
   const docId = couponDocId(couponCode);
   if (!docId) return 0;
@@ -89,6 +118,7 @@ export default async function handler(req, res) {
     couponCode = "",
     sameDayFee: clientSameDay = false,
     booking = {},
+    userId = "",
   } = body;
 
   if (!serviceId || units === undefined) {
@@ -124,11 +154,27 @@ export default async function handler(req, res) {
       return sendJson(res, 400, { error: "Order total must be at least $0.50." });
     }
 
+    // For recurring plans, create/retrieve a Stripe Customer and save the PM for future off-session charges
+    const isRecurring = frequency !== "once";
+    let stripeCustomerId = null;
+    if (isRecurring && userId) {
+      stripeCustomerId = await getOrCreateStripeCustomer({
+        userId,
+        email:  booking.email        || "",
+        name:   booking.customerName || "",
+        db:     getFirestore(),
+        stripe,
+      });
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalCents,
       currency: "usd",
       capture_method: "manual",
       payment_method_types: ["card"],
+      ...(stripeCustomerId
+        ? { customer: stripeCustomerId, setup_future_usage: "off_session" }
+        : {}),
       description: cleanMeta(`Grenbee — ${booking.serviceName || serviceId}`),
       metadata: {
         serviceId:      cleanMeta(serviceId),
@@ -140,17 +186,19 @@ export default async function handler(req, res) {
         couponDiscount: String(couponDiscount),
         sameDayFee:     String(sameDayFee),
         twoTechFee:     String(twoTechFee),
+        userId:         cleanMeta(userId),
         source:         "grenbee-web",
       },
     });
 
     return sendJson(res, 200, {
-      clientSecret:  paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
+      clientSecret:     paymentIntent.client_secret,
+      paymentIntentId:  paymentIntent.id,
       totalCents,
       breakdown,
-      currency:      paymentIntent.currency,
-      captureMethod: paymentIntent.capture_method,
+      currency:         paymentIntent.currency,
+      captureMethod:    paymentIntent.capture_method,
+      stripeCustomerId: stripeCustomerId || null,
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Could not create PaymentIntent.";

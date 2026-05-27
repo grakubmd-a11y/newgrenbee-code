@@ -2,26 +2,40 @@
  * api/process-recurring-plans.js
  * ─────────────────────────────────────────────────────────────────────────────
  * Vercel cron endpoint — runs hourly (see vercel.json).
- * Phase 1.3 will fill this in with full auto-charge logic:
- *   1. Query recurringPlans where status='active' AND nextChargeAt <= today
- *   2. For each: charge via Stripe (stripe.paymentIntents.create with off_session)
- *   3. Create new booking in Firestore
- *   4. Advance nextChargeAt by one interval
- *   5. On failure: mark past_due + increment failureCount
  *
- * Requires (not yet set up):
- *   - STRIPE_SECRET_KEY  (already present)
- *   - Stripe Customer ID + saved Payment Method per plan (Phase 1.3)
- *   - FIREBASE_SERVICE_ACCOUNT_JSON  (already present)
- *   - Vercel Pro or higher for cron jobs
+ * For each active recurring plan whose nextChargeAt <= today:
+ *   1. Create an off-session Stripe PaymentIntent (charge immediately)
+ *   2. Create a new booking in Firestore based on the plan's templatePayload
+ *   3. Advance nextChargeAt by one interval
+ *   4. On failure: mark past_due + increment failureCount
+ *
+ * Plans without a saved stripeCustomerId / stripePaymentMethodId are skipped
+ * — those IDs are populated by the stripe-webhook handler after the first
+ * booking's PI reaches `requires_capture` status.
+ *
+ * Env vars required
+ * ─────────────────
+ *   STRIPE_SECRET_KEY             — Stripe secret key
+ *   FIREBASE_SERVICE_ACCOUNT_JSON — Firebase Admin credentials
+ *   CRON_SECRET                   — optional; protects against random callers
  */
 
-import { getFirestore, sendJson } from "./_recurring.js";
+import Stripe from "stripe";
+import { getFirestore, calculateNextChargeDate, sendJson } from "./_recurring.js";
+
+// ── Stripe init ───────────────────────────────────────────────────────────────
+
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey && !stripeSecretKey.includes("REPLACE_ME")
+  ? new Stripe(stripeSecretKey)
+  : null;
+
+// ── Cron handler ──────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
   // Vercel crons send GET; protect against random external callers with a secret
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
+  if (cronSecret && !cronSecret.includes("REPLACE_ME")) {
     const authHeader = req.headers["authorization"] || "";
     if (authHeader !== `Bearer ${cronSecret}`) {
       return sendJson(res, 401, { error: "Unauthorized." });
@@ -36,18 +50,143 @@ export default async function handler(req, res) {
     });
   }
 
-  // ── Phase 1.3 TODO: query & charge due plans ──────────────────────────────
-  // const today = new Date().toISOString().split("T")[0];
-  // const due = await db.collection("recurringPlans")
-  //   .where("status", "==", "active")
-  //   .where("nextChargeAt", "<=", today)
-  //   .limit(25)
-  //   .get();
-  // ... process each plan
+  if (!stripe) {
+    return sendJson(res, 503, {
+      ok: false,
+      message: "Stripe not configured — skipping cron run.",
+    });
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+
+  // ── Query due plans ───────────────────────────────────────────────────────
+  let due;
+  try {
+    due = await db
+      .collection("recurringPlans")
+      .where("status", "==", "active")
+      .where("nextChargeAt", "<=", today)
+      .limit(25)
+      .get();
+  } catch (err) {
+    return sendJson(res, 500, {
+      ok: false,
+      message: `Firestore query failed: ${err?.message}`,
+    });
+  }
+
+  const results = { processed: 0, failed: 0, skipped: 0, total: due.size };
+
+  // ── Process each due plan ─────────────────────────────────────────────────
+  for (const planDoc of due.docs) {
+    const plan = planDoc.data();
+
+    // Skip plans that don't have a saved payment method yet
+    if (!plan.stripeCustomerId || !plan.stripePaymentMethodId) {
+      results.skipped++;
+      continue;
+    }
+
+    const amountCents = Math.round((plan.amount || 0) * 100);
+    if (amountCents < 50) {
+      // Amount too small — cancel to avoid repeated micro-charge attempts
+      await planDoc.ref.update({
+        status:    "cancelled",
+        cancelledAt: new Date().toISOString(),
+        updatedAt:   new Date().toISOString(),
+      });
+      results.skipped++;
+      continue;
+    }
+
+    const chargeDate  = plan.nextChargeAt;  // YYYY-MM-DD of this occurrence
+    const nextCharge  = calculateNextChargeDate(chargeDate, plan.recurrence);
+    const now         = new Date().toISOString();
+
+    try {
+      // ── Off-session Stripe charge ───────────────────────────────────────
+      const pi = await stripe.paymentIntents.create({
+        amount:          amountCents,
+        currency:        plan.currency || "usd",
+        customer:        plan.stripeCustomerId,
+        payment_method:  plan.stripePaymentMethodId,
+        off_session:     true,
+        confirm:         true,
+        description:     `Grenbee — ${plan.serviceName} (${plan.recurrence})`,
+        metadata: {
+          planId:    planDoc.id,
+          userId:    plan.userId,
+          serviceId: plan.serviceId,
+          frequency: plan.recurrence,
+          source:    "grenbee-cron",
+        },
+      });
+
+      // ── Create new booking from template ───────────────────────────────
+      const t = plan.templatePayload || {};
+      const newBookingId = db.collection("bookings").doc().id;
+
+      const newBooking = {
+        id:                    newBookingId,
+        userId:                plan.userId,
+        serviceId:             t.serviceId   || plan.serviceId,
+        serviceName:           t.serviceName || plan.serviceName,
+        bookingDate:           chargeDate,
+        timeSlot:              t.timeSlot    || "",
+        status:                "scheduled",
+        customerName:          t.customerName || "",
+        email:                 t.email        || "",
+        phone:                 t.phone        || "",
+        address:               t.address      || "",
+        units:                 t.units        || 1,
+        selectedFactors:       t.selectedFactors || {},
+        frequency:             plan.recurrence,
+        notes:                 t.notes        || "",
+        totalCost:             plan.amount,
+        paymentMethod:         "card",
+        paymentStatus:         "processing",
+        stripePaymentIntentId: pi.id,
+        stripePaymentStatus:   pi.status,
+        recurringPlanId:       planDoc.id,
+        createdAt:             now,
+        updatedAt:             now,
+      };
+
+      await db.collection("bookings").doc(newBookingId).set(newBooking);
+
+      // ── Advance plan to next occurrence ─────────────────────────────────
+      await planDoc.ref.update({
+        lastBookingId:         newBookingId,
+        lastChargeAt:          chargeDate,
+        lastChargeStatus:      pi.status === "succeeded" ? "succeeded" : "processing",
+        nextChargeAt:          nextCharge,
+        stripePaymentIntentId: pi.id,
+        failureCount:          0,
+        updatedAt:             now,
+      });
+
+      results.processed++;
+
+    } catch (err) {
+      // Stripe off-session failures use err.code (e.g. 'card_declined')
+      const failureCode = err?.code || err?.message || "unknown";
+      const newCount    = (plan.failureCount || 0) + 1;
+
+      await planDoc.ref.update({
+        status:           "past_due",
+        failureCount:     newCount,
+        lastChargeStatus: String(failureCode).slice(0, 100),
+        updatedAt:        new Date().toISOString(),
+      }).catch(() => {/* best-effort */});
+
+      console.error(`[process-recurring-plans] Plan ${planDoc.id} failed:`, failureCode);
+      results.failed++;
+    }
+  }
 
   return sendJson(res, 200, {
-    ok: true,
-    message: "Recurring plan processor stub — Phase 1.3 not yet implemented.",
-    processed: 0,
+    ok:        true,
+    date:      today,
+    ...results,
   });
 }
