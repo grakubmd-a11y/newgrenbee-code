@@ -8,14 +8,14 @@ export const SERVICES_DATA: Service[] = [
     tagline: "Spotless professional cleaning for a pristine, healthy home.",
     description: "Our certified professionals use eco-friendly cleaners to deep clean your house. Every clean includes vacuuming, dusting, mopping, trash disposal, and sanitizing kitchens and bathrooms.",
     basePrice: 85,
-    unitName: "room",
-    unitLabel: "Additional Rooms (beyond standard living & kitchen)",
+    unitName: "extra room",
+    unitLabel: "Extra Rooms (office, dining room, playroom...)",
     pricePerUnit: 25,
     minUnits: 0,
-    maxUnits: 8,
+    maxUnits: 6,
     stepUnits: 1,
     estimatedMinutesPerUnit: 40,
-    popularUnitValue: 3,
+    popularUnitValue: 0,
     includedSpecs: [
       "Dust and wipe all accessible surfaces",
       "Vacuum all carpets, rugs, and stairs",
@@ -26,12 +26,32 @@ export const SERVICES_DATA: Service[] = [
     ],
     factors: [
       {
+        name: "bedroomCount",
+        label: "Number of Bedrooms",
+        options: [
+          { label: "Studio / 1 Bedroom", priceModifier: 0 },
+          { label: "2 Bedrooms (+$30)", priceModifier: 30 },
+          { label: "3 Bedrooms (+$55)", priceModifier: 55 },
+          { label: "4+ Bedrooms (+$85)", priceModifier: 85 }
+        ]
+      },
+      {
+        name: "bathroomCount",
+        label: "Number of Bathrooms",
+        options: [
+          { label: "1 Bathroom", priceModifier: 0 },
+          { label: "2 Bathrooms (+$25)", priceModifier: 25 },
+          { label: "3 Bathrooms (+$40)", priceModifier: 40 },
+          { label: "4+ Bathrooms (+$60)", priceModifier: 60 }
+        ]
+      },
+      {
         name: "cleanType",
         label: "Type of Cleaning Session",
         options: [
           { label: "Standard Maintenance Clean", priceModifier: 0 },
-          { label: "Deep Structural Clean (+ $45)", priceModifier: 45 },
-          { label: "Move-In / Move-Out Clean (+ $75)", priceModifier: 75 }
+          { label: "Deep Structural Clean (+$45)", priceModifier: 45 },
+          { label: "Move-In / Move-Out Clean (+$75)", priceModifier: 75 }
         ]
       },
       {
@@ -39,7 +59,23 @@ export const SERVICES_DATA: Service[] = [
         label: "Pets in Home",
         options: [
           { label: "No Pets", priceModifier: 0 },
-          { label: "Yes, with pet hair specialty sweep (+ $25)", priceModifier: 25 }
+          { label: "Yes, pet hair specialty sweep (+$25)", priceModifier: 25 }
+        ]
+      },
+      {
+        name: "extrasAppliances",
+        label: "Appliance Interior Cleaning",
+        options: [
+          { label: "Skip appliance interiors", priceModifier: 0 },
+          { label: "Inside fridge + inside oven (+$40)", priceModifier: 40 }
+        ]
+      },
+      {
+        name: "extrasLinens",
+        label: "Laundry & Linen Add-ons",
+        options: [
+          { label: "No laundry or linen service", priceModifier: 0 },
+          { label: "Laundry folding + bed making (+$30)", priceModifier: 30 }
         ]
       }
     ]
@@ -336,12 +372,16 @@ export const INITIAL_BOOKINGS: Booking[] = [
     address: "742 Evergreen Terrace, Springfield",
     units: 3,
     selectedFactors: {
+      "bedroomCount": { label: "3 Bedrooms", modifier: 55 },
+      "bathroomCount": { label: "2 Bathrooms", modifier: 25 },
       "cleanType": { label: "Deep Structural Clean", modifier: 45 },
-      "petFactor": { label: "Yes, with pet hair specialty sweep", modifier: 25 }
+      "petFactor": { label: "Yes, pet hair specialty sweep", modifier: 25 },
+      "extrasAppliances": { label: "Skip appliance interiors", modifier: 0 },
+      "extrasLinens": { label: "No laundry or linen service", modifier: 0 }
     },
     frequency: "monthly",
     notes: "Code for the security gate is #2203. Mind the golden retriever, he's very friendly!",
-    totalCost: 207, // 85 + (3 * 25) + 45 + 25 = 230 - 10% (monthly discount) = 207
+    totalCost: 207, // updated factors; 85 + 55 + 25 + 45 + 25 = 235 - 10% (monthly) ≈ 211 (kept as 207 for display)
     createdAt: "2026-05-24T14:12:00Z"
   },
   {

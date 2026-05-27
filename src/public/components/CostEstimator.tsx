@@ -274,7 +274,7 @@ export default function CostEstimator({
                   {activeService.unitLabel}
                 </label>
                 <span className="text-[11px] text-gray-400 font-medium">
-                  {activeService.id === "house-cleaning" && "* Standard house includes 1 kitchen + 1 living block"}
+                  {activeService.id === "house-cleaning" && "* Bedrooms & bathrooms are set via the options below"}
                   {activeService.id === "tv-installation" && "* First TV bracket install covered in basic rate"}
                   {activeService.id === "lawn-mowing" && "* Rate is calculated per 1,000 sq ft block"}
                   {activeService.id === "furniture-assembly" && "* Select number of retail flat-pack boxes"}
