@@ -33,10 +33,22 @@
     "title": "¿Por Qué Elegir Greenbee?",
     "subtitle": "Hacemos que los servicios del hogar sean simples, confiables y asequibles",
     "items": [
-      { "title": "Rápido y Fácil", "desc": "Reserva servicios en minutos con nuestra plataforma intuitiva" },
-      { "title": "Profesionales Confiables", "desc": "Proveedores verificados y confiables en quienes puedes confiar" },
-      { "title": "Horarios Flexibles", "desc": "Elige horarios que se adapten a ti" },
-      { "title": "Soporte 24/7", "desc": "Nuestro equipo siempre está listo para ayudarte" }
+      {
+        "title": "Rápido y Fácil",
+        "desc": "Reserva servicios en minutos con nuestra plataforma intuitiva"
+      },
+      {
+        "title": "Profesionales Confiables",
+        "desc": "Proveedores verificados y confiables en quienes puedes confiar"
+      },
+      {
+        "title": "Horarios Flexibles",
+        "desc": "Elige horarios que se adapten a ti"
+      },
+      {
+        "title": "Soporte 24/7",
+        "desc": "Nuestro equipo siempre está listo para ayudarte"
+      }
     ]
   },
   "testimonials": {
@@ -64,10 +76,22 @@
     "title": "Confiado por Miles",
     "subtitle": "Únete a nuestra creciente comunidad de propietarios satisfechos",
     "stats": [
-      { "number": "2,500+", "label": "Clientes Felices" },
-      { "number": "5,000+", "label": "Reservas Completadas" },
-      { "number": "250+",   "label": "Proveedores de Servicio" },
-      { "number": "4.9/5",  "label": "Calificación Promedio" }
+      {
+        "number": "2,500+",
+        "label": "Clientes Felices"
+      },
+      {
+        "number": "5,000+",
+        "label": "Reservas Completadas"
+      },
+      {
+        "number": "250+",
+        "label": "Proveedores de Servicio"
+      },
+      {
+        "number": "4.9/5",
+        "label": "Calificación Promedio"
+      }
     ]
   },
   "cta": {
@@ -183,19 +207,31 @@
           "name": "Básico",
           "freq": "1 visita / mes",
           "price": "$59–$179",
-          "features": ["Corte y perfilado de césped", "Soplado y limpieza", "Recordatorios por correo"]
+          "features": [
+            "Corte y perfilado de césped",
+            "Soplado y limpieza",
+            "Recordatorios por correo"
+          ]
         },
         {
           "name": "Estándar",
           "freq": "2 visitas / mes",
           "price": "$109–$329",
-          "features": ["Todo lo del Básico", "Programación prioritaria", "Consistencia quincenal"]
+          "features": [
+            "Todo lo del Básico",
+            "Programación prioritaria",
+            "Consistencia quincenal"
+          ]
         },
         {
           "name": "Premium",
           "freq": "4 visitas / mes",
           "price": "$199–$599",
-          "features": ["Todo lo del Estándar", "Cortes semanales", "$100 crédito de servicio/mes"]
+          "features": [
+            "Todo lo del Estándar",
+            "Cortes semanales",
+            "$100 crédito de servicio/mes"
+          ]
         }
       ]
     },
@@ -273,7 +309,13 @@
       "tagline": "Servicios profesionales de cuidado del césped y limpieza del hogar en todo el sur de Florida.",
       "rights": "Todos los derechos reservados.",
       "servicesTitle": "Servicios",
-      "serviceLinks": ["Cuidado del Césped", "Limpieza del Hogar", "Lavado a Presión", "Instalación de TV", "Ensamblaje de Muebles"],
+      "serviceLinks": [
+        "Cuidado del Césped",
+        "Limpieza del Hogar",
+        "Lavado a Presión",
+        "Instalación de TV",
+        "Ensamblaje de Muebles"
+      ],
       "miamidadeTitle": "Miami-Dade",
       "browardTitle": "Broward",
       "companyTitle": "Empresa",
@@ -312,10 +354,22 @@
     "bookService": "Reservar Servicio",
     "callUs": "Llamarnos",
     "stats": [
-      { "stat": "5,000+",    "label": "Clientes Satisfechos" },
-      { "stat": "500+",      "label": "Reseñas de 5 Estrellas" },
-      { "stat": "100%",      "label": "Asegurado y Verificado" },
-      { "stat": "Mismo Día", "label": "Disponible" }
+      {
+        "stat": "5,000+",
+        "label": "Clientes Satisfechos"
+      },
+      {
+        "stat": "500+",
+        "label": "Reseñas de 5 Estrellas"
+      },
+      {
+        "stat": "100%",
+        "label": "Asegurado y Verificado"
+      },
+      {
+        "stat": "Mismo Día",
+        "label": "Disponible"
+      }
     ],
     "servicesTitle": "Servicios en {{city}}",
     "bookNow": "Reservar ahora",
@@ -323,10 +377,22 @@
       "eyebrow": "Nuestra Promesa",
       "title": "La Diferencia Greenbee",
       "pillars": [
-        { "title": "Resultados Impecables",   "desc": "No nos vamos hasta que el trabajo cumpla nuestro estándar de calidad." },
-        { "title": "Técnicos Verificados",    "desc": "Cada profesional tiene verificación de antecedentes, entrenamiento y seguro." },
-        { "title": "Completamente Asegurado", "desc": "Todo el trabajo está cubierto. Cero riesgo para ti." },
-        { "title": "Puntual y Confiable",     "desc": "Llegamos cuando decimos que llegamos. Siempre." }
+        {
+          "title": "Resultados Impecables",
+          "desc": "No nos vamos hasta que el trabajo cumpla nuestro estándar de calidad."
+        },
+        {
+          "title": "Técnicos Verificados",
+          "desc": "Cada profesional tiene verificación de antecedentes, entrenamiento y seguro."
+        },
+        {
+          "title": "Completamente Asegurado",
+          "desc": "Todo el trabajo está cubierto. Cero riesgo para ti."
+        },
+        {
+          "title": "Puntual y Confiable",
+          "desc": "Llegamos cuando decimos que llegamos. Siempre."
+        }
       ]
     },
     "plansCta": {
@@ -363,16 +429,40 @@
       "seoTitle": "Servicios del Hogar en {{city}}, {{state}} | Greenbee",
       "seoDescription": "Cuidado de césped, limpieza del hogar y mantenimiento profesional en {{city}}, {{state}}. Técnicos verificados, precios transparentes, satisfacción garantizada. Reserva en línea.",
       "testimonials": [
-        { "name": "María G.", "text": "Greenbee ha sido increíble — siempre a tiempo y el jardín se ve perfecto cada semana." },
-        { "name": "Jason T.", "text": "Reservé una limpieza profunda y quedé impresionado. Equipo muy profesional." },
-        { "name": "Sandra L.", "text": "Me encanta lo fácil que es reservar en línea. Los técnicos son atentos y minuciosos." }
+        {
+          "name": "María G.",
+          "text": "Greenbee ha sido increíble — siempre a tiempo y el jardín se ve perfecto cada semana."
+        },
+        {
+          "name": "Jason T.",
+          "text": "Reservé una limpieza profunda y quedé impresionado. Equipo muy profesional."
+        },
+        {
+          "name": "Sandra L.",
+          "text": "Me encanta lo fácil que es reservar en línea. Los técnicos son atentos y minuciosos."
+        }
       ],
       "faqs": [
-        { "q": "¿Atienden toda la ciudad de {{city}}?", "a": "Sí — atendemos {{city}} y sus alrededores. Ingresa tu código postal durante la reserva para confirmar cobertura." },
-        { "q": "¿Cómo obtengo una cotización?", "a": "Usa nuestro estimador en línea para obtener un precio instantáneo. No necesitas llamar." },
-        { "q": "¿Están asegurados sus técnicos?", "a": "Sí. Todos los técnicos de Greenbee están verificados, con antecedentes revisados y completamente asegurados." },
-        { "q": "¿Puedo reservar un servicio recurrente?", "a": "Sí — puedes reservar una visita única o elegir un horario recurrente. Consulta nuestros planes de membresía para las mejores tarifas." },
-        { "q": "¿Qué pasa si no estoy satisfecho?", "a": "Ofrecemos garantía de satisfacción. Si algo no está bien, regresamos y lo arreglamos sin costo adicional." }
+        {
+          "q": "¿Atienden toda la ciudad de {{city}}?",
+          "a": "Sí — atendemos {{city}} y sus alrededores. Ingresa tu código postal durante la reserva para confirmar cobertura."
+        },
+        {
+          "q": "¿Cómo obtengo una cotización?",
+          "a": "Usa nuestro estimador en línea para obtener un precio instantáneo. No necesitas llamar."
+        },
+        {
+          "q": "¿Están asegurados sus técnicos?",
+          "a": "Sí. Todos los técnicos de Greenbee están verificados, con antecedentes revisados y completamente asegurados."
+        },
+        {
+          "q": "¿Puedo reservar un servicio recurrente?",
+          "a": "Sí — puedes reservar una visita única o elegir un horario recurrente. Consulta nuestros planes de membresía para las mejores tarifas."
+        },
+        {
+          "q": "¿Qué pasa si no estoy satisfecho?",
+          "a": "Ofrecemos garantía de satisfacción. Si algo no está bien, regresamos y lo arreglamos sin costo adicional."
+        }
       ]
     }
   },
@@ -596,10 +686,30 @@
       "label": "Selecciona el tamaño de tu jardín",
       "xlWarning": "Las propiedades XL se cotizan individualmente. Selecciona cualquier plan a continuación para solicitar una cotización personalizada.",
       "tiers": [
-        { "tier": "small",  "label": "Pequeño",  "description": "Casa adosada, jardín delantero o lote compacto", "examples": "Hasta ~3,500 pies²" },
-        { "tier": "medium", "label": "Mediano",  "description": "Jardín estándar de casa unifamiliar",             "examples": "~3,500–8,000 pies²" },
-        { "tier": "large",  "label": "Grande",   "description": "Lote residencial más amplio",                   "examples": "~8,000–15,000 pies²" },
-        { "tier": "xl",     "label": "XL",       "description": "Lotes grandes, pendientes o terreno complejo", "examples": "15,000+ pies²" }
+        {
+          "tier": "small",
+          "label": "Pequeño",
+          "description": "Casa adosada, jardín delantero o lote compacto",
+          "examples": "Hasta ~3,500 pies²"
+        },
+        {
+          "tier": "medium",
+          "label": "Mediano",
+          "description": "Jardín estándar de casa unifamiliar",
+          "examples": "~3,500–8,000 pies²"
+        },
+        {
+          "tier": "large",
+          "label": "Grande",
+          "description": "Lote residencial más amplio",
+          "examples": "~8,000–15,000 pies²"
+        },
+        {
+          "tier": "xl",
+          "label": "XL",
+          "description": "Lotes grandes, pendientes o terreno complejo",
+          "examples": "15,000+ pies²"
+        }
       ]
     },
     "card": {
@@ -693,5 +803,12 @@
   "legal": {
     "lastUpdated": "Última actualización:",
     "legalNotice": "Aviso Legal: "
+  },
+  "notFound": {
+    "pageTitle": "Página No Encontrada | Greenbee",
+    "metaDescription": "La página que buscas no existe. Vuelve a la página principal de Greenbee para reservar un servicio.",
+    "title": "Página No Encontrada",
+    "body": "La página que buscas no existe o fue movida.",
+    "cta": "Ir al Inicio"
   }
 }

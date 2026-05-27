@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import PageShell from "./PageShell";
 
 export interface LegalSection {
@@ -24,6 +25,7 @@ export default function LegalPage({
   sections,
   disclaimer,
 }: LegalPageProps) {
+  const { t } = useTranslation();
   const seoTitle = pageTitle ?? `${title} | Greenbee`;
   const seoDesc = metaDescription ?? `${title} — Greenbee home services. Last updated ${lastUpdated}.`;
 
@@ -32,7 +34,7 @@ export default function LegalPage({
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
-          <p className="text-sm text-gray-400">Last updated: {lastUpdated}</p>
+          <p className="text-sm text-gray-400">{t("legal.lastUpdated")} {lastUpdated}</p>
           {intro && <p className="mt-4 text-gray-600 leading-relaxed">{intro}</p>}
         </div>
 
@@ -62,7 +64,7 @@ export default function LegalPage({
         {disclaimer && (
           <div className="mt-12 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-xs text-amber-700 leading-relaxed">
-              <span className="font-semibold">Legal Notice: </span>{disclaimer}
+              <span className="font-semibold">{t("legal.legalNotice")}</span>{disclaimer}
             </p>
           </div>
         )}

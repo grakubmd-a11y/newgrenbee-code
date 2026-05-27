@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
 import { Home, Search } from "lucide-react";
 
 export default function NotFoundPage() {
+  const { t } = useTranslation();
   return (
     <PageShell
       seo={{
-        title: "Page Not Found | Greenbee",
-        description: "The page you're looking for doesn't exist. Return to Greenbee's homepage to book a home service.",
+        title: t("notFound.pageTitle"),
+        description: t("notFound.metaDescription"),
       }}
     >
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
@@ -15,16 +17,14 @@ export default function NotFoundPage() {
           <Search className="w-12 h-12 text-emerald-400" />
         </div>
         <h1 className="text-6xl font-bold text-gray-200 mb-2">404</h1>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-3">Page Not Found</h2>
-        <p className="text-gray-500 mb-8 max-w-md">
-          The page you're looking for doesn't exist or may have been moved.
-        </p>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-3">{t("notFound.title")}</h2>
+        <p className="text-gray-500 mb-8 max-w-md">{t("notFound.body")}</p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
         >
           <Home className="w-4 h-4" />
-          Go to Home
+          {t("notFound.cta")}
         </Link>
       </div>
     </PageShell>

@@ -6,20 +6,22 @@
 
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, ChevronDown } from "lucide-react";
-
-const NAV_LINKS = [
-  { label: "Servicios",  href: "/#services" },
-  { label: "Planes",     href: "/plans" },
-  { label: "Áreas",      href: "/areas" },
-  { label: "FAQ",        href: "/faq" },
-  { label: "Contacto",   href: "/contact" },
-];
+import { Menu, X, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function SiteNavbar() {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
   const location = useLocation();
+
+  const NAV_LINKS = [
+    { label: t("siteNav.services"), href: "/#services" },
+    { label: t("siteNav.plans"),    href: "/plans" },
+    { label: t("siteNav.areas"),    href: "/areas" },
+    { label: t("siteNav.faq"),      href: "/faq" },
+    { label: t("siteNav.contact"),  href: "/contact" },
+  ];
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
@@ -97,7 +99,7 @@ export default function SiteNavbar() {
               onClick={() => handleHashLink("/#estimate")}
               className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors shadow-sm"
             >
-              Get a Free Quote
+              {t("siteNav.getFreeQuote")}
             </Link>
           </div>
 
@@ -105,7 +107,7 @@ export default function SiteNavbar() {
           <button
             className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-label={t("siteNav.toggleMenu")}
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -144,7 +146,7 @@ export default function SiteNavbar() {
               onClick={() => { handleHashLink("/#estimate"); setMobileOpen(false); }}
               className="mx-4 text-center bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
             >
-              Get a Free Quote
+              {t("siteNav.getFreeQuote")}
             </Link>
           </div>
         </div>

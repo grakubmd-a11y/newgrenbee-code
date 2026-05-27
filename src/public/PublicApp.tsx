@@ -23,7 +23,7 @@ import { useLocation } from "react-router-dom";
 import { Service, Booking, Review, BookingStatus } from "../shared/types";
 import { createRecurringPlanFromBooking, autoAssignStaff } from "../shared/services/recurringPlanService";
 import { SERVICES_DATA, INITIAL_BOOKINGS, INITIAL_REVIEWS } from "../shared/data";
-import { Language, getInitialLanguage } from "../shared/i18n";
+import { useTranslation } from "react-i18next";
 import {
   validateFirestoreConnection,
   subscribeToAuthChanges,
@@ -149,17 +149,12 @@ export default function App() {
     return "services";
   }
 
+  const { t } = useTranslation();
+
   // 1. Core navigation states
   const [activeTab, setActiveTab ] = useState<string>(getInitialTab());
   const [selectedEstimatorId, setSelectedEstimatorId] = useState<string>("house-cleaning");
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [language, setLanguage] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('greenbee_language');
-      if (stored === 'es' || stored === 'en') return stored;
-    }
-    return getInitialLanguage();
-  });
   
   type AppUser = UserProfile & { isAdmin?: boolean };
 
@@ -300,11 +295,6 @@ export default function App() {
     // triggered when the user clicks "View my bookings" on the confirmation screen.
   }
 
-  // Handle language change
-  const handleLanguageChange = (newLang: Language) => {
-    setLanguage(newLang);
-    localStorage.setItem('greenbee_language', newLang);
-  };
 
   // Initialize Firebase Connection, Listen to Auth, and load initial reviews
   useEffect(() => {
@@ -826,10 +816,10 @@ export default function App() {
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-950 mb-4 text-balance">
-                    Our Services
+                    {t("services.title")}
                   </h2>
                   <p className="text-lg text-gray-600 max-w-2xl mx-auto text-balance">
-                    Choose from our comprehensive range of professional home services
+                    {t("services.subtitle", "Choose from our comprehensive range of professional home services")}
                   </p>
                 </div>
 

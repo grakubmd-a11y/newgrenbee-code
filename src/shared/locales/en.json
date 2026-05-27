@@ -33,10 +33,22 @@
     "title": "Why Choose Greenbee?",
     "subtitle": "We make home services simple, reliable, and affordable",
     "items": [
-      { "title": "Fast & Easy", "desc": "Book services in minutes with our intuitive platform" },
-      { "title": "Trusted Professionals", "desc": "Vetted and verified service providers you can rely on" },
-      { "title": "Flexible Scheduling", "desc": "Choose times that work best for you" },
-      { "title": "24/7 Support", "desc": "Our team is always here to help you" }
+      {
+        "title": "Fast & Easy",
+        "desc": "Book services in minutes with our intuitive platform"
+      },
+      {
+        "title": "Trusted Professionals",
+        "desc": "Vetted and verified service providers you can rely on"
+      },
+      {
+        "title": "Flexible Scheduling",
+        "desc": "Choose times that work best for you"
+      },
+      {
+        "title": "24/7 Support",
+        "desc": "Our team is always here to help you"
+      }
     ]
   },
   "testimonials": {
@@ -64,10 +76,22 @@
     "title": "Trusted by Thousands",
     "subtitle": "Join our growing community of satisfied homeowners",
     "stats": [
-      { "number": "2,500+", "label": "Happy Customers" },
-      { "number": "5,000+", "label": "Bookings Completed" },
-      { "number": "250+",   "label": "Service Providers" },
-      { "number": "4.9/5",  "label": "Average Rating" }
+      {
+        "number": "2,500+",
+        "label": "Happy Customers"
+      },
+      {
+        "number": "5,000+",
+        "label": "Bookings Completed"
+      },
+      {
+        "number": "250+",
+        "label": "Service Providers"
+      },
+      {
+        "number": "4.9/5",
+        "label": "Average Rating"
+      }
     ]
   },
   "cta": {
@@ -183,19 +207,31 @@
           "name": "Basic",
           "freq": "1 visit / month",
           "price": "$59–$179",
-          "features": ["Lawn mowing & edging", "Blowing & cleanup", "Email reminders"]
+          "features": [
+            "Lawn mowing & edging",
+            "Blowing & cleanup",
+            "Email reminders"
+          ]
         },
         {
           "name": "Standard",
           "freq": "2 visits / month",
           "price": "$109–$329",
-          "features": ["Everything in Basic", "Priority scheduling", "Bi-weekly consistency"]
+          "features": [
+            "Everything in Basic",
+            "Priority scheduling",
+            "Bi-weekly consistency"
+          ]
         },
         {
           "name": "Premium",
           "freq": "4 visits / month",
           "price": "$199–$599",
-          "features": ["Everything in Standard", "Weekly cuts", "$100 service credit/mo"]
+          "features": [
+            "Everything in Standard",
+            "Weekly cuts",
+            "$100 service credit/mo"
+          ]
         }
       ]
     },
@@ -273,7 +309,13 @@
       "tagline": "Professional lawn care and home cleaning services across South Florida.",
       "rights": "All rights reserved.",
       "servicesTitle": "Services",
-      "serviceLinks": ["Lawn Care", "House Cleaning", "Pressure Washing", "TV Installation", "Furniture Assembly"],
+      "serviceLinks": [
+        "Lawn Care",
+        "House Cleaning",
+        "Pressure Washing",
+        "TV Installation",
+        "Furniture Assembly"
+      ],
       "miamidadeTitle": "Miami-Dade",
       "browardTitle": "Broward",
       "companyTitle": "Company",
@@ -312,10 +354,22 @@
     "bookService": "Book a Service",
     "callUs": "Call Us",
     "stats": [
-      { "stat": "5,000+", "label": "Happy Customers" },
-      { "stat": "500+",   "label": "5-Star Reviews" },
-      { "stat": "100%",   "label": "Insured & Vetted" },
-      { "stat": "Same Day", "label": "Available" }
+      {
+        "stat": "5,000+",
+        "label": "Happy Customers"
+      },
+      {
+        "stat": "500+",
+        "label": "5-Star Reviews"
+      },
+      {
+        "stat": "100%",
+        "label": "Insured & Vetted"
+      },
+      {
+        "stat": "Same Day",
+        "label": "Available"
+      }
     ],
     "servicesTitle": "Services in {{city}}",
     "bookNow": "Book now",
@@ -323,10 +377,22 @@
       "eyebrow": "Our Promise",
       "title": "The Greenbee Difference",
       "pillars": [
-        { "title": "Spotless Results",    "desc": "We don't leave until the job meets our quality standard." },
-        { "title": "Vetted Technicians",  "desc": "Every pro is background-checked, trained, and insured." },
-        { "title": "Fully Insured",       "desc": "All work is covered. Zero risk for you." },
-        { "title": "On Time & Reliable",  "desc": "We show up when we say we will. Every time." }
+        {
+          "title": "Spotless Results",
+          "desc": "We don't leave until the job meets our quality standard."
+        },
+        {
+          "title": "Vetted Technicians",
+          "desc": "Every pro is background-checked, trained, and insured."
+        },
+        {
+          "title": "Fully Insured",
+          "desc": "All work is covered. Zero risk for you."
+        },
+        {
+          "title": "On Time & Reliable",
+          "desc": "We show up when we say we will. Every time."
+        }
       ]
     },
     "plansCta": {
@@ -363,16 +429,40 @@
       "seoTitle": "Home Services in {{city}}, {{state}} | Greenbee",
       "seoDescription": "Professional lawn care, house cleaning & home maintenance in {{city}}, {{state}}. Vetted technicians, transparent pricing, satisfaction guaranteed. Book online.",
       "testimonials": [
-        { "name": "Maria G.", "text": "Greenbee has been amazing — always on time and the lawn looks perfect every week." },
-        { "name": "Jason T.", "text": "Booked a deep clean and was blown away. Very professional team." },
-        { "name": "Sandra L.", "text": "Love how easy it is to book online. The technicians are courteous and thorough." }
+        {
+          "name": "Maria G.",
+          "text": "Greenbee has been amazing — always on time and the lawn looks perfect every week."
+        },
+        {
+          "name": "Jason T.",
+          "text": "Booked a deep clean and was blown away. Very professional team."
+        },
+        {
+          "name": "Sandra L.",
+          "text": "Love how easy it is to book online. The technicians are courteous and thorough."
+        }
       ],
       "faqs": [
-        { "q": "Do you serve all of {{city}}?", "a": "Yes — we serve {{city}} and the surrounding area. Enter your ZIP code during booking to confirm coverage." },
-        { "q": "How do I get a quote?", "a": "Use our online estimator to get an instant price estimate. No phone call needed." },
-        { "q": "Are your technicians insured?", "a": "Yes. All Greenbee technicians are vetted, background-checked, and fully insured." },
-        { "q": "Can I book a recurring service?", "a": "Yes — you can book a one-time visit or choose a recurring schedule. Check our membership plans for the best rates." },
-        { "q": "What if I'm not satisfied?", "a": "We offer a satisfaction guarantee. If something isn't right, we'll come back and make it right at no extra cost." }
+        {
+          "q": "Do you serve all of {{city}}?",
+          "a": "Yes — we serve {{city}} and the surrounding area. Enter your ZIP code during booking to confirm coverage."
+        },
+        {
+          "q": "How do I get a quote?",
+          "a": "Use our online estimator to get an instant price estimate. No phone call needed."
+        },
+        {
+          "q": "Are your technicians insured?",
+          "a": "Yes. All Greenbee technicians are vetted, background-checked, and fully insured."
+        },
+        {
+          "q": "Can I book a recurring service?",
+          "a": "Yes — you can book a one-time visit or choose a recurring schedule. Check our membership plans for the best rates."
+        },
+        {
+          "q": "What if I'm not satisfied?",
+          "a": "We offer a satisfaction guarantee. If something isn't right, we'll come back and make it right at no extra cost."
+        }
       ]
     }
   },
@@ -596,10 +686,30 @@
       "label": "Select your yard size",
       "xlWarning": "XL properties are priced individually. Select any plan below to request a custom quote.",
       "tiers": [
-        { "tier": "small",  "label": "Small",  "description": "Townhome, front yard or compact lot",       "examples": "Up to ~3,500 sqft" },
-        { "tier": "medium", "label": "Medium", "description": "Standard single-family home yard",          "examples": "~3,500–8,000 sqft" },
-        { "tier": "large",  "label": "Large",  "description": "Larger residential lot",                   "examples": "~8,000–15,000 sqft" },
-        { "tier": "xl",     "label": "XL",     "description": "Large lots, slopes or complex terrain",    "examples": "15,000+ sqft" }
+        {
+          "tier": "small",
+          "label": "Small",
+          "description": "Townhome, front yard or compact lot",
+          "examples": "Up to ~3,500 sqft"
+        },
+        {
+          "tier": "medium",
+          "label": "Medium",
+          "description": "Standard single-family home yard",
+          "examples": "~3,500–8,000 sqft"
+        },
+        {
+          "tier": "large",
+          "label": "Large",
+          "description": "Larger residential lot",
+          "examples": "~8,000–15,000 sqft"
+        },
+        {
+          "tier": "xl",
+          "label": "XL",
+          "description": "Large lots, slopes or complex terrain",
+          "examples": "15,000+ sqft"
+        }
       ]
     },
     "card": {
@@ -693,5 +803,12 @@
   "legal": {
     "lastUpdated": "Last updated:",
     "legalNotice": "Legal Notice: "
+  },
+  "notFound": {
+    "pageTitle": "Page Not Found | Greenbee",
+    "metaDescription": "The page you're looking for doesn't exist. Return to Greenbee's homepage to book a home service.",
+    "title": "Page Not Found",
+    "body": "The page you're looking for doesn't exist or may have been moved.",
+    "cta": "Go to Home"
   }
 }

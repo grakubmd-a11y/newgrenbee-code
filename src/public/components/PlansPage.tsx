@@ -1,34 +1,34 @@
 import React, { useEffect, useState } from "react";
 import * as Icons from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { MembershipPlan, MembershipPriceTier, YardSizeTier } from "../../shared/types";
 import { fetchMembershipPlans } from "../../shared/services/firebaseService";
 
-// ─── Size guide (static fallback; overridden by Firestore data in future) ──────
-const SIZE_GUIDE: { tier: YardSizeTier; label: string; description: string; examples: string }[] = [
-  { tier: "small",  label: "Small",  description: "Townhome, front yard or compact lot", examples: "Up to ~3,500 sqft" },
-  { tier: "medium", label: "Medium", description: "Standard single-family home yard",    examples: "~3,500–8,000 sqft" },
-  { tier: "large",  label: "Large",  description: "Larger residential lot",              examples: "~8,000–15,000 sqft" },
-  { tier: "xl",     label: "XL",     description: "Large lots, slopes or complex terrain", examples: "15,000+ sqft" },
-];
+interface SizeGuideEntry {
+  tier: YardSizeTier;
+  label: string;
+  description: string;
+  examples: string;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getPriceTier(plan: MembershipPlan, size: YardSizeTier): MembershipPriceTier {
   return plan.pricing[size];
 }
 
-function PriceDisplay({ tier, size }: { tier: MembershipPriceTier; size: YardSizeTier }) {
+function PriceDisplay({ tier, size, perMonth, custom, customQuote }: { tier: MembershipPriceTier; size: YardSizeTier; perMonth: string; custom: string; customQuote: string }) {
   if (tier.customQuote || size === "xl") {
     return (
       <div className="mt-1">
-        <span className="text-2xl font-black text-gray-800">Custom</span>
-        <span className="text-sm text-gray-400 ml-1">quote</span>
+        <span className="text-2xl font-black text-gray-800">{custom}</span>
+        <span className="text-sm text-gray-400 ml-1">{customQuote}</span>
       </div>
     );
   }
   return (
     <div className="mt-1">
       <span className="text-2xl font-black text-brand">{tier.priceLabel}</span>
-      <span className="text-sm text-gray-400 ml-1">/mo</span>
+      <span className="text-sm text-gray-400 ml-1">{perMonth}</span>
     </div>
   );
 }
@@ -38,11 +38,14 @@ function WaitlistModal({
   plan,
   size,
   onClose,
+  sizeGuide,
 }: {
   plan: MembershipPlan;
   size: YardSizeTier;
   onClose: () => void;
+  sizeGuide: SizeGuideEntry[];
 }) {
+  const { t } = useTranslation();
   const [name, setName]       = useState("");
   const [email, setEmail]     = useState("");
   const [phone, setPhone]     = useState("");
@@ -51,7 +54,7 @@ function WaitlistModal({
   const [busy, setBusy]       = useState(false);
 
   const priceTier = getPriceTier(plan, size);
-  const sizeLabel = SIZE_GUIDE.find(s => s.tier === size)?.label ?? size;
+  const sizeLabel = sizeGuide.find(s => s.tier === size)?.label ?? size;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +73,7 @@ function WaitlistModal({
           serviceId: plan.id,
           estimatedValue: priceTier.customQuote ? 0 : priceTier.price,
           source: "membership_waitlist",
-          notes: `Membership plan: ${plan.name} · Yard size: ${sizeLabel} · Price: ${priceTier.customQuote ? "Custom quote" : priceTier.priceLabel + "/mo"}`,
+          notes: `Membership plan: ${plan.name} · Yard size: ${sizeLabel} · Price: ${priceTier.customQuote ? t("plans.modal.customQuoteLabel") : priceTier.priceLabel + t("plans.card.perMonth")}`,
         }),
       });
       setSent(true);
@@ -93,15 +96,15 @@ function WaitlistModal({
             <div className="mx-auto w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center">
               <Icons.CheckCircle2 size={32} className="text-brand" />
             </div>
-            <h3 className="text-xl font-black text-gray-900">We'll be in touch!</h3>
+            <h3 className="text-xl font-black text-gray-900">{t("plans.modal.successTitle")}</h3>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Thanks! We received your interest in the <strong>{plan.name}</strong> plan for a <strong>{sizeLabel}</strong> yard. Someone from the Greenbee team will contact you within 24 hours.
+              {t("plans.modal.successBody", { planName: plan.name, sizeLabel })}
             </p>
             <button
               onClick={onClose}
               className="mt-2 w-full py-3 rounded-xl bg-brand text-white font-bold text-sm border-none cursor-pointer hover:bg-brand/90 transition-colors"
             >
-              Close
+              {t("plans.modal.close")}
             </button>
           </div>
         ) : (
@@ -110,8 +113,8 @@ function WaitlistModal({
               <div>
                 <h3 className="text-lg font-black text-gray-900">{plan.name}</h3>
                 <p className="text-sm text-gray-500 mt-0.5">
-                  {sizeLabel} yard ·{" "}
-                  {priceTier.customQuote ? "Custom quote" : `${priceTier.priceLabel}/mo`}
+                  {sizeLabel} {t("plans.modal.sizeYard")} ·{" "}
+                  {priceTier.customQuote ? t("plans.modal.customQuoteLabel") : `${priceTier.priceLabel}${t("plans.card.perMonth")}`}
                 </p>
               </div>
               <button
@@ -124,41 +127,41 @@ function WaitlistModal({
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">Full Name *</label>
+                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">{t("plans.modal.fullName")}</label>
                 <input
                   required
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="Jane Smith"
+                  placeholder={t("plans.modal.namePlaceholder")}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">Email *</label>
+                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">{t("plans.modal.emailLabel")}</label>
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="jane@email.com"
+                  placeholder={t("plans.modal.emailPlaceholder")}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">Phone</label>
+                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">{t("plans.modal.phoneLabel")}</label>
                 <input
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="(555) 000-0000"
+                  placeholder={t("plans.modal.phonePlaceholder")}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">Service Address</label>
+                <label className="text-[11px] font-bold uppercase text-gray-400 block mb-1">{t("plans.modal.addressLabel")}</label>
                 <input
                   value={address}
                   onChange={e => setAddress(e.target.value)}
-                  placeholder="123 Main St, City, State"
+                  placeholder={t("plans.modal.addressPlaceholder")}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand"
                 />
               </div>
@@ -169,11 +172,11 @@ function WaitlistModal({
                 className="w-full py-3 rounded-xl bg-brand text-white font-bold text-sm border-none cursor-pointer hover:bg-brand/90 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
               >
                 {busy ? <Icons.Loader2 size={16} className="animate-spin" /> : <Icons.Send size={15} />}
-                {priceTier.customQuote ? "Request a Custom Quote" : "Get Started"}
+                {priceTier.customQuote ? t("plans.modal.requestCustomQuote") : t("plans.modal.getStarted")}
               </button>
 
               <p className="text-[11px] text-gray-400 text-center leading-relaxed">
-                No payment required now. A Greenbee team member will contact you to confirm details and schedule your first visit.
+                {t("plans.modal.noPaymentNote")}
               </p>
             </form>
           </>
@@ -189,12 +192,15 @@ function PlanCard({
   selectedSize,
   onSelect,
   highlight,
+  sizeGuide,
 }: {
   plan: MembershipPlan;
   selectedSize: YardSizeTier;
   onSelect: (plan: MembershipPlan) => void;
   highlight?: boolean;
+  sizeGuide: SizeGuideEntry[];
 }) {
+  const { t } = useTranslation();
   const priceTier = getPriceTier(plan, selectedSize);
   const isCustom  = priceTier.customQuote || selectedSize === "xl" || plan.byQuote;
 
@@ -209,7 +215,7 @@ function PlanCard({
       {highlight && (
         <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
           <span className="bg-brand text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
-            Most Popular
+            {t("plans.card.mostPopular")}
           </span>
         </div>
       )}
@@ -224,10 +230,16 @@ function PlanCard({
         {/* Price */}
         {plan.byQuote ? (
           <div className="mt-1">
-            <span className="text-xl font-black text-gray-700">Let's talk</span>
+            <span className="text-xl font-black text-gray-700">{t("plans.card.letsTalk")}</span>
           </div>
         ) : (
-          <PriceDisplay tier={priceTier} size={selectedSize} />
+          <PriceDisplay
+            tier={priceTier}
+            size={selectedSize}
+            perMonth={t("plans.card.perMonth")}
+            custom={t("plans.card.custom")}
+            customQuote={t("plans.card.customQuote")}
+          />
         )}
 
         {/* Frequency badge */}
@@ -251,7 +263,7 @@ function PlanCard({
           <details className="group">
             <summary className="text-[11px] font-bold text-gray-400 uppercase tracking-wide cursor-pointer list-none flex items-center gap-1 hover:text-gray-600">
               <Icons.ChevronRight size={12} className="group-open:rotate-90 transition-transform" />
-              Not included
+              {t("plans.card.notIncluded")}
             </summary>
             <ul className="mt-2 space-y-1.5 pl-4">
               {plan.notIncluded.map((ni, i) => (
@@ -270,12 +282,12 @@ function PlanCard({
         <div className="mx-6 mb-4 p-3 rounded-xl bg-amber-50 border border-amber-100">
           <p className="text-[11px] font-bold text-amber-800 flex items-center gap-1.5 mb-0.5">
             <Icons.AlertCircle size={12} />
-            First Cut Reset may apply
+            {t("plans.card.firstCutReset")}
           </p>
           <p className="text-[11px] text-amber-700 leading-relaxed">
             {isCustom
-              ? "Custom quote includes initial evaluation."
-              : `If lawn is overgrown: ${plan.firstVisit.pricing[selectedSize]?.priceLabel ?? "see quote"} one-time fee. Regular pricing starts after first visit.`}
+              ? t("plans.card.firstCutCustom")
+              : `${plan.firstVisit.pricing[selectedSize]?.priceLabel ?? "see quote"} one-time fee. Regular pricing starts after first visit.`}
           </p>
         </div>
       )}
@@ -293,10 +305,10 @@ function PlanCard({
           }`}
         >
           {plan.byQuote
-            ? "Contact Us for a Quote"
+            ? t("plans.card.contactForQuote")
             : isCustom
-            ? "Request a Custom Quote"
-            : "Get Started"}
+            ? t("plans.card.requestCustomQuote")
+            : t("plans.card.getStarted")}
         </button>
       </div>
     </div>
@@ -305,10 +317,16 @@ function PlanCard({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function PlansPage() {
+  const { t } = useTranslation();
   const [plans, setPlans]               = useState<MembershipPlan[]>([]);
   const [loading, setLoading]           = useState(true);
   const [selectedSize, setSelectedSize] = useState<YardSizeTier>("medium");
   const [modalPlan, setModalPlan]       = useState<MembershipPlan | null>(null);
+
+  const sizeGuide = t("plans.yardSize.tiers", { returnObjects: true }) as SizeGuideEntry[];
+  const alwaysItems = t("plans.included.alwaysItems", { returnObjects: true }) as string[];
+  const notItems = t("plans.included.notItems", { returnObjects: true }) as string[];
+  const policyItems = t("plans.policies.items", { returnObjects: true }) as { q: string; a: string }[];
 
   useEffect(() => {
     fetchMembershipPlans("lawn").then((data) => {
@@ -332,7 +350,7 @@ export default function PlansPage() {
             href="/#booking"
             className="text-xs font-bold text-brand border border-brand/30 rounded-full px-4 py-1.5 hover:bg-brand hover:text-white transition-colors"
           >
-            Book a one-time visit →
+            {t("plans.bookOneTime")}
           </a>
         </div>
       </header>
@@ -341,13 +359,13 @@ export default function PlansPage() {
       <section className="bg-[#0a2e1e] text-white py-16 px-4 text-center">
         <div className="max-w-2xl mx-auto space-y-4">
           <span className="inline-block bg-brand/20 text-brand text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-brand/30">
-            Lawn Care Memberships
+            {t("plans.hero.badge")}
           </span>
           <h1 className="text-3xl sm:text-4xl font-black leading-tight">
-            Your lawn, on autopilot.
+            {t("plans.hero.title")}
           </h1>
           <p className="text-white/60 text-base leading-relaxed">
-            Choose a plan that fits your yard size. We show up on schedule — you just enjoy a great-looking lawn.
+            {t("plans.hero.subtitle")}
           </p>
         </div>
       </section>
@@ -357,10 +375,10 @@ export default function PlansPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
           <div className="flex items-center gap-2">
             <Icons.Ruler size={16} className="text-brand" />
-            <span className="text-sm font-bold text-gray-700">Select your yard size</span>
+            <span className="text-sm font-bold text-gray-700">{t("plans.yardSize.label")}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {SIZE_GUIDE.map((sg) => (
+            {sizeGuide.map((sg) => (
               <button
                 key={sg.tier}
                 onClick={() => setSelectedSize(sg.tier)}
@@ -381,7 +399,7 @@ export default function PlansPage() {
           {selectedSize === "xl" && (
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-center gap-2">
               <Icons.AlertCircle size={13} />
-              XL properties are priced individually. Select any plan below to request a custom quote.
+              {t("plans.yardSize.xlWarning")}
             </p>
           )}
         </div>
@@ -402,6 +420,7 @@ export default function PlansPage() {
                 selectedSize={selectedSize}
                 onSelect={setModalPlan}
                 highlight={idx === 1}
+                sizeGuide={sizeGuide}
               />
             ))}
           </div>
@@ -411,16 +430,16 @@ export default function PlansPage() {
         {customPlan && (
           <div className="mt-6 bg-[#0a2e1e] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-center sm:text-left space-y-1">
-              <h3 className="text-white font-black text-lg">Large lots & custom properties</h3>
+              <h3 className="text-white font-black text-lg">{t("plans.customCard.title")}</h3>
               <p className="text-white/50 text-sm">
-                Large acreage, slopes, complex terrain or commercial properties. We'll assess your yard and give you a tailored quote.
+                {t("plans.customCard.subtitle")}
               </p>
             </div>
             <button
               onClick={() => setModalPlan(customPlan)}
               className="shrink-0 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl border-none cursor-pointer hover:bg-brand/90 transition-colors"
             >
-              Request a Quote
+              {t("plans.customCard.button")}
             </button>
           </div>
         )}
@@ -429,19 +448,13 @@ export default function PlansPage() {
       {/* What's included / not included */}
       <section className="bg-white border-t border-gray-100 py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-xl font-black text-gray-900 text-center mb-8">What's always included</h2>
+          <h2 className="text-xl font-black text-gray-900 text-center mb-8">{t("plans.included.sectionTitle")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-3">
               <h4 className="text-xs font-black uppercase tracking-wider text-brand flex items-center gap-2">
-                <Icons.CheckCircle2 size={14} /> Always included
+                <Icons.CheckCircle2 size={14} /> {t("plans.included.alwaysTitle")}
               </h4>
-              {[
-                "Lawn mowing per scheduled visit",
-                "Edging along walkways & driveway",
-                "Blowing clippings off hard surfaces",
-                "Consistent technician assignment (when available)",
-                "Weather reschedule at no charge",
-              ].map((item, i) => (
+              {alwaysItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
                   <Icons.Check size={14} className="text-brand shrink-0" />
                   {item}
@@ -450,23 +463,16 @@ export default function PlansPage() {
             </div>
             <div className="space-y-3">
               <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
-                <Icons.XCircle size={14} /> Not included by default
+                <Icons.XCircle size={14} /> {t("plans.included.notTitle")}
               </h4>
-              {[
-                "Weed removal or herbicide treatment",
-                "Bush & shrub trimming",
-                "Debris hauling or bagging removal",
-                "Fertilizer or soil treatments",
-                "Overgrown or first-time cleanup",
-                "Sprinkler repair",
-              ].map((item, i) => (
+              {notItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-gray-500">
                   <Icons.Minus size={14} className="text-gray-300 shrink-0" />
                   {item}
                 </div>
               ))}
               <p className="text-[11px] text-gray-400 pt-1">
-                Add-ons available as one-time bookings or service credits on Home & Premium plans.
+                {t("plans.included.addOnsNote")}
               </p>
             </div>
           </div>
@@ -476,30 +482,9 @@ export default function PlansPage() {
       {/* FAQ / Policies */}
       <section className="py-12 px-4">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-xl font-black text-gray-900 text-center mb-8">Plan policies</h2>
+          <h2 className="text-xl font-black text-gray-900 text-center mb-8">{t("plans.policies.title")}</h2>
           <div className="space-y-4">
-            {[
-              {
-                q: "Is there a First Cut Reset fee?",
-                a: "If your lawn hasn't been maintained recently or is overgrown, a one-time First Cut Reset fee applies. This covers the extra time and work to bring it to a baseline. Regular membership pricing begins after the first visit.",
-              },
-              {
-                q: "Can I pause my membership?",
-                a: "Yes — members can pause up to 4 weeks per year with at least 7 days' notice. Billing resumes automatically when the pause ends. Credits and scheduled visits do not accrue during a pause. Your preferred schedule is not guaranteed after a pause.",
-              },
-              {
-                q: "Can I cancel at any time?",
-                a: "You can cancel with at least 7 days' notice before your next billing date. Cancellations made within 48 hours of a scheduled visit may be subject to a last-minute cancellation fee.",
-              },
-              {
-                q: "What if it rains on my visit day?",
-                a: "We reschedule at no charge for weather cancellations. You'll be contacted the day before if weather looks like an issue.",
-              },
-              {
-                q: "Do I get the same technician every time?",
-                a: "We do our best to assign the same technician, but it's not guaranteed — especially after pauses or schedule changes.",
-              },
-            ].map((item, i) => (
+            {policyItems.map((item, i) => (
               <details
                 key={i}
                 className="bg-white border border-gray-100 rounded-xl overflow-hidden group"
@@ -520,13 +505,13 @@ export default function PlansPage() {
       {/* Bottom CTA */}
       <section className="bg-[#0a2e1e] py-12 px-4 text-center">
         <div className="max-w-md mx-auto space-y-4">
-          <h2 className="text-2xl font-black text-white">Ready to get started?</h2>
-          <p className="text-white/50 text-sm">Select a plan above or book a one-time visit first to see how we work.</p>
+          <h2 className="text-2xl font-black text-white">{t("plans.bottomCta.title")}</h2>
+          <p className="text-white/50 text-sm">{t("plans.bottomCta.subtitle")}</p>
           <a
             href="/#booking"
             className="inline-block bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
           >
-            Book a one-time visit →
+            {t("plans.bottomCta.button")}
           </a>
         </div>
       </section>
@@ -537,6 +522,7 @@ export default function PlansPage() {
           plan={modalPlan}
           size={selectedSize}
           onClose={() => setModalPlan(null)}
+          sizeGuide={sizeGuide}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, CheckCircle2, Clock, Bell, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
 import { db } from "../shared/firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -33,6 +34,7 @@ const FALLBACK_AREAS: CoverageArea[] = [
 ];
 
 export default function AreasPage() {
+  const { t } = useTranslation();
   const [areas, setAreas] = useState<CoverageArea[]>([]);
   const [loading, setLoading] = useState(true);
   const [waitlistZip, setWaitlistZip] = useState("");
@@ -74,18 +76,16 @@ export default function AreasPage() {
   return (
     <PageShell
       seo={{
-        title: "Coverage Areas | Greenbee",
-        description:
-          "Check if Greenbee serves your city. We cover Miami-Dade, Broward, and more. Join the waitlist if your area isn't listed yet.",
+        title: t("areas.pageTitle"),
+        description: t("areas.metaDescription"),
         canonical: "https://grenbee.com/areas",
       }}
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Coverage Areas</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("areas.heading")}</h1>
           <p className="text-gray-500 max-w-xl">
-            Greenbee is growing fast. Check if we currently serve your city or join the waitlist to be notified when we
-            expand to your area.
+            {t("areas.subheading")}
           </p>
         </div>
 
@@ -101,7 +101,7 @@ export default function AreasPage() {
             <section className="mb-10">
               <h2 className="text-sm font-semibold uppercase tracking-widest text-emerald-600 mb-4 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                Available Now
+                {t("areas.availableNow")}
               </h2>
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {active.map((area) => (
@@ -128,7 +128,7 @@ export default function AreasPage() {
               <section className="mb-12">
                 <h2 className="text-sm font-semibold uppercase tracking-widest text-amber-500 mb-4 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  Coming Soon
+                  {t("areas.comingSoon")}
                 </h2>
                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {coming.map((area) => (
@@ -139,7 +139,7 @@ export default function AreasPage() {
                       <MapPin className="w-4 h-4 text-gray-300 shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-gray-500">{area.city}</p>
-                        <p className="text-xs text-amber-500 font-medium">Coming soon</p>
+                        <p className="text-xs text-amber-500 font-medium">{t("areas.comingSoonLabel")}</p>
                       </div>
                     </div>
                   ))}
@@ -156,9 +156,9 @@ export default function AreasPage() {
               <Bell className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-1">Not in your area yet?</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-1">{t("areas.waitlist.heading")}</h2>
               <p className="text-sm text-gray-500">
-                Leave your zip code and email and we'll notify you the moment Greenbee launches near you.
+                {t("areas.waitlist.subheading")}
               </p>
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function AreasPage() {
           {waitlistSent ? (
             <div className="flex items-center gap-3 text-emerald-700 bg-emerald-100 rounded-xl px-5 py-3 text-sm font-medium">
               <CheckCircle2 className="w-5 h-5 shrink-0" />
-              You're on the list! We'll email you when we reach your area.
+              {t("areas.waitlist.successMessage")}
             </div>
           ) : (
             <form onSubmit={handleWaitlist} className="flex flex-col sm:flex-row gap-3">
@@ -175,7 +175,7 @@ export default function AreasPage() {
                 value={waitlistZip}
                 onChange={(e) => setWaitlistZip(e.target.value)}
                 required
-                placeholder="Zip code"
+                placeholder={t("areas.waitlist.zipPlaceholder")}
                 maxLength={10}
                 className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 w-full sm:w-32"
               />
@@ -191,7 +191,7 @@ export default function AreasPage() {
                 type="submit"
                 className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap"
               >
-                Notify Me
+                {t("areas.waitlist.notifyMe")}
               </button>
             </form>
           )}

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Service } from "../../shared/types";
 import { CheckCircle2, Zap } from "lucide-react";
 
@@ -8,16 +9,18 @@ interface ServicesGridProps {
 }
 
 export default function ServicesGrid({ services, onServiceClick }: ServicesGridProps) {
+  const { t } = useTranslation();
+
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-4">
-            Servicios Profesionales
+            {t("servicesGrid.title")}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Desde limpieza profunda hasta mantenimiento especializado, nuestros expertos están listos para transformar tu hogar.
+            {t("servicesGrid.subtitle")}
           </p>
         </div>
 
@@ -54,24 +57,24 @@ export default function ServicesGrid({ services, onServiceClick }: ServicesGridP
                   <span className="text-3xl font-black text-brand">
                     ${service.basePrice}
                   </span>
-                  <span className="text-gray-500">+ impuestos</span>
+                  <span className="text-gray-500">{t("servicesGrid.taxes")}</span>
                 </div>
 
                 {/* Features */}
                 <div className="space-y-2 pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <CheckCircle2 size={16} className="text-brand flex-shrink-0" />
-                    <span>Profesionales certificados</span>
+                    <span>{t("servicesGrid.certifiedPros")}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <CheckCircle2 size={16} className="text-brand flex-shrink-0" />
-                    <span>Garantía de satisfacción</span>
+                    <span>{t("servicesGrid.satisfactionGuarantee")}</span>
                   </div>
                 </div>
 
                 {/* CTA Button */}
                 <button className="w-full mt-6 py-3 rounded-lg bg-brand hover:bg-brand-hover text-white font-bold transition-all duration-200">
-                  Reservar Servicio
+                  {t("servicesGrid.bookService")}
                 </button>
               </div>
             </button>
