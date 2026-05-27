@@ -3,7 +3,6 @@ import * as Icons from "lucide-react";
 import StaffPortal from "./components/StaffPortal";
 import {
   subscribeToAuthChanges,
-  signInWithGooglePopup,
   signInWithGoogleRedirect,
   getGoogleRedirectResult,
   getFirebaseAuthErrorMessage,
@@ -48,7 +47,7 @@ export default function StaffRoute() {
   const [authEmail, setAuthEmail]     = useState("");
   const [authUid, setAuthUid]         = useState("");
   const [authError, setAuthError]     = useState("");
-  const [loginBusy, setLoginBusy]     = useState<"redirect" | "popup" | null>(null);
+  const [loginBusy, setLoginBusy]     = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
@@ -120,7 +119,7 @@ export default function StaffRoute() {
         setCurrentUser(null);
       } finally {
         setChecking(false);
-        setLoginBusy(null);
+        setLoginBusy(false);
       }
     });
 
@@ -157,33 +156,17 @@ export default function StaffRoute() {
           type="button"
           onClick={async () => {
             setAuthError("");
-            setLoginBusy("redirect");
+            setLoginBusy(true);
             try { await signInWithGoogleRedirect(); }
-            catch (e) { setAuthError(getFirebaseAuthErrorMessage(e)); setLoginBusy(null); }
+            catch (e) { setAuthError(getFirebaseAuthErrorMessage(e)); setLoginBusy(false); }
           }}
-          disabled={loginBusy !== null}
+          disabled={loginBusy}
           className="w-full bg-brand hover:bg-brand-hover disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2 transition-colors"
         >
-          {loginBusy === "redirect"
+          {loginBusy
             ? <Icons.Loader2 className="animate-spin" size={16} />
             : <Icons.LogIn size={16} />}
           Entrar con Google
-        </button>
-        <button
-          type="button"
-          onClick={async () => {
-            setAuthError("");
-            setLoginBusy("popup");
-            try { await signInWithGooglePopup(); }
-            catch (e) { setAuthError(getFirebaseAuthErrorMessage(e)); setLoginBusy(null); }
-          }}
-          disabled={loginBusy !== null}
-          className="w-full bg-white/10 hover:bg-white/20 disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2 transition-colors"
-        >
-          {loginBusy === "popup"
-            ? <Icons.Loader2 className="animate-spin" size={16} />
-            : <Icons.ExternalLink size={16} />}
-          Probar con popup
         </button>
         <a href="/" className="block text-center text-xs text-white/40 hover:text-white/70 transition-colors">
           ← Volver al sitio

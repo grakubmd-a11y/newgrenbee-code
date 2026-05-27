@@ -5,7 +5,6 @@ import { Booking, BookingStatus, Review, Service } from "../shared/types";
 import { INITIAL_BOOKINGS, INITIAL_REVIEWS, SERVICES_DATA } from "../shared/data";
 import {
   subscribeToAuthChanges,
-  signInWithGooglePopup,
   signInWithGoogleRedirect,
   getGoogleRedirectResult,
   getFirebaseAuthErrorMessage,
@@ -56,7 +55,7 @@ export default function AdminRoute() {
   const [authUserEmail, setAuthUserEmail] = useState<string>("");
   const [authUserUid, setAuthUserUid] = useState<string>("");
   const [authError, setAuthError] = useState<string>("");
-  const [loginBusy, setLoginBusy] = useState<"redirect" | "popup" | null>(null);
+  const [loginBusy, setLoginBusy] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [services, setServices] = useState<Service[]>(SERVICES_DATA);
@@ -121,7 +120,7 @@ export default function AdminRoute() {
         setCurrentUser(null);
       } finally {
         setCheckingAuth(false);
-        setLoginBusy(null);
+        setLoginBusy(false);
       }
     });
 
@@ -130,25 +129,13 @@ export default function AdminRoute() {
 
   const handleGoogleRedirectLogin = async () => {
     setAuthError("");
-    setLoginBusy("redirect");
+    setLoginBusy(true);
     try {
       await signInWithGoogleRedirect();
     } catch (error) {
       console.error("Admin redirect login failed:", error);
       setAuthError(getFirebaseAuthErrorMessage(error));
-      setLoginBusy(null);
-    }
-  };
-
-  const handleGooglePopupLogin = async () => {
-    setAuthError("");
-    setLoginBusy("popup");
-    try {
-      await signInWithGooglePopup();
-    } catch (error) {
-      console.error("Admin login failed:", error);
-      setAuthError(getFirebaseAuthErrorMessage(error));
-      setLoginBusy(null);
+      setLoginBusy(false);
     }
   };
 
@@ -201,24 +188,12 @@ export default function AdminRoute() {
         <button
           type="button"
           onClick={handleGoogleRedirectLogin}
-          disabled={loginBusy !== null}
+          disabled={loginBusy}
           className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2"
         >
-          {loginBusy === "redirect" ? <Icons.Loader2 className="animate-spin" size={16} /> : <Icons.LogIn size={16} />}
+          {loginBusy ? <Icons.Loader2 className="animate-spin" size={16} /> : <Icons.LogIn size={16} />}
           <span>Entrar con Google</span>
         </button>
-        <button
-          type="button"
-          onClick={handleGooglePopupLogin}
-          disabled={loginBusy !== null}
-          className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-100 rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2"
-        >
-          {loginBusy === "popup" ? <Icons.Loader2 className="animate-spin" size={16} /> : <Icons.ExternalLink size={16} />}
-          <span>Probar con popup</span>
-        </button>
-        <div className="text-xs text-slate-400 leading-relaxed bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-          Si Google no abre, revisa que el dominio actual este autorizado en Firebase Authentication y que el proveedor Google este habilitado.
-        </div>
         <a href="/" className="block text-center text-xs text-slate-400 hover:text-white">
           Volver al sitio publico
         </a>
