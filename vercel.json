@@ -8,5 +8,11 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/process-recurring-plans",
+      "schedule": "0 * * * *"
+    }
   ]
 }

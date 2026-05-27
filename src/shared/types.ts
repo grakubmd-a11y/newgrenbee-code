@@ -121,6 +121,48 @@ export interface AdminActivityEvent {
   metadata?: Record<string, string | number | boolean | null>;
 }
 
+// ── Recurring Plans ───────────────────────────────────────────────────────────
+
+export type RecurringPlanStatus = 'active' | 'paused' | 'past_due' | 'cancelled';
+export type RecurringPlanAction = 'pause' | 'resume' | 'cancel' | 'skip';
+
+export interface RecurringPlan {
+  id: string;
+  userId: string;
+  sourceBookingId: string;
+  lastBookingId?: string;
+  serviceId: string;
+  serviceName: string;
+  recurrence: 'weekly' | 'bi-weekly' | 'monthly';
+  status: RecurringPlanStatus;
+  amount: number;
+  currency: string;
+  stripePaymentIntentId: string;
+  stripeCustomerId?: string;
+  stripePaymentMethodId?: string;
+  /** YYYY-MM-DD — date the next charge & job will be created */
+  nextChargeAt: string;
+  /** YYYY-MM-DD — date of the most recent charge */
+  lastChargeAt: string;
+  lastChargeStatus?: string;
+  failureCount: number;
+  pausedAt?: string | null;
+  cancelledAt?: string | null;
+  consentCapturedAt: string;
+  /** Snapshot of booking details used to create each recurring job */
+  templatePayload: {
+    serviceId: string;
+    serviceName: string;
+    units: number;
+    selectedFactors: Record<string, { label: string; modifier: number }>;
+    address: string;
+    timeSlot: string;
+    notes: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CouponRule {
   id: string;
   code: string;

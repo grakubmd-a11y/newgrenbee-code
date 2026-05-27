@@ -20,6 +20,7 @@ import BlogSection from "./components/BlogSection";
 import MyAccount from "./components/MyAccount";
 
 import { Service, Booking, Review, BookingStatus } from "../shared/types";
+import { createRecurringPlanFromBooking } from "../shared/services/recurringPlanService";
 import { SERVICES_DATA, INITIAL_BOOKINGS, INITIAL_REVIEWS } from "../shared/data";
 import { Language, getInitialLanguage } from "../shared/i18n";
 import {
@@ -188,6 +189,34 @@ export default function App() {
     } catch (err) {
       console.error("Failed to save booking to Firestore:", err);
     }
+
+    // ── Recurring plan: create after booking is saved ──────────────────────
+    // Only for signed-in users who authorised recurring billing (frequency ≠ once)
+    if (
+      fullBooking.frequency !== "once" &&
+      currentUser?.uid &&
+      fullBooking.bookingDate
+    ) {
+      createRecurringPlanFromBooking({
+        bookingId:             fullBooking.id,
+        userId:                currentUser.uid,
+        serviceId:             fullBooking.serviceId,
+        serviceName:           fullBooking.serviceName,
+        units:                 fullBooking.units,
+        selectedFactors:       fullBooking.selectedFactors,
+        frequency:             fullBooking.frequency as 'weekly' | 'bi-weekly' | 'monthly',
+        bookingDate:           fullBooking.bookingDate,
+        timeSlot:              fullBooking.timeSlot,
+        address:               fullBooking.address,
+        notes:                 fullBooking.notes,
+        totalCost:             fullBooking.totalCost,
+        stripePaymentIntentId: fullBooking.stripePaymentIntentId ?? "",
+      }).catch((err) => {
+        // Non-blocking: booking is already confirmed; log and continue
+        console.warn("[RecurringPlan] Could not create recurring plan:", err?.message ?? err);
+      });
+    }
+
     setBookings((prev) => [fullBooking, ...prev]);
     setWizardParams(null);
     handleTabChange("bookings");

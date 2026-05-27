@@ -278,6 +278,20 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Collection: Recurring Plans
+    // Writes go through the server API (Firebase Admin SDK) — no direct client writes.
+    match /recurringPlans/{planId} {
+      // Owner can read their own plans; admin/manager can read all
+      allow get: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAdminOrManager()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAdminOrManager()
+      );
+      // All writes go through the server API (Firebase Admin bypasses these rules)
+      allow create, update, delete: if isAdmin();
+    }
+
     // Collection: Coupons
     match /coupons/{couponId} {
       allow get: if isAdminOrManager() || (
