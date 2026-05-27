@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminRoute from "./admin/AdminRoute";
 import StaffRoute from "./staff/StaffRoute";
 import PublicApp from "./public/PublicApp";
+import PlansPage from "./public/components/PlansPage";
 import AreasPage from "./pages/AreasPage";
 import FAQPage from "./pages/FAQPage";
 import ContactPage from "./pages/ContactPage";
@@ -17,6 +18,7 @@ export default function App() {
     <Routes>
       <Route path="/admin/*" element={<AdminRoute />} />
       <Route path="/staff/*" element={<StaffRoute />} />
+      <Route path="/plans" element={<PlansPage />} />
       <Route path="/areas" element={<AreasPage />} />
       <Route path="/faq" element={<FAQPage />} />
       <Route path="/contact" element={<ContactPage />} />

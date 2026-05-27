@@ -292,6 +292,19 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // Collection: Membership Plans
+    match /membershipPlans/{planId} {
+      allow read: if true; // Public — needed to render /plans page
+      allow create, update: if isAdminOrManager() && isValidId(planId);
+      allow delete: if isAdminOrManager() && isValidId(planId);
+    }
+
+    // Collection: Membership Config (yard size guide, etc.)
+    match /membershipConfig/{docId} {
+      allow read: if true;
+      allow write: if isAdminOrManager();
+    }
+
     // Collection: Coupons
     // Public users can get a single coupon by ID (code validation & enabled check
     // is handled client-side in fetchPublicCouponByCode). Listing all coupons

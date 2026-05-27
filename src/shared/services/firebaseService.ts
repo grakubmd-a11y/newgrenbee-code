@@ -29,7 +29,7 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 import { db, auth } from "../firebase";
-import { AdminActivityEvent, Booking, BookingStatus, CouponRule, Review, Service, Staff, Coverage, BusinessSettings, RecurringPlan } from "../types";
+import { AdminActivityEvent, Booking, BookingStatus, CouponRule, MembershipPlan, Review, Service, Staff, Coverage, BusinessSettings, RecurringPlan } from "../types";
 
 // Operation types for the error reporter
 export enum OperationType {
@@ -779,4 +779,35 @@ export async function fetchLeadsForAdmin(): Promise<import("../types").Lead[]> {
   } catch {
     return [];
   }
+}
+
+// ── Membership Plans ──────────────────────────────────────────────────────────
+
+/** Fetch all active membership plans, ordered by `order` field. */
+export async function fetchMembershipPlans(type?: string): Promise<MembershipPlan[]> {
+  try {
+    let q = query(
+      collection(db, "membershipPlans"),
+      orderBy("order", "asc")
+    );
+    const snap = await getDocs(q);
+    const plans = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as MembershipPlan);
+    if (type) return plans.filter((p) => p.type === type && p.active !== false);
+    return plans.filter((p) => p.active !== false);
+  } catch {
+    return [];
+  }
+}
+
+/** Save (create or update) a membership plan in Firestore. */
+export async function saveMembershipPlanInFirestore(plan: MembershipPlan): Promise<void> {
+  await setDoc(doc(db, "membershipPlans", plan.id), {
+    ...plan,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/** Delete a membership plan. */
+export async function deleteMembershipPlanFromFirestore(planId: string): Promise<void> {
+  await deleteDoc(doc(db, "membershipPlans", planId));
 }

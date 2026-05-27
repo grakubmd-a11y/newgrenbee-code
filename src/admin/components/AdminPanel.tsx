@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import * as Icons from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db, auth } from "../../shared/firebase";
+import PlansAdminTab from "./PlansAdminTab";
 import {
   Booking,
   BookingStatus,
@@ -59,7 +60,7 @@ interface AdminPanelProps {
   onExit?: () => void;
 }
 
-type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews';
+type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews' | 'plans';
 
 export default function AdminPanel({
   bookings,
@@ -1102,6 +1103,7 @@ export default function AdminPanel({
             { id: "growth", label: "Growth Metrics", icon: Icons.TrendingUp },
             { id: "leads", label: "Leads / CRM", icon: Icons.Inbox, badge: leadsList.filter(l => l.status === 'new').length },
             { id: "activity", label: "Activity Log", icon: Icons.History, badge: activityEvents.length },
+            { id: "plans", label: "Membresías", icon: Icons.BadgePercent },
             { id: "staff", label: "Personal / Staff", icon: Icons.Wrench, badge: staffList.length },
             { id: "coverage", label: "Zonas / ZIP", icon: Icons.Map, badge: coverageList.length },
             { id: "customers", label: "Clientes", icon: Icons.Users, badge: customersList.length },
@@ -1254,6 +1256,7 @@ export default function AdminPanel({
                     { id: "growth", label: "Growth Metrics" },
                     { id: "leads", label: "Leads / CRM" },
                     { id: "activity", label: "Activity Log" },
+                    { id: "plans", label: "Membresías" },
                     { id: "staff", label: "Personal" },
                     { id: "coverage", label: "Zonas / ZIP" },
                     { id: "customers", label: "Clientes" },
@@ -3120,6 +3123,11 @@ export default function AdminPanel({
             </table>
           </div>
         </div>
+      )}
+
+      {/* PLANS TAB */}
+      {!isLoading && activeSubTab === 'plans' && (
+        <PlansAdminTab />
       )}
 
       {/* 6. COVERAGE CRUD TAB */}

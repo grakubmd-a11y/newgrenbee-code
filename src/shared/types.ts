@@ -238,3 +238,63 @@ export interface CouponRule {
   createdAt: string;
   updatedAt: string;
 }
+
+// ── Membership Plans ──────────────────────────────────────────────────────────
+
+export type MembershipPlanType = 'lawn' | 'cleaning' | 'bundle';
+export type YardSizeTier = 'small' | 'medium' | 'large' | 'xl';
+
+export interface MembershipPriceTier {
+  /** Display label shown on the page, e.g. "$59–$79" or "$69" */
+  priceLabel: string;
+  /** Numeric price used for billing when Stripe is wired up */
+  price: number;
+  /** If true, show "Custom Quote" instead of priceLabel */
+  customQuote?: boolean;
+}
+
+export interface MembershipFirstVisit {
+  required: boolean;
+  /** Label shown to the customer, e.g. "First Cut Reset" */
+  label: string;
+  description: string;
+  pricing: {
+    small:  MembershipPriceTier;
+    medium: MembershipPriceTier;
+    large: MembershipPriceTier;
+    xl:     MembershipPriceTier;
+  };
+}
+
+export interface MembershipPlan {
+  id: string;
+  type: MembershipPlanType;
+  name: string;
+  tagline: string;
+  /** Visits per month (1, 2, 4…) */
+  visitsPerMonth: number;
+  frequencyLabel: string;
+  features: string[];
+  notIncluded: string[];
+  pricing: {
+    small:  MembershipPriceTier;
+    medium: MembershipPriceTier;
+    large:  MembershipPriceTier;
+    xl:     MembershipPriceTier;
+  };
+  firstVisit?: MembershipFirstVisit;
+  /** Lower = shown first */
+  order: number;
+  active: boolean;
+  /** If true, shown as contact-us card — no price displayed */
+  byQuote?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MembershipSizeGuide {
+  tier: YardSizeTier;
+  label: string;
+  description: string;
+  examples: string;
+}
