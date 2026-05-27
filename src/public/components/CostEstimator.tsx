@@ -164,7 +164,7 @@ export default function CostEstimator({
     }));
   };
 
-  const handleApplyCoupon = async () => {
+const handleApplyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
     if (!code) {
       setCouponStatus({ type: "error", message: "Enter a coupon code." });
@@ -324,44 +324,89 @@ export default function CostEstimator({
 
           {/* Core Custom Factors */}
           <div className="space-y-4">
-            {activeService.factors.map((factor) => (
-              <div key={factor.name} className="space-y-2">
-                <span className="text-xs text-gray-500 font-bold tracking-tight uppercase block">
-                  {factor.label}
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {factor.options.map((opt, idx) => {
-                    const isSelected = selectedOptions[factor.name]?.label === opt.label;
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleFactorChange(factor.name, opt)}
-                        className={`flex items-start text-left gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
-                          isSelected
-                            ? "border-brand bg-brand-light text-brand ring-1 ring-brand"
-                            : "border-gray-100 hover:border-gray-200 bg-white text-gray-700"
-                        }`}
-                      >
-                        <div className="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-gray-300">
-                          {isSelected && (
-                            <span className="h-2 w-2 rounded-full bg-brand"></span>
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-xs font-semibold block leading-tight">
-                            {opt.label.replace(/\(\+\s*\$\d+\)/, "").trim()}
-                          </span>
-                          <span className="text-[10px] text-gray-400 block font-medium mt-0.5">
-                            {opt.priceModifier === 0 ? "Standard Base Rate" : `+$${opt.priceModifier} service fee`}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
+            {activeService.factors.map((factor) => {
+              if (factor.displayType === "stepper") {
+                // ── Button-group (numbered pill) UI ──────────────────────
+                const currentOpt = selectedOptions[factor.name] ?? factor.options[0];
+                const currentIdx = factor.options.findIndex((o) => o.label === currentOpt.label);
+                return (
+                  <div key={factor.name} className="space-y-2">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-xs text-gray-500 font-bold tracking-tight uppercase">
+                        {factor.label}
+                      </span>
+                      <span className="text-xs font-semibold text-brand">
+                        {currentOpt.label}
+                        {currentOpt.priceModifier > 0 && ` · +$${currentOpt.priceModifier}`}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {factor.options.map((opt, idx) => {
+                        const isSelected = currentIdx === idx;
+                        // Display short label: "Studio", "1", "2", "3", "4", "5", "6+"
+                        const shortLabel = idx === 0
+                          ? (opt.label.toLowerCase().includes("studio") ? "Studio" : String(idx))
+                          : opt.label.replace(/\s*(bedroom|bathroom|bath|br)s?/gi, "").trim();
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleFactorChange(factor.name, opt)}
+                            className={`h-10 min-w-[2.75rem] px-3 rounded-xl text-sm font-bold border transition-all cursor-pointer ${
+                              isSelected
+                                ? "bg-brand text-white border-brand shadow-sm"
+                                : "bg-white text-gray-600 border-gray-200 hover:border-brand hover:text-brand"
+                            }`}
+                          >
+                            {shortLabel}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+
+              // ── Default radio-card UI ─────────────────────────────────
+              return (
+                <div key={factor.name} className="space-y-2">
+                  <span className="text-xs text-gray-500 font-bold tracking-tight uppercase block">
+                    {factor.label}
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {factor.options.map((opt, idx) => {
+                      const isSelected = selectedOptions[factor.name]?.label === opt.label;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleFactorChange(factor.name, opt)}
+                          className={`flex items-start text-left gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-brand bg-brand-light text-brand ring-1 ring-brand"
+                              : "border-gray-100 hover:border-gray-200 bg-white text-gray-700"
+                          }`}
+                        >
+                          <div className="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-gray-300">
+                            {isSelected && (
+                              <span className="h-2 w-2 rounded-full bg-brand"></span>
+                            )}
+                          </div>
+                          <div>
+                            <span className="text-xs font-semibold block leading-tight">
+                              {opt.label.replace(/\(\+\s*\$\d+\)/, "").trim()}
+                            </span>
+                            <span className="text-[10px] text-gray-400 block font-medium mt-0.5">
+                              {opt.priceModifier === 0 ? "Standard Base Rate" : `+$${opt.priceModifier} service fee`}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Frequency & Subscriptions discounts */}

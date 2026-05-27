@@ -11,6 +11,8 @@ export interface ServiceFactor {
   name: string;
   label: string;
   options: ServiceFactorOption[];
+  /** When set to "stepper", renders a +/− counter instead of radio cards */
+  displayType?: "radio" | "stepper";
 }
 
 export interface Service {
