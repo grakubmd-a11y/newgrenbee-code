@@ -82,6 +82,11 @@ export default function AdminPanel({
   const [couponList, setCouponList] = useState<CouponRule[]>([]);
   const [recurringPlansList, setRecurringPlansList] = useState<RecurringPlan[]>([]);
   const [metricsPeriod, setMetricsPeriod] = useState<'30d' | '90d' | '12mo' | 'all'>('30d');
+
+  // Payroll
+  const [payrollPeriod, setPayrollPeriod] = useState<'current' | 'last' | 'all'>('current');
+  const [expandedPayrollStaff, setExpandedPayrollStaff] = useState<string | null>(null);
+  const [payrollBusy, setPayrollBusy] = useState<string | null>(null);
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings>({
     id: "business",
     name: "Greenbee Home Services Hub",
@@ -300,39 +305,90 @@ export default function AdminPanel({
   }, [globalBookings, reviews]);
 
   const payrollRows = useMemo(() => {
+    // ── Period bounds ─────────────────────────────────────────────────────────
+    const now  = new Date();
+    const y    = now.getFullYear();
+    const m    = now.getMonth(); // 0-indexed
+    let periodStart = "";
+    let periodEnd   = "";
+
+    if (payrollPeriod === 'current') {
+      periodStart = new Date(y, m, 1).toISOString().slice(0, 10);
+      periodEnd   = new Date(y, m + 1, 0).toISOString().slice(0, 10);
+    } else if (payrollPeriod === 'last') {
+      periodStart = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+      periodEnd   = new Date(y, m, 0).toISOString().slice(0, 10);
+    }
+
+    const inPeriod = (dateStr: string) =>
+      payrollPeriod === 'all' ||
+      (dateStr >= periodStart && dateStr <= periodEnd);
+
+    // ── Compute payout per booking ────────────────────────────────────────────
+    const calcPayout = (booking: Booking, staff?: Staff): number => {
+      if (booking.payoutOverride !== undefined) return booking.payoutOverride;
+      const revenue = Number(booking.totalCost || 0);
+      const model   = staff?.payoutModel ?? 'percentage';
+      const rate    = staff?.payoutRate  ?? 50;
+      if (model === 'percentage')    return revenue * (rate / 100);
+      if (model === 'fixed_per_job') return rate;
+      if (model === 'hourly') {
+        // Estimate hours from service estimated duration (not stored on booking — use 2h default)
+        return rate * 2;
+      }
+      return revenue * 0.5; // fallback
+    };
+
     const rows = new Map<string, {
       staffId: string;
       staffName: string;
+      payoutModel: string;
+      payoutRate: number;
       jobs: number;
       revenue: number;
       payoutDue: number;
+      alreadyPaid: number;
+      pendingJobs: Booking[];
+      paidJobs: Booking[];
       status: "ready" | "unassigned";
+      periodStart: string;
+      periodEnd: string;
     }>();
 
     globalBookings
-      .filter((booking) => booking.status === "completed" || booking.paymentStatus === "paid")
-      .forEach((booking) => {
-        const staffId = booking.assignedStaffId || "unassigned";
-        const staffName = booking.assignedStaffName || "Sin asignar";
-        const existing = rows.get(staffId) || {
+      .filter(b => (b.status === "completed" || b.paymentStatus === "paid") && inPeriod(b.bookingDate || b.createdAt || ""))
+      .forEach(b => {
+        const staffId   = b.assignedStaffId   || "unassigned";
+        const staffName = b.assignedStaffName  || "Sin asignar";
+        const staff     = staffList.find(s => s.id === staffId);
+        const payout    = calcPayout(b, staff);
+        const revenue   = Number(b.totalCost || 0);
+        const isPaid    = !!b.payrollPaidAt;
+
+        const existing = rows.get(staffId) ?? {
           staffId,
           staffName,
-          jobs: 0,
-          revenue: 0,
-          payoutDue: 0,
-          status: staffId === "unassigned" ? "unassigned" : "ready"
+          payoutModel: staff?.payoutModel ?? 'percentage',
+          payoutRate:  staff?.payoutRate  ?? 50,
+          jobs: 0, revenue: 0, payoutDue: 0, alreadyPaid: 0,
+          pendingJobs: [], paidJobs: [],
+          status: staffId === "unassigned" ? ("unassigned" as const) : ("ready" as const),
+          periodStart, periodEnd,
         };
-        const revenue = Number(booking.totalCost || 0);
+
         rows.set(staffId, {
           ...existing,
-          jobs: existing.jobs + 1,
-          revenue: existing.revenue + revenue,
-          payoutDue: existing.payoutDue + revenue * 0.5
+          jobs:        existing.jobs + 1,
+          revenue:     existing.revenue + revenue,
+          payoutDue:   existing.payoutDue   + (isPaid ? 0 : payout),
+          alreadyPaid: existing.alreadyPaid + (isPaid ? payout : 0),
+          pendingJobs: isPaid ? existing.pendingJobs : [...existing.pendingJobs, b],
+          paidJobs:    isPaid ? [...existing.paidJobs, b] : existing.paidJobs,
         });
       });
 
     return Array.from(rows.values()).sort((a, b) => b.payoutDue - a.payoutDue);
-  }, [globalBookings]);
+  }, [globalBookings, staffList, payrollPeriod]);
 
   const growthSnapshot = useMemo(() => {
     const completed = globalBookings.filter((booking) => booking.status === "completed").length;
@@ -475,12 +531,14 @@ export default function AdminPanel({
     beginAction(actionId, "Guardando técnico...");
     try {
       const st: Staff = {
-        id: editingStaff.id,
-        name: editingStaff.name,
-        email: editingStaff.email,
-        phone: editingStaff.phone || "",
-        active: editingStaff.active !== undefined ? editingStaff.active : true,
-        serviceIds: editingStaff.serviceIds || []
+        id:         editingStaff.id,
+        name:       editingStaff.name,
+        email:      editingStaff.email,
+        phone:      editingStaff.phone || "",
+        active:     editingStaff.active !== undefined ? editingStaff.active : true,
+        serviceIds: editingStaff.serviceIds || [],
+        ...(editingStaff.payoutModel ? { payoutModel: editingStaff.payoutModel } : {}),
+        ...(editingStaff.payoutRate  !== undefined ? { payoutRate: Number(editingStaff.payoutRate) } : {}),
       };
       await saveStaffInFirestore(st);
       await recordActivity({
@@ -2089,67 +2147,207 @@ export default function AdminPanel({
       {/* 5. PAYROLL TAB */}
       {!isLoading && activeSubTab === 'payroll' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+          {/* ── Period selector ─────────────────────────────────────────────── */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 className="text-sm font-extrabold text-gray-950">Nómina de técnicos</h2>
+              <p className="text-[10px] text-gray-400">Payout calculado según las reglas de pago de cada técnico.</p>
+            </div>
+            <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+              {(['current', 'last', 'all'] as const).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPayrollPeriod(p)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg border-none cursor-pointer transition-colors ${
+                    payrollPeriod === p
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'bg-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {p === 'current' ? 'Mes actual' : p === 'last' ? 'Mes anterior' : 'Todo'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── KPI strip ────────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs">
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">Payout estimado</span>
-              <strong className="text-2xl font-black text-brand">${payrollRows.reduce((sum, row) => sum + row.payoutDue, 0).toLocaleString()}</strong>
-              <p className="text-[10px] text-gray-500 mt-1">50% provisional hasta conectar reglas reales.</p>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">Payout pendiente</span>
+              <strong className="text-2xl font-black text-brand">
+                ${payrollRows.reduce((s, r) => s + r.payoutDue, 0).toLocaleString()}
+              </strong>
+              <p className="text-[10px] text-gray-500 mt-1">Jobs aún no marcados como pagados.</p>
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs">
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">Revenue asignado</span>
-              <strong className="text-2xl font-black text-gray-950">${payrollRows.reduce((sum, row) => sum + row.revenue, 0).toLocaleString()}</strong>
-              <p className="text-[10px] text-gray-500 mt-1">Reservas pagadas o completadas.</p>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">Ya pagado</span>
+              <strong className="text-2xl font-black text-emerald-600">
+                ${payrollRows.reduce((s, r) => s + r.alreadyPaid, 0).toLocaleString()}
+              </strong>
+              <p className="text-[10px] text-gray-500 mt-1">Payouts marcados como procesados.</p>
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs">
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">Jobs pagables</span>
-              <strong className="text-2xl font-black text-gray-950">{payrollRows.reduce((sum, row) => sum + row.jobs, 0)}</strong>
-              <p className="text-[10px] text-gray-500 mt-1">Base lista para conectar payouts.</p>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">Revenue período</span>
+              <strong className="text-2xl font-black text-gray-950">
+                ${payrollRows.reduce((s, r) => s + r.revenue, 0).toLocaleString()}
+              </strong>
+              <p className="text-[10px] text-gray-500 mt-1">Completadas o pagadas.</p>
             </div>
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-xs">
               <span className="text-[10px] text-gray-400 uppercase tracking-wider font-extrabold block">Sin asignar</span>
-              <strong className="text-2xl font-black text-amber-600">{payrollRows.filter(row => row.status === "unassigned").reduce((sum, row) => sum + row.jobs, 0)}</strong>
+              <strong className="text-2xl font-black text-amber-600">
+                {payrollRows.filter(r => r.status === "unassigned").reduce((s, r) => s + r.jobs, 0)}
+              </strong>
               <p className="text-[10px] text-gray-500 mt-1">Revisar antes de cerrar nómina.</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-gray-100">
-              <h3 className="font-extrabold text-sm text-gray-950">Payroll por técnico</h3>
-              <p className="text-[10px] text-gray-500">Por ahora se calcula desde Firestore. Más adelante puede sincronizar con payout rules, Stripe o contabilidad.</p>
+          {/* ── Per-staff expandable rows ─────────────────────────────────────── */}
+          {payrollRows.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-xs">
+              <EmptyState icon={Icons.ReceiptText} title="No hay pagos en este período" description="Cuando existan reservas completadas con staff asignado aparecerán aquí." />
             </div>
-            {payrollRows.length === 0 ? (
-              <div className="p-5">
-                <EmptyState icon={Icons.ReceiptText} title="No hay pagos pendientes" description="Cuando existan reservas pagadas o completadas con staff asignado, aparecerán aquí." />
-              </div>
-            ) : (
-              <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50 text-[10px] uppercase text-gray-400 font-black">
-                  <tr>
-                    <th className="p-4">Técnico</th>
-                    <th className="p-4">Jobs</th>
-                    <th className="p-4">Revenue</th>
-                    <th className="p-4">Payout estimado</th>
-                    <th className="p-4">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {payrollRows.map((row) => (
-                    <tr key={row.staffId} className="hover:bg-gray-50/60">
-                      <td className="p-4 font-bold text-gray-900">{row.staffName}</td>
-                      <td className="p-4">{row.jobs}</td>
-                      <td className="p-4 font-mono">${row.revenue.toLocaleString()}</td>
-                      <td className="p-4 font-black text-brand">${row.payoutDue.toLocaleString()}</td>
-                      <td className="p-4">
-                        <span className={`text-[8px] font-black uppercase rounded-full px-2 py-0.5 ${row.status === "ready" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"}`}>
-                          {row.status === "ready" ? "Listo" : "Pendiente asignar"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          ) : (
+            <div className="space-y-3">
+              {payrollRows.map(row => {
+                const isExpanded = expandedPayrollStaff === row.staffId;
+                const modelLabel =
+                  row.payoutModel === 'percentage'    ? `${row.payoutRate}%`          :
+                  row.payoutModel === 'fixed_per_job' ? `$${row.payoutRate}/job`       :
+                  row.payoutModel === 'hourly'        ? `$${row.payoutRate}/h`         : '50%';
+
+                return (
+                  <div key={row.staffId} className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+                    {/* ── Summary row ── */}
+                    <button
+                      type="button"
+                      onClick={() => setExpandedPayrollStaff(isExpanded ? null : row.staffId)}
+                      className="w-full text-left p-4 flex items-center gap-4 hover:bg-gray-50/60 transition-colors border-none bg-transparent cursor-pointer"
+                    >
+                      <div className="flex-1 flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-brand/10 text-brand font-black text-xs flex items-center justify-center shrink-0">
+                          {row.staffName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-extrabold text-gray-900 truncate">{row.staffName}</p>
+                          <p className="text-[10px] text-gray-400">{row.jobs} job{row.jobs !== 1 ? 's' : ''} · modelo: <span className="font-bold text-gray-600">{modelLabel}</span></p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right hidden sm:block">
+                        <p className="text-[10px] text-gray-400">Revenue</p>
+                        <p className="text-sm font-bold text-gray-700">${row.revenue.toLocaleString()}</p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-[10px] text-gray-400">Payout pendiente</p>
+                        <p className="text-base font-black text-brand">${row.payoutDue.toFixed(2)}</p>
+                      </div>
+                      {row.pendingJobs.length > 0 && row.status !== 'unassigned' && (
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const token = await auth.currentUser?.getIdToken();
+                            if (!token) return;
+                            setPayrollBusy(row.staffId);
+                            try {
+                              await fetch('/api/set-job-payout', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                                body: JSON.stringify({ staffId: row.staffId, markPaid: true, periodStart: row.periodStart, periodEnd: row.periodEnd }),
+                              });
+                              triggerSuccess(`Nómina de ${row.staffName} marcada como pagada.`);
+                              await loadDatabaseData();
+                            } catch {
+                              setErrorMessage('Error al cerrar nómina.');
+                            } finally {
+                              setPayrollBusy(null);
+                            }
+                          }}
+                          disabled={payrollBusy === row.staffId}
+                          className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold rounded-xl border-none cursor-pointer flex items-center gap-1.5 transition-colors"
+                        >
+                          {payrollBusy === row.staffId ? <Icons.Loader2 size={12} className="animate-spin" /> : <Icons.CheckCircle size={12} />}
+                          Marcar pagado
+                        </button>
+                      )}
+                      <Icons.ChevronDown size={16} className={`text-gray-400 transition-transform shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* ── Expanded job list ── */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-100">
+                        {row.pendingJobs.length === 0 && row.paidJobs.length === 0 ? (
+                          <p className="p-4 text-xs text-gray-400">No hay jobs en este período.</p>
+                        ) : (
+                          <table className="w-full text-left text-xs">
+                            <thead className="bg-gray-50 text-[9px] uppercase text-gray-400 font-black">
+                              <tr>
+                                <th className="px-4 py-2">Fecha</th>
+                                <th className="px-4 py-2">Cliente</th>
+                                <th className="px-4 py-2">Servicio</th>
+                                <th className="px-4 py-2">Revenue</th>
+                                <th className="px-4 py-2">Payout</th>
+                                <th className="px-4 py-2">Estado</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                              {[...row.pendingJobs, ...row.paidJobs].map(b => {
+                                const staff = staffList.find(s => s.id === row.staffId);
+                                const payout = b.payoutOverride !== undefined ? b.payoutOverride :
+                                  row.payoutModel === 'percentage'    ? Number(b.totalCost||0) * (row.payoutRate/100) :
+                                  row.payoutModel === 'fixed_per_job' ? row.payoutRate :
+                                  row.payoutRate * 2; // hourly × 2h
+                                return (
+                                  <tr key={b.id} className={`hover:bg-gray-50/60 ${b.payrollPaidAt ? 'opacity-50' : ''}`}>
+                                    <td className="px-4 py-2 font-mono text-gray-500">{b.bookingDate}</td>
+                                    <td className="px-4 py-2 font-bold text-gray-900 max-w-[120px] truncate">{b.customerName}</td>
+                                    <td className="px-4 py-2 text-gray-600 max-w-[100px] truncate">{b.serviceName}</td>
+                                    <td className="px-4 py-2 font-mono">${Number(b.totalCost||0).toFixed(2)}</td>
+                                    <td className="px-4 py-2 font-black text-brand">
+                                      {b.payoutOverride !== undefined
+                                        ? <span className="text-violet-600">${b.payoutOverride.toFixed(2)} ✎</span>
+                                        : `$${payout.toFixed(2)}`}
+                                    </td>
+                                    <td className="px-4 py-2">
+                                      {b.payrollPaidAt
+                                        ? <span className="text-[8px] bg-emerald-50 text-emerald-700 font-black uppercase rounded-full px-2 py-0.5">Pagado</span>
+                                        : <span className="text-[8px] bg-amber-50 text-amber-700 font-black uppercase rounded-full px-2 py-0.5">Pendiente</span>}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── Payout model legend ──────────────────────────────────────────── */}
+          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs text-stone-500 space-y-1">
+            <p className="font-bold text-stone-700 text-[11px]">Modelos de pago disponibles (configura en la pestaña Staff)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+              {[
+                { icon: Icons.Percent, label: "Porcentaje", desc: "% del revenue del job. Ej: 50% → $100 job = $50 payout." },
+                { icon: Icons.Hash,    label: "Tarifa fija/job", desc: "Monto fijo por job completado, sin importar el precio." },
+                { icon: Icons.Clock,   label: "Por hora", desc: "Tarifa horaria × horas estimadas (2h por defecto)." },
+              ].map(m => (
+                <div key={m.label} className="flex gap-2 items-start">
+                  <m.icon size={12} className="text-brand mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-bold text-stone-600">{m.label}</p>
+                    <p className="leading-tight">{m.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
         </div>
       )}
 
@@ -2515,6 +2713,40 @@ export default function AdminPanel({
                     />
                     <span>Disponible para despacho de citas (Estatus Activo)</span>
                   </label>
+                </div>
+              </div>
+
+              {/* Payout rules */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-amber-200">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black uppercase text-gray-500">Modelo de pago</label>
+                  <select
+                    value={editingStaff?.payoutModel ?? 'percentage'}
+                    onChange={(e) => setEditingStaff({ ...editingStaff!, payoutModel: e.target.value as any })}
+                    className="border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold bg-white"
+                  >
+                    <option value="percentage">Porcentaje del revenue</option>
+                    <option value="fixed_per_job">Tarifa fija por job</option>
+                    <option value="hourly">Tarifa por hora</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black uppercase text-gray-500">
+                    {(editingStaff?.payoutModel ?? 'percentage') === 'percentage'
+                      ? 'Porcentaje (0–100)'
+                      : (editingStaff?.payoutModel ?? 'percentage') === 'fixed_per_job'
+                      ? 'Monto fijo por job ($)'
+                      : 'Tarifa por hora ($)'}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={(editingStaff?.payoutModel ?? 'percentage') === 'percentage' ? 1 : 0.01}
+                    max={(editingStaff?.payoutModel ?? 'percentage') === 'percentage' ? 100 : undefined}
+                    value={editingStaff?.payoutRate ?? ((editingStaff?.payoutModel ?? 'percentage') === 'percentage' ? 50 : 0)}
+                    onChange={(e) => setEditingStaff({ ...editingStaff!, payoutRate: Number(e.target.value) })}
+                    className="border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold"
+                  />
                 </div>
               </div>
 

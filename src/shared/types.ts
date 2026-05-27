@@ -61,6 +61,10 @@ export interface Booking {
   stripePaymentStatus?: string;
   assignedStaffId?: string;
   assignedStaffName?: string;
+  /** Admin-set payout override for this specific job (in $) */
+  payoutOverride?: number;
+  /** ISO date when this job's payout was marked as processed */
+  payrollPaidAt?: string;
 }
 
 export interface Review {
@@ -74,6 +78,8 @@ export interface Review {
   verified: boolean;
 }
 
+export type PayoutModel = 'percentage' | 'fixed_per_job' | 'hourly';
+
 export interface Staff {
   id: string;
   name: string;
@@ -81,6 +87,15 @@ export interface Staff {
   phone: string;
   active: boolean;
   serviceIds: string[];
+  /** How this technician is paid */
+  payoutModel?: PayoutModel;
+  /**
+   * Meaning depends on payoutModel:
+   *   percentage    → 0–100 (e.g. 50 means 50% of job revenue)
+   *   fixed_per_job → flat $ per completed job
+   *   hourly        → hourly rate in $
+   */
+  payoutRate?: number;
 }
 
 export interface Coverage {
