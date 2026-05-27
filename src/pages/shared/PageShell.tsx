@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SiteNavbar from "../../public/components/SiteNavbar";
 
 interface SEOMeta {
@@ -13,10 +15,17 @@ interface PageShellProps {
   seo: SEOMeta;
 }
 
+function toSlug(city: string) {
+  return city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+}
+
 export default function PageShell({ children, seo }: PageShellProps) {
+  const { t } = useTranslation();
   const canonicalUrl =
     seo.canonical ??
     `https://grenbee.com${typeof window !== "undefined" ? window.location.pathname : ""}`;
+
+  const footerServiceLinks = t("home.footer.serviceLinks", { returnObjects: true }) as string[];
 
   return (
     <>
@@ -48,27 +57,31 @@ export default function PageShell({ children, seo }: PageShellProps) {
                 </span>
               </Link>
               <p className="text-sm leading-relaxed">
-                Professional lawn care and home cleaning services across South Florida.
+                {t("home.footer.tagline")}
               </p>
-              <a href="tel:+13055550000" className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors">
+              <a
+                href="tel:+13055550000"
+                className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
+              >
+                <Phone className="w-3.5 h-3.5" />
                 (305) 555-0000
               </a>
-              <p className="text-xs text-gray-600">© {new Date().getFullYear()} Greenbee. All rights reserved.</p>
+              <p className="text-xs text-gray-600">
+                © {new Date().getFullYear()} Greenbee. {t("home.footer.rights")}
+              </p>
             </div>
 
             {/* Services */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Services</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
+                {t("home.footer.servicesTitle")}
+              </h4>
               <ul className="space-y-2 text-sm">
-                {[
-                  ["Lawn Care",           "/#services"],
-                  ["House Cleaning",      "/#services"],
-                  ["Pressure Washing",    "/#services"],
-                  ["TV Installation",     "/#services"],
-                  ["Furniture Assembly",  "/#services"],
-                ].map(([label, href]) => (
+                {footerServiceLinks.map((label) => (
                   <li key={label}>
-                    <Link to={href} className="hover:text-emerald-400 transition-colors">{label}</Link>
+                    <Link to="/#services" className="hover:text-emerald-400 transition-colors">
+                      {label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -76,42 +89,56 @@ export default function PageShell({ children, seo }: PageShellProps) {
 
             {/* Areas */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Service Areas</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
+                {t("home.footer.miamidadeTitle")}
+              </h4>
               <ul className="space-y-2 text-sm">
-                {[
-                  ["Miami",           "miami"],
-                  ["Miami Beach",     "miami-beach"],
-                  ["Coral Gables",    "coral-gables"],
-                  ["Fort Lauderdale", "fort-lauderdale"],
-                  ["Brickell",        "brickell"],
-                  ["Doral",           "doral"],
-                ].map(([city, slug]) => (
-                  <li key={slug}>
-                    <Link to={`/areas/${slug}`} className="hover:text-emerald-400 transition-colors">{city}</Link>
+                {["Miami", "Miami Beach", "Coral Gables", "Brickell", "Doral", "Hialeah"].map((city) => (
+                  <li key={city}>
+                    <Link to={`/areas/${toSlug(city)}`} className="hover:text-emerald-400 transition-colors">
+                      {city}
+                    </Link>
                   </li>
                 ))}
-                <li>
-                  <Link to="/areas" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
-                    View all areas →
-                  </Link>
-                </li>
               </ul>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">
+                {t("home.footer.browardTitle")}
+              </h4>
+              <ul className="space-y-2 text-sm">
+                {["Fort Lauderdale", "Hollywood", "Pembroke Pines", "Miramar"].map((city) => (
+                  <li key={city}>
+                    <Link to={`/areas/${toSlug(city)}`} className="hover:text-emerald-400 transition-colors">
+                      {city}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-3">
+                <Link to="/areas" className="text-emerald-400 hover:text-emerald-300 font-semibold text-sm transition-colors">
+                  {t("home.footer.allServiceAreas")} →
+                </Link>
+              </div>
             </div>
 
             {/* Company */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Company</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
+                {t("home.footer.companyTitle")}
+              </h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/plans" className="hover:text-emerald-400 transition-colors">Membership Plans</Link></li>
-                <li><Link to="/faq" className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
-                <li><Link to="/contact" className="hover:text-emerald-400 transition-colors">Contact Us</Link></li>
+                <li><Link to="/plans"   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
+                <li><Link to="/areas"   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
+                <li><Link to="/faq"     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
+                <li><Link to="/contact" className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
               </ul>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">Legal</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">
+                {t("home.footer.legalTitle")}
+              </h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/terms" className="hover:text-emerald-400 transition-colors">Terms of Service</Link></li>
-                <li><Link to="/privacy" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/cancellation" className="hover:text-emerald-400 transition-colors">Cancellation</Link></li>
-                <li><Link to="/guarantee" className="hover:text-emerald-400 transition-colors">Guarantee</Link></li>
+                <li><Link to="/terms"        className="hover:text-emerald-400 transition-colors">{t("home.footer.termsOfService")}</Link></li>
+                <li><Link to="/privacy"      className="hover:text-emerald-400 transition-colors">{t("home.footer.privacyPolicy")}</Link></li>
+                <li><Link to="/cancellation" className="hover:text-emerald-400 transition-colors">{t("home.footer.cancellationPolicy")}</Link></li>
+                <li><Link to="/guarantee"    className="hover:text-emerald-400 transition-colors">{t("home.footer.satisfactionGuarantee")}</Link></li>
               </ul>
             </div>
           </div>

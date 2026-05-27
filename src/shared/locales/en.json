@@ -1,0 +1,697 @@
+{
+  "nav": {
+    "getQuote": "Get Quote",
+    "coverage": "Coverage",
+    "contact": "Contact",
+    "coverageAreas": "Coverage Areas",
+    "contactUs": "Contact Us",
+    "myAccount": "My Account",
+    "hello": "Hello",
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "signOut": "Sign Out",
+    "info": "Info",
+    "services": "Services",
+    "membership": "Membership",
+    "bookings": "My Bookings",
+    "about": "About",
+    "blog": "Blog"
+  },
+  "hero": {
+    "title": "Your Home, Our Care",
+    "subtitle": "Professional home services at your fingertips. Book trusted experts in minutes.",
+    "cta": "Book a Service",
+    "vettedProfessionals": "Vetted Professionals",
+    "securePayment": "Secure Payment",
+    "support": "24/7 Support",
+    "cleaning": "Cleaning",
+    "lawnCare": "Lawn Care",
+    "tvInstall": "TV Install",
+    "assembly": "Assembly"
+  },
+  "features": {
+    "title": "Why Choose Greenbee?",
+    "subtitle": "We make home services simple, reliable, and affordable",
+    "items": [
+      { "title": "Fast & Easy", "desc": "Book services in minutes with our intuitive platform" },
+      { "title": "Trusted Professionals", "desc": "Vetted and verified service providers you can rely on" },
+      { "title": "Flexible Scheduling", "desc": "Choose times that work best for you" },
+      { "title": "24/7 Support", "desc": "Our team is always here to help you" }
+    ]
+  },
+  "testimonials": {
+    "title": "What Our Customers Say",
+    "subtitle": "Trusted by thousands of happy homeowners",
+    "items": [
+      {
+        "name": "Sarah Johnson",
+        "role": "Homeowner, California",
+        "text": "Amazing service! The team was professional, punctual, and did an excellent job. Highly recommend!"
+      },
+      {
+        "name": "Michael Chen",
+        "role": "Business Owner, Texas",
+        "text": "I use Greenbee for all our commercial cleaning needs. Consistent quality and reliable service."
+      },
+      {
+        "name": "Emily Rodriguez",
+        "role": "Busy Mom, Florida",
+        "text": "Such a time-saver! Booking was easy and the service exceeded my expectations. Will definitely book again!"
+      }
+    ]
+  },
+  "trust": {
+    "title": "Trusted by Thousands",
+    "subtitle": "Join our growing community of satisfied homeowners",
+    "stats": [
+      { "number": "2,500+", "label": "Happy Customers" },
+      { "number": "5,000+", "label": "Bookings Completed" },
+      { "number": "250+",   "label": "Service Providers" },
+      { "number": "4.9/5",  "label": "Average Rating" }
+    ]
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "subtitle": "Join thousands of homeowners who trust Greenbee for their home service needs.",
+    "browse": "Browse Services",
+    "contact": "Contact Us",
+    "rating": "4.9/5 from 2,500+ reviews"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "continueGoogle": "Continue with Google",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Submit"
+  },
+  "services": {
+    "title": "Our Services",
+    "subtitle": "Choose from our comprehensive range of professional home services",
+    "bookNow": "Book Now",
+    "startingAt": "Starting at"
+  },
+  "siteNav": {
+    "services": "Services",
+    "plans": "Plans",
+    "areas": "Areas",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "getFreeQuote": "Get a Free Quote",
+    "toggleMenu": "Toggle menu"
+  },
+  "home": {
+    "pageTitle": "Greenbee — Professional Lawn Care & Home Cleaning in Miami, FL",
+    "metaDescription": "Book professional lawn care and house cleaning in Miami, Fort Lauderdale, and South Florida. Instant online quotes, same-week availability, eco-friendly products.",
+    "hero": {
+      "badge": "200+ Five-Star Reviews in South Florida",
+      "title": "Professional Lawn Care & Home Cleaning in Miami, FL",
+      "titleHighlight": "Home Cleaning",
+      "subtitle": "Greenbee delivers reliable, eco-friendly home services across Miami-Dade and Broward. Book online in minutes — same-week availability guaranteed.",
+      "ctaPrimary": "Get a Free Quote",
+      "ctaPhone": "(305) 555-0000",
+      "trustNote": "Talk to a real person — we typically respond within the hour."
+    },
+    "stats": {
+      "happyHomeowners": "Happy Homeowners Served",
+      "fiveStarReviews": "Five-Star Google Reviews",
+      "serviceTrucks": "Service Trucks on the Road",
+      "technicians": "Professional Technicians"
+    },
+    "servicesSection": {
+      "eyebrow": "What We Do",
+      "title": "Our Services",
+      "subtitle": "From weekly lawn maintenance to deep house cleaning — all booked online with instant pricing.",
+      "getQuote": "Get a quote"
+    },
+    "serviceDescriptions": {
+      "lawnMowing": "Precision lawn cuts, edging, and cleanup to keep your yard looking its best all season.",
+      "houseCleaning": "Professional deep cleaning using eco-friendly products for a spotless, fresh home.",
+      "pressureWashing": "High-pressure washing for driveways, patios, and exterior surfaces — like new again.",
+      "tvInstallation": "Safe, level TV mounting with cable management on any wall type.",
+      "furnitureAssembly": "Fast, accurate assembly of any flat-pack furniture — we handle the instructions."
+    },
+    "coverage": {
+      "eyebrow": "Where We Operate",
+      "title": "Service Regions",
+      "subtitle": "We cover two major counties in South Florida and are growing fast.",
+      "miamidade": {
+        "title": "Miami-Dade County",
+        "description": "Miami, Miami Beach, Coral Gables, Brickell, Coconut Grove, Doral, Hialeah, and more.",
+        "link": "View Miami-Dade areas"
+      },
+      "broward": {
+        "title": "Broward County",
+        "description": "Fort Lauderdale, Pembroke Pines, Hollywood, Miramar, Weston, Sunrise, and more.",
+        "link": "View Broward areas"
+      }
+    },
+    "standard": {
+      "eyebrow": "Our Promise",
+      "title": "The Greenbee Standard",
+      "subtitle": "Every job backed by our four-pillar guarantee.",
+      "pillars": [
+        {
+          "title": "Spotless Results",
+          "desc": "We don't cut corners. Every job is inspected before we consider it done."
+        },
+        {
+          "title": "Licensed & Insured",
+          "desc": "All technicians are background-checked, licensed, and fully insured for your peace of mind."
+        },
+        {
+          "title": "Eco-Friendly Products",
+          "desc": "We use pet-safe, biodegradable cleaning products that are tough on grime, gentle on the planet."
+        },
+        {
+          "title": "On-Time & Reliable",
+          "desc": "We show up when we say we will. Real-time status updates keep you informed at every step."
+        }
+      ]
+    },
+    "plans": {
+      "eyebrow": "Save More",
+      "title": "Lawn Care Membership Plans",
+      "subtitle": "Join a plan and get consistent, professional care — with pricing locked in and zero hassle.",
+      "mostPopular": "Most Popular",
+      "perMonth": "/mo",
+      "viewPlans": "View Plans",
+      "viewAll": "See all membership details, pricing, and yard size guide",
+      "items": [
+        {
+          "name": "Basic",
+          "freq": "1 visit / month",
+          "price": "$59–$179",
+          "features": ["Lawn mowing & edging", "Blowing & cleanup", "Email reminders"]
+        },
+        {
+          "name": "Standard",
+          "freq": "2 visits / month",
+          "price": "$109–$329",
+          "features": ["Everything in Basic", "Priority scheduling", "Bi-weekly consistency"]
+        },
+        {
+          "name": "Premium",
+          "freq": "4 visits / month",
+          "price": "$199–$599",
+          "features": ["Everything in Standard", "Weekly cuts", "$100 service credit/mo"]
+        }
+      ]
+    },
+    "testimonials": {
+      "eyebrow": "Reviews",
+      "title": "What Our Customers Say",
+      "verifiedCustomer": "Verified customer",
+      "defaultItems": [
+        {
+          "name": "María G.",
+          "location": "Coral Gables, FL",
+          "text": "Greenbee has been maintaining our lawn for 6 months. Always on time, always perfect. My neighbors keep asking who does our yard!"
+        },
+        {
+          "name": "Carlos R.",
+          "location": "Brickell, Miami",
+          "text": "Booked a deep clean for my condo online in under 5 minutes. The team was professional and the place looked brand new. Highly recommend."
+        },
+        {
+          "name": "Jennifer M.",
+          "location": "Fort Lauderdale, FL",
+          "text": "The pressure washing on my driveway was incredible. Looks like new concrete. Great price, great team, easy booking process."
+        }
+      ]
+    },
+    "ctaBanner": {
+      "title": "Make Your Home Look Its Best",
+      "subtitle": "Get an instant quote in seconds. No contracts, no hidden fees — just reliable service.",
+      "cta": "Get a Free Quote",
+      "reviewsBadge": "200+ Five-Star Reviews"
+    },
+    "directory": {
+      "title": "Service Areas — South Florida",
+      "miamidadeTitle": "Miami-Dade County",
+      "browardTitle": "Broward County",
+      "viewFullMap": "View full coverage map & area landing pages"
+    },
+    "estimator": {
+      "eyebrow": "Instant Pricing",
+      "title": "Get Your Free Quote",
+      "subtitle": "Select your service and options below. Price updates in real time — no email required."
+    },
+    "faq": {
+      "eyebrow": "Got Questions?",
+      "title": "Frequently Asked Questions",
+      "viewAll": "View all frequently asked questions",
+      "items": [
+        {
+          "q": "What areas do you serve?",
+          "a": "We serve Miami-Dade and Broward County, including Miami, Miami Beach, Coral Gables, Brickell, Doral, Fort Lauderdale, Pembroke Pines, and more. Check our Areas page for the full list."
+        },
+        {
+          "q": "How quickly can I get an appointment?",
+          "a": "Most customers can book same-week. Use our instant quote tool above to see available time slots for your zip code."
+        },
+        {
+          "q": "Do I need to be home during the service?",
+          "a": "No. You can provide lockbox access or entry instructions in the booking notes. We'll send you real-time status updates and before/after photos."
+        },
+        {
+          "q": "Are your technicians insured?",
+          "a": "Yes. All Greenbee technicians are background-checked, licensed, and fully insured. Your home is protected."
+        },
+        {
+          "q": "What's your satisfaction guarantee?",
+          "a": "If you're not 100% satisfied, we'll return and re-do the work at no extra charge — or refund you. No questions asked."
+        },
+        {
+          "q": "How do recurring plans work?",
+          "a": "Choose weekly, bi-weekly, or monthly frequency when booking. You'll get a discount on every visit and can pause, reschedule, or cancel any time — no lock-in contracts."
+        }
+      ]
+    },
+    "footer": {
+      "tagline": "Professional lawn care and home cleaning services across South Florida.",
+      "rights": "All rights reserved.",
+      "servicesTitle": "Services",
+      "serviceLinks": ["Lawn Care", "House Cleaning", "Pressure Washing", "TV Installation", "Furniture Assembly"],
+      "miamidadeTitle": "Miami-Dade",
+      "browardTitle": "Broward",
+      "companyTitle": "Company",
+      "membershipPlans": "Membership Plans",
+      "allServiceAreas": "All Service Areas",
+      "contactUs": "Contact Us",
+      "legalTitle": "Legal",
+      "termsOfService": "Terms of Service",
+      "privacyPolicy": "Privacy Policy",
+      "cancellationPolicy": "Cancellation Policy",
+      "satisfactionGuarantee": "Satisfaction Guarantee"
+    },
+    "photoSlot": {
+      "placeholder": "Photo — add from Admin → Media"
+    }
+  },
+  "areas": {
+    "pageTitle": "Coverage Areas | Greenbee",
+    "metaDescription": "Check if Greenbee serves your city. We cover Miami-Dade, Broward, and more. Join the waitlist if your area isn't listed yet.",
+    "heading": "Coverage Areas",
+    "subheading": "Greenbee is growing fast. Check if we currently serve your city or join the waitlist to be notified when we expand to your area.",
+    "availableNow": "Available Now",
+    "comingSoon": "Coming Soon",
+    "comingSoonLabel": "Coming soon",
+    "waitlist": {
+      "heading": "Not in your area yet?",
+      "subheading": "Leave your zip code and email and we'll notify you the moment Greenbee launches near you.",
+      "successMessage": "You're on the list! We'll email you when we reach your area.",
+      "zipPlaceholder": "Zip code",
+      "notifyMe": "Notify Me"
+    }
+  },
+  "areaPage": {
+    "home": "Home",
+    "serviceAreas": "Service Areas",
+    "bookService": "Book a Service",
+    "callUs": "Call Us",
+    "stats": [
+      { "stat": "5,000+", "label": "Happy Customers" },
+      { "stat": "500+",   "label": "5-Star Reviews" },
+      { "stat": "100%",   "label": "Insured & Vetted" },
+      { "stat": "Same Day", "label": "Available" }
+    ],
+    "servicesTitle": "Services in {{city}}",
+    "bookNow": "Book now",
+    "difference": {
+      "eyebrow": "Our Promise",
+      "title": "The Greenbee Difference",
+      "pillars": [
+        { "title": "Spotless Results",    "desc": "We don't leave until the job meets our quality standard." },
+        { "title": "Vetted Technicians",  "desc": "Every pro is background-checked, trained, and insured." },
+        { "title": "Fully Insured",       "desc": "All work is covered. Zero risk for you." },
+        { "title": "On Time & Reliable",  "desc": "We show up when we say we will. Every time." }
+      ]
+    },
+    "plansCta": {
+      "title": "Save with a membership plan",
+      "subtitle": "Regular service? Our lawn care membership plans start at just $59/mo for small yards.",
+      "button": "View Plans →"
+    },
+    "testimonialsSubtitle": "500+ five-star reviews and counting",
+    "testimonialsTitle": "What {{city}} homeowners say",
+    "neighborhoodsTitle": "Neighborhoods we serve in {{city}}",
+    "faqTitle": "Frequently asked questions",
+    "bottomCta": {
+      "title": "Ready for a cleaner home in {{city}}?",
+      "subtitle": "Book in 60 seconds. Transparent pricing. No surprises.",
+      "button": "Book a Service in {{city}}"
+    },
+    "notAvailable": {
+      "pageTitle": "Area Not Found | Greenbee",
+      "heading": "Area not available",
+      "body": "We don't currently serve this area, but we're expanding soon.",
+      "backLink": "← View all service areas"
+    },
+    "photoPlaceholder": "Photo — add from Admin → Media",
+    "fallback": {
+      "heroHeadline": "Professional Home Services in {{city}}, {{state}}",
+      "heroSubtitle": "Greenbee brings professional lawn care, cleaning, and home maintenance to {{city}}. Reliable technicians. Transparent pricing. Satisfaction guaranteed.",
+      "introParagraph": "Looking for dependable home services in {{city}}? Greenbee connects you with vetted, insured technicians ready to handle lawn mowing, house cleaning, pressure washing, and more. We serve homeowners across {{city}} and surrounding neighborhoods.",
+      "serviceDescriptions": {
+        "lawnMowing": "Keep your {{city}} lawn looking its best with regular professional mowing, edging, and blowoff.",
+        "houseCleaning": "From standard maintenance cleans to deep structural cleans, our team keeps {{city}} homes spotless.",
+        "pressureWashing": "Remove dirt, mold, and grime from driveways, patios, and exteriors with professional pressure washing.",
+        "tvInstallation": "Professional TV wall mounting and installation for {{city}} homeowners. Any wall type, any size."
+      },
+      "seoTitle": "Home Services in {{city}}, {{state}} | Greenbee",
+      "seoDescription": "Professional lawn care, house cleaning & home maintenance in {{city}}, {{state}}. Vetted technicians, transparent pricing, satisfaction guaranteed. Book online.",
+      "testimonials": [
+        { "name": "Maria G.", "text": "Greenbee has been amazing — always on time and the lawn looks perfect every week." },
+        { "name": "Jason T.", "text": "Booked a deep clean and was blown away. Very professional team." },
+        { "name": "Sandra L.", "text": "Love how easy it is to book online. The technicians are courteous and thorough." }
+      ],
+      "faqs": [
+        { "q": "Do you serve all of {{city}}?", "a": "Yes — we serve {{city}} and the surrounding area. Enter your ZIP code during booking to confirm coverage." },
+        { "q": "How do I get a quote?", "a": "Use our online estimator to get an instant price estimate. No phone call needed." },
+        { "q": "Are your technicians insured?", "a": "Yes. All Greenbee technicians are vetted, background-checked, and fully insured." },
+        { "q": "Can I book a recurring service?", "a": "Yes — you can book a one-time visit or choose a recurring schedule. Check our membership plans for the best rates." },
+        { "q": "What if I'm not satisfied?", "a": "We offer a satisfaction guarantee. If something isn't right, we'll come back and make it right at no extra cost." }
+      ]
+    }
+  },
+  "faq": {
+    "pageTitle": "FAQ | Greenbee Home Services",
+    "metaDescription": "Answers to the most common questions about booking, pricing, payments, cancellations, and service quality at Greenbee.",
+    "heading": "Frequently Asked Questions",
+    "subheading": "Everything you need to know about booking and using Greenbee.",
+    "stillQuestion": "Still have a question?",
+    "teamAvailable": "Our team is available Mon–Sat 8 AM – 7 PM EST.",
+    "contactUs": "Contact Us",
+    "categories": [
+      {
+        "name": "Booking & Scheduling",
+        "items": [
+          {
+            "q": "How do I book a service?",
+            "a": "Select a service from the home page, customize the details (area, options, frequency), pick your preferred time slot, and confirm with a payment method. You'll receive an email confirmation immediately."
+          },
+          {
+            "q": "How far in advance do I need to book?",
+            "a": "Most services can be booked same-day if slots are available. For best availability, we recommend booking at least 48 hours in advance, especially for weekends."
+          },
+          {
+            "q": "Can I book recurring services?",
+            "a": "Yes! You can choose weekly, bi-weekly, or monthly recurring plans during checkout. Recurring bookings receive a 10% discount and you can pause or cancel at any time with at least 72 hours notice."
+          },
+          {
+            "q": "What if I need to reschedule?",
+            "a": "You can reschedule for free up to 24 hours before your appointment via My Account → My Bookings. Within 24 hours, a $15 rebooking fee applies."
+          },
+          {
+            "q": "Are weekend appointments available?",
+            "a": "Yes, we offer Saturday and Sunday slots. Sunday slots book out faster — we recommend booking early in the week for weekend appointments."
+          }
+        ]
+      },
+      {
+        "name": "Pricing & Payments",
+        "items": [
+          {
+            "q": "How is the price calculated?",
+            "a": "Prices start at a base rate and adjust based on factors you configure: service area size, type of work, materials needed, and any add-on options. The final price is shown before you authorize payment — no hidden fees."
+          },
+          {
+            "q": "When does my card get charged?",
+            "a": "We only authorize (hold) your card at booking. The actual charge is captured only after the service is completed successfully. If the service doesn't happen, the hold releases automatically within 3–5 days."
+          },
+          {
+            "q": "Do you offer any discounts?",
+            "a": "Recurring plans (weekly, bi-weekly, monthly) receive a 10% discount. We also occasionally run seasonal promotions — sign up to our newsletter to be notified."
+          },
+          {
+            "q": "What payment methods do you accept?",
+            "a": "Visa, Mastercard, American Express, Discover, Apple Pay, and Google Pay. All transactions are processed securely through Stripe."
+          },
+          {
+            "q": "Can I get a custom quote for a large or unusual project?",
+            "a": "Absolutely. Use the Contact page to describe your project and we'll respond with a tailored quote within 1 business day."
+          }
+        ]
+      },
+      {
+        "name": "The Day of Service",
+        "items": [
+          {
+            "q": "Do I need to be home during the service?",
+            "a": "Not necessarily. Many customers prefer to provide access instructions (lockbox code, door code) and let our Providers work independently. You'll receive a notification when the team arrives and when they're done."
+          },
+          {
+            "q": "What if I have pets?",
+            "a": "Please ensure pets are in a safe area during the service. For cleaning services, selecting the 'Pets in Home' option ensures our techs bring the appropriate tools and allergy-safe products."
+          },
+          {
+            "q": "What should I do to prepare for a cleaning?",
+            "a": "Clear any personal items from surfaces you want cleaned, make sure there's water and electricity access, and communicate any fragile or off-limits areas in the booking notes."
+          },
+          {
+            "q": "What if the Provider is late?",
+            "a": "We'll notify you if the Provider is running more than 15 minutes behind. If they're more than 30 minutes late with no notice, you're entitled to a $10 discount on that booking."
+          },
+          {
+            "q": "Will the same Provider come each time for recurring bookings?",
+            "a": "We do our best to assign the same Provider for recurring visits. While not always guaranteed, we track your Provider preference and prioritize consistency."
+          }
+        ]
+      },
+      {
+        "name": "Service Quality & Guarantees",
+        "items": [
+          {
+            "q": "What is the Greenbee satisfaction guarantee?",
+            "a": "If you're not satisfied with the completed work, contact us within 48 hours and we'll send a Provider back to redo the affected portion at no charge, or issue a partial refund."
+          },
+          {
+            "q": "What if something gets damaged?",
+            "a": "All Providers carry general liability insurance. Document the damage with photos and contact us within 48 hours. We'll coordinate with the Provider and their insurer to resolve the claim."
+          },
+          {
+            "q": "Are your Providers vetted?",
+            "a": "Yes. Every Provider goes through an application process, background check, and skills verification before joining the platform. We also monitor ongoing reviews and ratings."
+          },
+          {
+            "q": "What products do you use for cleaning?",
+            "a": "Our default cleaning kit uses EPA-approved, eco-friendly products that are safe for children and pets. If you have allergies or special preferences, note them in your booking."
+          }
+        ]
+      },
+      {
+        "name": "Coverage Areas",
+        "items": [
+          {
+            "q": "What areas do you currently serve?",
+            "a": "We currently operate across Miami-Dade and Broward counties. Check the Coverage Areas page for a full list of supported zip codes and cities."
+          },
+          {
+            "q": "My zip code isn't listed — what can I do?",
+            "a": "We're expanding quickly. Add your zip code to our waitlist via the Coverage page and you'll be the first to know when we arrive in your area."
+          },
+          {
+            "q": "Do you charge a travel fee for distant locations?",
+            "a": "There's no travel surcharge within our standard coverage zone. Areas on the edge of coverage may include a small distance fee, which is always shown clearly at checkout."
+          }
+        ]
+      },
+      {
+        "name": "Accounts & Privacy",
+        "items": [
+          {
+            "q": "Do I need an account to book?",
+            "a": "Yes, an account is required to confirm a booking. It allows you to track appointments, store access preferences, and manage payment methods securely."
+          },
+          {
+            "q": "How do I delete my account?",
+            "a": "You can request account deletion from My Account → Settings. Data will be removed within 30 business days, subject to legal record-keeping obligations."
+          },
+          {
+            "q": "Is my payment information secure?",
+            "a": "Greenbee never stores card numbers. All payment data is handled exclusively by Stripe, which is PCI DSS Level 1 certified — the highest level of payment security."
+          }
+        ]
+      },
+      {
+        "name": "Becoming a Provider",
+        "items": [
+          {
+            "q": "How do I join as a service provider?",
+            "a": "Use the Contact page, select 'Become a Provider', and describe your experience and the services you offer. Our team reviews applications on a rolling basis."
+          },
+          {
+            "q": "What are the requirements?",
+            "a": "Providers must be 18+, legally authorized to work in the US, carry general liability insurance, and pass a background screening. Specific tool requirements depend on the service type."
+          },
+          {
+            "q": "How does payment work for providers?",
+            "a": "Providers receive payment via direct deposit after each completed and verified service, typically within 2–3 business days. Greenbee charges a platform commission on each booking."
+          }
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "pageTitle": "Contact Us | Greenbee",
+    "metaDescription": "Get in touch with Greenbee. Request a custom quote, ask about coverage, report a service issue, or inquire about becoming a provider.",
+    "heading": "Contact Us",
+    "subheading": "Have an unusual project, a question, or need help with a booking? We're here to help.",
+    "email": "Email",
+    "phone": "Phone",
+    "hours": "Hours",
+    "hoursValue": "Mon–Sat 8 AM – 7 PM EST",
+    "commonQuestions": "Common Questions",
+    "commonQuestionsList": [
+      "I need a custom quote for a large property",
+      "My city isn't in your coverage area",
+      "I want to become a Provider",
+      "I have an issue with a completed service",
+      "Corporate or recurring service contracts"
+    ],
+    "form": {
+      "yourName": "Your Name",
+      "namePlaceholder": "Jane Doe",
+      "emailAddress": "Email Address",
+      "emailPlaceholder": "jane@example.com",
+      "subject": "Subject",
+      "selectTopic": "Select a topic…",
+      "subjects": {
+        "quote": "Custom Quote Request",
+        "coverage": "Coverage Area Inquiry",
+        "provider": "Become a Provider",
+        "complaint": "Service Complaint / Refund",
+        "corporate": "Corporate / Recurring Contract",
+        "other": "Other"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Describe your project, question, or issue in as much detail as possible…",
+      "send": "Send Message",
+      "sending": "Sending…"
+    },
+    "success": {
+      "title": "Message Sent!",
+      "body": "Thanks for reaching out. Our team will get back to you within 1 business day.",
+      "sendAnother": "Send another message"
+    }
+  },
+  "servicesGrid": {
+    "title": "Professional Services",
+    "subtitle": "From deep cleaning to specialized maintenance, our experts are ready to transform your home.",
+    "taxes": "+ taxes",
+    "certifiedPros": "Certified professionals",
+    "satisfactionGuarantee": "Satisfaction guarantee",
+    "bookService": "Book Service"
+  },
+  "plans": {
+    "bookOneTime": "Book a one-time visit →",
+    "hero": {
+      "badge": "Lawn Care Memberships",
+      "title": "Your lawn, on autopilot.",
+      "subtitle": "Choose a plan that fits your yard size. We show up on schedule — you just enjoy a great-looking lawn."
+    },
+    "yardSize": {
+      "label": "Select your yard size",
+      "xlWarning": "XL properties are priced individually. Select any plan below to request a custom quote.",
+      "tiers": [
+        { "tier": "small",  "label": "Small",  "description": "Townhome, front yard or compact lot",       "examples": "Up to ~3,500 sqft" },
+        { "tier": "medium", "label": "Medium", "description": "Standard single-family home yard",          "examples": "~3,500–8,000 sqft" },
+        { "tier": "large",  "label": "Large",  "description": "Larger residential lot",                   "examples": "~8,000–15,000 sqft" },
+        { "tier": "xl",     "label": "XL",     "description": "Large lots, slopes or complex terrain",    "examples": "15,000+ sqft" }
+      ]
+    },
+    "card": {
+      "mostPopular": "Most Popular",
+      "custom": "Custom",
+      "customQuote": "quote",
+      "perMonth": "/mo",
+      "letsTalk": "Let's talk",
+      "notIncluded": "Not included",
+      "firstCutReset": "First Cut Reset may apply",
+      "firstCutCustom": "Custom quote includes initial evaluation.",
+      "contactForQuote": "Contact Us for a Quote",
+      "requestCustomQuote": "Request a Custom Quote",
+      "getStarted": "Get Started"
+    },
+    "customCard": {
+      "title": "Large lots & custom properties",
+      "subtitle": "Large acreage, slopes, complex terrain or commercial properties. We'll assess your yard and give you a tailored quote.",
+      "button": "Request a Quote"
+    },
+    "included": {
+      "sectionTitle": "What's always included",
+      "alwaysTitle": "Always included",
+      "notTitle": "Not included by default",
+      "alwaysItems": [
+        "Lawn mowing per scheduled visit",
+        "Edging along walkways & driveway",
+        "Blowing clippings off hard surfaces",
+        "Consistent technician assignment (when available)",
+        "Weather reschedule at no charge"
+      ],
+      "notItems": [
+        "Weed removal or herbicide treatment",
+        "Bush & shrub trimming",
+        "Debris hauling or bagging removal",
+        "Fertilizer or soil treatments",
+        "Overgrown or first-time cleanup",
+        "Sprinkler repair"
+      ],
+      "addOnsNote": "Add-ons available as one-time bookings or service credits on Home & Premium plans."
+    },
+    "policies": {
+      "title": "Plan policies",
+      "items": [
+        {
+          "q": "Is there a First Cut Reset fee?",
+          "a": "If your lawn hasn't been maintained recently or is overgrown, a one-time First Cut Reset fee applies. This covers the extra time and work to bring it to a baseline. Regular membership pricing begins after the first visit."
+        },
+        {
+          "q": "Can I pause my membership?",
+          "a": "Yes — members can pause up to 4 weeks per year with at least 7 days' notice. Billing resumes automatically when the pause ends. Credits and scheduled visits do not accrue during a pause. Your preferred schedule is not guaranteed after a pause."
+        },
+        {
+          "q": "Can I cancel at any time?",
+          "a": "You can cancel with at least 7 days' notice before your next billing date. Cancellations made within 48 hours of a scheduled visit may be subject to a last-minute cancellation fee."
+        },
+        {
+          "q": "What if it rains on my visit day?",
+          "a": "We reschedule at no charge for weather cancellations. You'll be contacted the day before if weather looks like an issue."
+        },
+        {
+          "q": "Do I get the same technician every time?",
+          "a": "We do our best to assign the same technician, but it's not guaranteed — especially after pauses or schedule changes."
+        }
+      ]
+    },
+    "bottomCta": {
+      "title": "Ready to get started?",
+      "subtitle": "Select a plan above or book a one-time visit first to see how we work.",
+      "button": "Book a one-time visit →"
+    },
+    "modal": {
+      "sizeYard": "yard",
+      "customQuoteLabel": "Custom quote",
+      "successTitle": "We'll be in touch!",
+      "successBody": "Thanks! We received your interest in the <strong>{{planName}}</strong> plan for a <strong>{{sizeLabel}}</strong> yard. Someone from the Greenbee team will contact you within 24 hours.",
+      "close": "Close",
+      "fullName": "Full Name *",
+      "namePlaceholder": "Jane Smith",
+      "emailLabel": "Email *",
+      "emailPlaceholder": "jane@email.com",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "(555) 000-0000",
+      "addressLabel": "Service Address",
+      "addressPlaceholder": "123 Main St, City, State",
+      "requestCustomQuote": "Request a Custom Quote",
+      "getStarted": "Get Started",
+      "noPaymentNote": "No payment required now. A Greenbee team member will contact you to confirm details and schedule your first visit."
+    }
+  },
+  "legal": {
+    "lastUpdated": "Last updated:",
+    "legalNotice": "Legal Notice: "
+  }
+}

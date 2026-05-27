@@ -22,6 +22,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import * as Icons from "lucide-react";
+import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
 import { fetchAreaContent } from "../shared/services/firebaseService";
 import { AreaContent } from "../shared/types";
@@ -32,11 +33,13 @@ function PhotoSlot({
   alt,
   className = "",
   children,
+  placeholderText,
 }: {
   url?: string;
   alt?: string;
   className?: string;
   children?: React.ReactNode;
+  placeholderText?: string;
 }) {
   if (url) {
     return (
@@ -51,63 +54,67 @@ function PhotoSlot({
       className={`relative flex flex-col items-center justify-center gap-2 bg-gray-100 border-2 border-dashed border-gray-200 text-gray-400 ${className}`}
     >
       <Icons.ImagePlus size={28} strokeWidth={1.5} />
-      <span className="text-xs font-medium">Photo — add from Admin → Media</span>
+      <span className="text-xs font-medium">{placeholderText}</span>
       {children}
     </div>
   );
 }
 
-// ─── Static fallback content (shown when no Firestore doc exists yet) ─────────
-function buildFallback(city: string, state: string): AreaContent {
-  return {
-    id: city.toLowerCase().replace(/\s+/g, "-"),
-    slug: city.toLowerCase().replace(/\s+/g, "-"),
-    city,
-    state,
-    active: true,
-    heroHeadline: `Professional Home Services in ${city}, ${state}`,
-    heroSubtitle: `Greenbee brings professional lawn care, cleaning, and home maintenance to ${city}. Reliable technicians. Transparent pricing. Satisfaction guaranteed.`,
-    introParagraph: `Looking for dependable home services in ${city}? Greenbee connects you with vetted, insured technicians ready to handle lawn mowing, house cleaning, pressure washing, and more. We serve homeowners across ${city} and surrounding neighborhoods.`,
-    serviceBlocks: [
-      { serviceId: "lawn-mowing",        serviceName: "Lawn Mowing",        localDescription: `Keep your ${city} lawn looking its best with regular professional mowing, edging, and blowoff.` },
-      { serviceId: "house-cleaning",     serviceName: "House Cleaning",     localDescription: `From standard maintenance cleans to deep structural cleans, our team keeps ${city} homes spotless.` },
-      { serviceId: "pressure-washing",   serviceName: "Pressure Washing",   localDescription: `Remove dirt, mold, and grime from driveways, patios, and exteriors with professional pressure washing.` },
-      { serviceId: "tv-installation",    serviceName: "TV Installation",    localDescription: `Professional TV wall mounting and installation for ${city} homeowners. Any wall type, any size.` },
-    ],
-    testimonials: [
-      { name: "Maria G.", location: `${city}`, text: "Greenbee has been amazing — always on time and the lawn looks perfect every week.", rating: 5 },
-      { name: "Jason T.", location: `${city}`, text: "Booked a deep clean and was blown away. Very professional team.", rating: 5 },
-      { name: "Sandra L.", location: `${city}`, text: "Love how easy it is to book online. The technicians are courteous and thorough.", rating: 5 },
-    ],
-    neighborhoods: [],
-    faqs: [
-      { question: `Do you serve all of ${city}?`, answer: `Yes — we serve ${city} and the surrounding area. Enter your ZIP code during booking to confirm coverage.` },
-      { question: "How do I get a quote?", answer: "Use our online estimator to get an instant price estimate. No phone call needed." },
-      { question: "Are your technicians insured?", answer: "Yes. All Greenbee technicians are vetted, background-checked, and fully insured." },
-      { question: "Can I book a recurring service?", answer: "Yes — you can book a one-time visit or choose a recurring schedule. Check our membership plans for the best rates." },
-      { question: "What if I'm not satisfied?", answer: "We offer a satisfaction guarantee. If something isn't right, we'll come back and make it right at no extra cost." },
-    ],
-    seoTitle: `Home Services in ${city}, ${state} | Greenbee`,
-    seoDescription: `Professional lawn care, house cleaning & home maintenance in ${city}, ${state}. Vetted technicians, transparent pricing, satisfaction guaranteed. Book online.`,
-    updatedAt: "",
-  };
-}
-
 // ─── Service icon map ─────────────────────────────────────────────────────────
 const SERVICE_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  "lawn-mowing":       Icons.Scissors,
-  "house-cleaning":    Icons.Sparkles,
-  "pressure-washing":  Icons.Droplets,
-  "tv-installation":   Icons.Tv,
+  "lawn-mowing":        Icons.Scissors,
+  "house-cleaning":     Icons.Sparkles,
+  "pressure-washing":   Icons.Droplets,
+  "tv-installation":    Icons.Tv,
   "furniture-assembly": Icons.Package,
-  "wall-mounting":     Icons.Frame,
+  "wall-mounting":      Icons.Frame,
 };
+
+const DIFFERENCE_ICONS = [Icons.BadgeCheck, Icons.UserCheck, Icons.ShieldCheck, Icons.Clock];
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function AreaLandingPage() {
+  const { t } = useTranslation();
   const { areaSlug } = useParams<{ areaSlug: string }>();
   const [content, setContent] = useState<AreaContent | null>(null);
   const [loading, setLoading]  = useState(true);
+
+  const photoPlaceholder = t("areaPage.photoPlaceholder");
+
+  // Build fallback content using i18n keys (no hardcoded strings)
+  function buildFallback(city: string, state: string): AreaContent {
+    const interp = { city, state };
+    const fbTestimonials = t("areaPage.fallback.testimonials", { returnObjects: true, ...interp }) as { name: string; text: string }[];
+    const fbFaqs = t("areaPage.fallback.faqs", { returnObjects: true, ...interp }) as { q: string; a: string }[];
+
+    return {
+      id:    city.toLowerCase().replace(/\s+/g, "-"),
+      slug:  city.toLowerCase().replace(/\s+/g, "-"),
+      city,
+      state,
+      active: true,
+      heroHeadline:   t("areaPage.fallback.heroHeadline",   interp),
+      heroSubtitle:   t("areaPage.fallback.heroSubtitle",   interp),
+      introParagraph: t("areaPage.fallback.introParagraph", interp),
+      serviceBlocks: [
+        { serviceId: "lawn-mowing",      serviceName: "Lawn Mowing",        localDescription: t("areaPage.fallback.serviceDescriptions.lawnMowing",      interp) },
+        { serviceId: "house-cleaning",   serviceName: "House Cleaning",     localDescription: t("areaPage.fallback.serviceDescriptions.houseCleaning",   interp) },
+        { serviceId: "pressure-washing", serviceName: "Pressure Washing",   localDescription: t("areaPage.fallback.serviceDescriptions.pressureWashing", interp) },
+        { serviceId: "tv-installation",  serviceName: "TV Installation",    localDescription: t("areaPage.fallback.serviceDescriptions.tvInstallation",  interp) },
+      ],
+      testimonials: fbTestimonials.map((item) => ({
+        name: item.name,
+        location: city,
+        text: item.text,
+        rating: 5,
+      })),
+      neighborhoods: [],
+      faqs: fbFaqs.map((item) => ({ question: item.q, answer: item.a })),
+      seoTitle:       t("areaPage.fallback.seoTitle",       interp),
+      seoDescription: t("areaPage.fallback.seoDescription", interp),
+      updatedAt: "",
+    };
+  }
 
   useEffect(() => {
     if (!areaSlug) return;
@@ -126,18 +133,22 @@ export default function AreaLandingPage() {
   }
 
   // Use Firestore content or generate fallback from the slug
-  const city  = content?.city  ?? (areaSlug ?? "").replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const city  = content?.city  ?? (areaSlug ?? "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const state = content?.state ?? "FL";
   const c     = content ?? buildFallback(city, state);
 
+  // i18n arrays
+  const differencePillars = t("areaPage.difference.pillars", { returnObjects: true }) as { title: string; desc: string }[];
+  const stats = t("areaPage.stats", { returnObjects: true }) as { stat: string; label: string }[];
+
   if (content && !content.active) {
     return (
-      <PageShell seo={{ title: "Area Not Found | Greenbee", description: "" }}>
+      <PageShell seo={{ title: t("areaPage.notAvailable.pageTitle"), description: "" }}>
         <div className="max-w-lg mx-auto py-24 text-center space-y-4">
           <Icons.MapPin size={40} className="text-gray-300 mx-auto" />
-          <h1 className="text-2xl font-black text-gray-800">Area not available</h1>
-          <p className="text-gray-500">We don't currently serve this area, but we're expanding soon.</p>
-          <Link to="/areas" className="text-brand font-bold hover:underline">← View all service areas</Link>
+          <h1 className="text-2xl font-black text-gray-800">{t("areaPage.notAvailable.heading")}</h1>
+          <p className="text-gray-500">{t("areaPage.notAvailable.body")}</p>
+          <Link to="/areas" className="text-brand font-bold hover:underline">{t("areaPage.notAvailable.backLink")}</Link>
         </div>
       </PageShell>
     );
@@ -157,6 +168,7 @@ export default function AreaLandingPage() {
           url={c.heroPhotoUrl}
           alt={`Home services in ${c.city}`}
           className="absolute inset-0"
+          placeholderText={photoPlaceholder}
         >
           {/* dark overlay when photo is present */}
           {c.heroPhotoUrl && (
@@ -172,9 +184,9 @@ export default function AreaLandingPage() {
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Breadcrumb */}
             <nav className="text-xs text-white/60 flex items-center gap-1.5">
-              <Link to="/" className="hover:text-white">Home</Link>
+              <Link to="/" className="hover:text-white">{t("areaPage.home")}</Link>
               <Icons.ChevronRight size={12} />
-              <Link to="/areas" className="hover:text-white">Service Areas</Link>
+              <Link to="/areas" className="hover:text-white">{t("areaPage.serviceAreas")}</Link>
               <Icons.ChevronRight size={12} />
               <span className="text-white/80">{c.city}, {c.state}</span>
             </nav>
@@ -187,18 +199,18 @@ export default function AreaLandingPage() {
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Link
-                to="/#booking"
+                to="/#estimate"
                 className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
               >
                 <Icons.CalendarCheck size={16} />
-                Book a Service
+                {t("areaPage.bookService")}
               </Link>
               <a
-                href="tel:+1"
+                href="tel:+13055550000"
                 className="inline-flex items-center gap-2 bg-white/15 backdrop-blur border border-white/25 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-white/25 transition-colors"
               >
                 <Icons.Phone size={16} />
-                Call Us
+                {t("areaPage.callUs")}
               </a>
             </div>
           </div>
@@ -208,18 +220,17 @@ export default function AreaLandingPage() {
       {/* ── 2. TRUST STATS ───────────────────────────────────────────────── */}
       <section className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-          {[
-            { icon: Icons.Users,      stat: "5,000+",  label: "Happy Customers" },
-            { icon: Icons.Star,       stat: "500+",    label: "5-Star Reviews" },
-            { icon: Icons.ShieldCheck,stat: "100%",    label: "Insured & Vetted" },
-            { icon: Icons.Clock,      stat: "Same Day",label: "Available" },
-          ].map(({ icon: Icon, stat, label }) => (
-            <div key={label} className="space-y-1">
-              <Icon size={22} className="text-brand mx-auto" />
-              <p className="text-xl font-black text-gray-900">{stat}</p>
-              <p className="text-xs text-gray-500">{label}</p>
-            </div>
-          ))}
+          {[Icons.Users, Icons.Star, Icons.ShieldCheck, Icons.Clock].map((Icon, idx) => {
+            const item = stats[idx];
+            if (!item) return null;
+            return (
+              <div key={idx} className="space-y-1">
+                <Icon size={22} className="text-brand mx-auto" />
+                <p className="text-xl font-black text-gray-900">{item.stat}</p>
+                <p className="text-xs text-gray-500">{item.label}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -228,7 +239,7 @@ export default function AreaLandingPage() {
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-gray-900">
-              Services in {c.city}
+              {t("areaPage.servicesTitle", { city: c.city })}
             </h2>
             <p className="text-gray-500 text-sm max-w-xl mx-auto">
               {c.introParagraph}
@@ -243,11 +254,11 @@ export default function AreaLandingPage() {
                   key={svc.serviceId}
                   className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col"
                 >
-                  {/* Photo slot */}
                   <PhotoSlot
                     url={svc.photoUrl}
                     alt={`${svc.serviceName} in ${c.city}`}
                     className="h-44"
+                    placeholderText={photoPlaceholder}
                   />
                   <div className="p-5 flex-1 space-y-2">
                     <div className="flex items-center gap-2">
@@ -260,10 +271,10 @@ export default function AreaLandingPage() {
                       {svc.localDescription}
                     </p>
                     <Link
-                      to="/#booking"
+                      to="/#estimate"
                       className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline mt-1"
                     >
-                      Book now <Icons.ArrowRight size={12} />
+                      {t("areaPage.bookNow")} <Icons.ArrowRight size={12} />
                     </Link>
                   </div>
                 </div>
@@ -277,24 +288,22 @@ export default function AreaLandingPage() {
       <section className="py-14 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <span className="text-xs font-black uppercase tracking-widest text-brand">Our Promise</span>
-            <h2 className="text-2xl font-black text-gray-900 mt-1">The Greenbee Difference</h2>
+            <span className="text-xs font-black uppercase tracking-widest text-brand">{t("areaPage.difference.eyebrow")}</span>
+            <h2 className="text-2xl font-black text-gray-900 mt-1">{t("areaPage.difference.title")}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Icons.BadgeCheck,   title: "Spotless Results",          desc: "We don't leave until the job meets our quality standard." },
-              { icon: Icons.UserCheck,    title: "Vetted Technicians",        desc: "Every pro is background-checked, trained, and insured." },
-              { icon: Icons.ShieldCheck,  title: "Fully Insured",             desc: "All work is covered. Zero risk for you." },
-              { icon: Icons.Clock,        title: "On Time & Reliable",        desc: "We show up when we say we will. Every time." },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="text-center space-y-2 p-4">
-                <div className="mx-auto w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center">
-                  <Icon size={22} className="text-brand" />
+            {differencePillars.map((pillar, idx) => {
+              const Icon = DIFFERENCE_ICONS[idx] ?? Icons.CheckCircle2;
+              return (
+                <div key={pillar.title} className="text-center space-y-2 p-4">
+                  <div className="mx-auto w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center">
+                    <Icon size={22} className="text-brand" />
+                  </div>
+                  <h3 className="font-black text-sm text-gray-900">{pillar.title}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">{pillar.desc}</p>
                 </div>
-                <h3 className="font-black text-sm text-gray-900">{title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -303,16 +312,14 @@ export default function AreaLandingPage() {
       <section className="bg-[#0a2e1e] py-12 px-4">
         <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="text-center sm:text-left space-y-1">
-            <h2 className="text-xl font-black text-white">Save with a membership plan</h2>
-            <p className="text-white/50 text-sm">
-              Regular service? Our lawn care membership plans start at just $59/mo for small yards.
-            </p>
+            <h2 className="text-xl font-black text-white">{t("areaPage.plansCta.title")}</h2>
+            <p className="text-white/50 text-sm">{t("areaPage.plansCta.subtitle")}</p>
           </div>
           <Link
             to="/plans"
             className="shrink-0 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors whitespace-nowrap"
           >
-            View Plans →
+            {t("areaPage.plansCta.button")}
           </Link>
         </div>
       </section>
@@ -323,25 +330,25 @@ export default function AreaLandingPage() {
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-1">
               <h2 className="text-2xl font-black text-gray-900">
-                What {c.city} homeowners say
+                {t("areaPage.testimonialsTitle", { city: c.city })}
               </h2>
-              <p className="text-sm text-gray-400">500+ five-star reviews and counting</p>
+              <p className="text-sm text-gray-400">{t("areaPage.testimonialsSubtitle")}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {c.testimonials.map((t, i) => (
+              {c.testimonials.map((testimonial, i) => (
                 <div
                   key={i}
                   className="bg-[#f0faf4] rounded-2xl p-5 space-y-3 border border-brand/10"
                 >
                   <div className="flex">
-                    {Array.from({ length: t.rating }).map((_, j) => (
+                    {Array.from({ length: testimonial.rating }).map((_, j) => (
                       <Icons.Star key={j} size={14} className="text-yellow-400 fill-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed italic">"{t.text}"</p>
+                  <p className="text-sm text-gray-700 leading-relaxed italic">"{testimonial.text}"</p>
                   <div>
-                    <p className="text-xs font-bold text-gray-900">{t.name}</p>
-                    <p className="text-[11px] text-gray-400">{t.location}</p>
+                    <p className="text-xs font-bold text-gray-900">{testimonial.name}</p>
+                    <p className="text-[11px] text-gray-400">{testimonial.location}</p>
                   </div>
                 </div>
               ))}
@@ -355,7 +362,7 @@ export default function AreaLandingPage() {
         <section className="py-12 px-4 bg-gray-50 border-t border-gray-100">
           <div className="max-w-4xl mx-auto space-y-5">
             <h2 className="text-lg font-black text-gray-900">
-              Neighborhoods we serve in {c.city}
+              {t("areaPage.neighborhoodsTitle", { city: c.city })}
             </h2>
             <div className="flex flex-wrap gap-2">
               {c.neighborhoods.map((n) => (
@@ -376,7 +383,7 @@ export default function AreaLandingPage() {
         <section className="py-14 px-4 bg-white">
           <div className="max-w-2xl mx-auto space-y-4">
             <h2 className="text-2xl font-black text-gray-900 text-center mb-8">
-              Frequently asked questions
+              {t("areaPage.faqTitle")}
             </h2>
             {c.faqs.map((faq, i) => (
               <details
@@ -403,17 +410,17 @@ export default function AreaLandingPage() {
       <section className="bg-[#0a2e1e] py-14 px-4 text-center">
         <div className="max-w-md mx-auto space-y-4">
           <h2 className="text-2xl font-black text-white">
-            Ready for a cleaner home in {c.city}?
+            {t("areaPage.bottomCta.title", { city: c.city })}
           </h2>
           <p className="text-white/50 text-sm">
-            Book in 60 seconds. Transparent pricing. No surprises.
+            {t("areaPage.bottomCta.subtitle")}
           </p>
           <Link
-            to="/#booking"
+            to="/#estimate"
             className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
           >
             <Icons.CalendarCheck size={16} />
-            Book a Service in {c.city}
+            {t("areaPage.bottomCta.button", { city: c.city })}
           </Link>
         </div>
       </section>
