@@ -293,14 +293,11 @@ service cloud.firestore {
     }
 
     // Collection: Coupons
+    // Public users can get a single coupon by ID (code validation & enabled check
+    // is handled client-side in fetchPublicCouponByCode). Listing all coupons
+    // is restricted to admins/managers.
     match /coupons/{couponId} {
-      allow get: if isAdminOrManager() || (
-        isValidId(couponId) &&
-        (
-          !exists(/databases/$(database)/documents/coupons/$(couponId)) ||
-          resource.data.enabled == true
-        )
-      );
+      allow get: if isAdminOrManager() || isValidId(couponId);
       allow list: if isAdminOrManager();
       allow create, update: if isAdminOrManager() && isValidId(couponId) && isValidCoupon(incoming());
       allow delete: if isAdminOrManager() && isValidId(couponId);
