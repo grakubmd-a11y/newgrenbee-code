@@ -1,23 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
+import { fetchPageContent } from "../shared/services/firebaseService";
+import { FaqPageContent } from "../shared/types";
 
-interface FAQItem {
-  q: string;
-  a: string;
-}
-
-interface FAQCategory {
-  name: string;
-  items: FAQItem[];
-}
+interface FAQItem { q: string; a: string; }
+interface FAQCategory { name: string; items: FAQItem[]; }
 
 export default function FAQPage() {
-  const { t } = useTranslation();
-  const [openKey, setOpenKey] = useState<string | null>(null);
+  const { t, i18n } = useTranslation();
+  const [openKey, setOpenKey]   = useState<string | null>(null);
+  const [cms, setCms]           = useState<FaqPageContent | null>(null);
 
-  const categories = t("faq.categories", { returnObjects: true }) as FAQCategory[];
+  useEffect(() => {
+    fetchPageContent("faq").then((d) => { if (d) setCms(d); }).catch(() => {});
+  }, []);
+
+  const lang = i18n.language?.startsWith("es") ? "es" : "en";
+
+  // If admin has set FAQ content in Firestore, use it; otherwise fall back to i18n
+  const categories: FAQCategory[] = cms?.categories?.length
+    ? cms.categories.map((cat) => ({
+        name:  lang === "es" ? cat.nameEs : cat.nameEn,
+        items: cat.items.map((item) => ({
+          q: lang === "es" ? item.questionEs : item.questionEn,
+          a: lang === "es" ? item.answerEs   : item.answerEn,
+        })),
+      }))
+    : (t("faq.categories", { returnObjects: true }) as FAQCategory[]);
 
   function toggle(key: string) {
     setOpenKey((prev) => (prev === key ? null : key));

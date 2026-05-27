@@ -1,15 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Mail, Phone, Clock, MessageSquare, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
+import { fetchPageContent } from "../shared/services/firebaseService";
+import { ContactPageContent } from "../shared/types";
 
 export default function ContactPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cms, setCms] = useState<ContactPageContent | null>(null);
 
   const commonQuestions = t("contact.commonQuestionsList", { returnObjects: true }) as string[];
+
+  useEffect(() => {
+    fetchPageContent("contact").then((d) => { if (d) setCms(d); }).catch(() => {});
+  }, []);
+
+  const lang = i18n.language?.startsWith("es") ? "es" : "en";
+  const phone   = cms?.phone   || "(305) 555-0190";
+  const email   = cms?.email   || "support@grenbee.com";
+  const address = cms?.addressLine;
+  const hours   = (lang === "es" ? cms?.hoursEs : cms?.hoursEn) || t("contact.hoursValue");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -44,13 +57,16 @@ export default function ContactPage() {
           {/* Info column */}
           <div className="md:col-span-2 space-y-6">
             <div className="bg-emerald-50 rounded-2xl p-6 space-y-5">
-              <InfoRow icon={<Mail className="w-5 h-5 text-emerald-600" />} label={t("contact.email")} value="support@grenbee.com" />
-              <InfoRow icon={<Phone className="w-5 h-5 text-emerald-600" />} label={t("contact.phone")} value="(305) 555-0190" />
+              <InfoRow icon={<Mail className="w-5 h-5 text-emerald-600" />} label={t("contact.email")} value={email} />
+              <InfoRow icon={<Phone className="w-5 h-5 text-emerald-600" />} label={t("contact.phone")} value={phone} />
               <InfoRow
                 icon={<Clock className="w-5 h-5 text-emerald-600" />}
                 label={t("contact.hours")}
-                value={t("contact.hoursValue")}
+                value={hours}
               />
+              {address && (
+                <InfoRow icon={<Mail className="w-5 h-5 text-emerald-600" />} label={t("contact.address") || "Address"} value={address} />
+              )}
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6">

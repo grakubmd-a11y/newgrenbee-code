@@ -5,6 +5,7 @@ import { db, auth } from "../../shared/firebase";
 import PlansAdminTab from "./PlansAdminTab";
 import MediaLibraryTab from "./MediaLibraryTab";
 import AreaContentTab from "./AreaContentTab";
+import PageContentTab from "./PageContentTab";
 import {
   Booking,
   BookingStatus,
@@ -62,7 +63,7 @@ interface AdminPanelProps {
   onExit?: () => void;
 }
 
-type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews' | 'plans' | 'media' | 'areas';
+type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews' | 'plans' | 'media' | 'areas' | 'pages';
 
 export default function AdminPanel({
   bookings,
@@ -1108,6 +1109,7 @@ export default function AdminPanel({
             { id: "plans", label: "Membresías", icon: Icons.BadgePercent },
             { id: "media", label: "Media", icon: Icons.Images },
             { id: "areas", label: "Áreas / SEO", icon: Icons.MapPin },
+            { id: "pages", label: "Páginas CMS", icon: Icons.LayoutTemplate },
             { id: "staff", label: "Personal / Staff", icon: Icons.Wrench, badge: staffList.length },
             { id: "coverage", label: "Zonas / ZIP", icon: Icons.Map, badge: coverageList.length },
             { id: "customers", label: "Clientes", icon: Icons.Users, badge: customersList.length },
@@ -3142,6 +3144,11 @@ export default function AdminPanel({
       {/* AREAS / SEO TAB */}
       {!isLoading && activeSubTab === 'areas' && (
         <AreaContentTab />
+      )}
+
+      {/* PAGES CMS TAB */}
+      {!isLoading && activeSubTab === 'pages' && (
+        <PageContentTab />
       )}
 
       {/* 6. COVERAGE CRUD TAB */}

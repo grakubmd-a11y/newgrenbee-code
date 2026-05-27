@@ -30,7 +30,7 @@ import {
 } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, auth, storage } from "../firebase";
-import { AdminActivityEvent, AreaContent, Booking, BookingStatus, CouponRule, MediaItem, MembershipPlan, Review, Service, Staff, Coverage, BusinessSettings, RecurringPlan } from "../types";
+import { AdminActivityEvent, AreaContent, Booking, BookingStatus, CouponRule, ContactPageContent, FaqPageContent, HomePageContent, MediaItem, MembershipPlan, Review, Service, Staff, Coverage, BusinessSettings, RecurringPlan } from "../types";
 
 // Operation types for the error reporter
 export enum OperationType {
@@ -909,4 +909,30 @@ export async function saveAreaContent(content: AreaContent): Promise<void> {
 /** Delete area content. */
 export async function deleteAreaContent(id: string): Promise<void> {
   await deleteDoc(doc(db, "areaContent", id));
+}
+
+// ── Page CMS ──────────────────────────────────────────────────────────────────
+
+/** Fetch the CMS content for a marketing page ("home" | "faq" | "contact"). */
+export async function fetchPageContent(pageId: "home"): Promise<HomePageContent | null>;
+export async function fetchPageContent(pageId: "faq"): Promise<FaqPageContent | null>;
+export async function fetchPageContent(pageId: "contact"): Promise<ContactPageContent | null>;
+export async function fetchPageContent(pageId: string): Promise<HomePageContent | FaqPageContent | ContactPageContent | null> {
+  try {
+    const snap = await getDoc(doc(db, "pageContent", pageId));
+    if (!snap.exists()) return null;
+    return snap.data() as HomePageContent | FaqPageContent | ContactPageContent;
+  } catch {
+    return null;
+  }
+}
+
+/** Save (create or update) CMS content for a marketing page. */
+export async function savePageContent(
+  content: HomePageContent | FaqPageContent | ContactPageContent
+): Promise<void> {
+  await setDoc(doc(db, "pageContent", content.pageId), {
+    ...content,
+    updatedAt: new Date().toISOString(),
+  });
 }

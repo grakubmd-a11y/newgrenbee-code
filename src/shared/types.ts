@@ -331,6 +331,65 @@ export interface MediaItem {
   uploadedBy: string;     // admin email
 }
 
+// ── Page CMS ──────────────────────────────────────────────────────────────────
+
+/** Hero section of the Home page (admin-editable overrides) */
+export interface HomePageContent {
+  pageId: "home";
+  // Hero
+  heroPhotoUrl?: string;
+  heroHeadlineEn?: string;
+  heroHeadlineEs?: string;
+  heroSubtitleEn?: string;
+  heroSubtitleEs?: string;
+  heroCtaEn?: string;
+  heroCtaEs?: string;
+  // Service card photos (serviceId → photoUrl)
+  servicePhotos: Record<string, string>;
+  // Coverage region photos
+  coverageMiamiPhotoUrl?: string;
+  coverageBrowardPhotoUrl?: string;
+  // CTA banner background
+  ctaBannerPhotoUrl?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export interface FaqItemContent {
+  id: string;
+  questionEn: string;
+  questionEs: string;
+  answerEn: string;
+  answerEs: string;
+}
+
+export interface FaqCategoryContent {
+  id: string;
+  nameEn: string;
+  nameEs: string;
+  items: FaqItemContent[];
+}
+
+export interface FaqPageContent {
+  pageId: "faq";
+  categories: FaqCategoryContent[];
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export interface ContactPageContent {
+  pageId: "contact";
+  phone?: string;
+  email?: string;
+  addressLine?: string;
+  hoursEn?: string;
+  hoursEs?: string;
+  introEn?: string;
+  introEs?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
 // ── Area Landing Pages ────────────────────────────────────────────────────────
 
 export interface AreaTestimonial {

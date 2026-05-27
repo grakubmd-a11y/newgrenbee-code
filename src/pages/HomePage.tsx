@@ -25,9 +25,9 @@ import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SiteNavbar from "../public/components/SiteNavbar";
 import CostEstimator from "../public/components/CostEstimator";
-import { fetchServicesFromFirestore, fetchReviewsFromFirestore } from "../shared/services/firebaseService";
+import { fetchServicesFromFirestore, fetchReviewsFromFirestore, fetchPageContent } from "../shared/services/firebaseService";
 import { SERVICES_DATA } from "../shared/data";
-import { Service, Review } from "../shared/types";
+import { Service, Review, HomePageContent } from "../shared/types";
 
 // ─── PhotoSlot ────────────────────────────────────────────────────────────────
 function PhotoSlot({
@@ -104,10 +104,11 @@ const SERVICE_DESCRIPTION_KEYS: Record<string, string> = {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [services, setServices]   = useState<Service[]>(SERVICES_DATA);
   const [reviews,  setReviews]    = useState<Review[]>([]);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [cms, setCms]             = useState<HomePageContent | null>(null);
   const estimatorRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -124,12 +125,21 @@ export default function HomePage() {
   ];
   const standardIcons = [Icons.Sparkles, Icons.ShieldCheck, Icons.Leaf, Icons.Clock];
 
+  // CMS overrides: pick EN or ES value, fall back to i18n default
+  const lang = i18n.language?.startsWith("es") ? "es" : "en";
+  const heroHeadline = (lang === "es" ? cms?.heroHeadlineEs : cms?.heroHeadlineEn) || t("home.hero.title");
+  const heroSubtitle = (lang === "es" ? cms?.heroSubtitleEs : cms?.heroSubtitleEn) || t("home.hero.subtitle");
+  const heroCta      = (lang === "es" ? cms?.heroCtaEs      : cms?.heroCtaEn)      || t("home.hero.ctaPrimary");
+
   useEffect(() => {
     fetchServicesFromFirestore()
       .then((s) => { if (s?.length) setServices(s); })
       .catch(() => {});
     fetchReviewsFromFirestore()
       .then((r) => { if (r?.length) setReviews(r); })
+      .catch(() => {});
+    fetchPageContent("home")
+      .then((d) => { if (d) setCms(d); })
       .catch(() => {});
   }, []);
 
@@ -160,6 +170,7 @@ export default function HomePage() {
         <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[580px] flex items-center">
           {/* Background photo slot */}
           <PhotoSlot
+            url={cms?.heroPhotoUrl}
             className="absolute inset-0 w-full h-full"
             placeholderText={photoPlaceholder}
           />
@@ -175,11 +186,11 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6">
-                {t("home.hero.title")}
+                {heroHeadline}
               </h1>
 
               <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
-                {t("home.hero.subtitle")}
+                {heroSubtitle}
               </p>
 
               {/* CTAs */}
@@ -188,7 +199,7 @@ export default function HomePage() {
                   onClick={scrollToEstimator}
                   className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors shadow-lg cursor-pointer"
                 >
-                  {t("home.hero.ctaPrimary")}
+                  {heroCta}
                   <Icons.ArrowRight className="w-4 h-4" />
                 </button>
                 <a
@@ -244,7 +255,7 @@ export default function HomePage() {
                     key={service.id}
                     className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
                   >
-                    <PhotoSlot className="h-48 w-full" alt={service.name} placeholderText={photoPlaceholder} />
+                    <PhotoSlot className="h-48 w-full" url={cms?.servicePhotos?.[service.id]} alt={service.name} placeholderText={photoPlaceholder} />
                     <div className="p-5">
                       <h3 className="font-bold text-gray-900 text-lg mb-2">{service.name}</h3>
                       <p className="text-gray-500 text-sm leading-relaxed mb-4">{desc}</p>
@@ -276,7 +287,7 @@ export default function HomePage() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Miami-Dade */}
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <PhotoSlot className="h-52 w-full" alt="Miami-Dade County" placeholderText={photoPlaceholder} />
+                <PhotoSlot className="h-52 w-full" url={cms?.coverageMiamiPhotoUrl} alt="Miami-Dade County" placeholderText={photoPlaceholder} />
                 <div className="p-6">
                   <h3 className="text-xl font-black text-gray-950 mb-1">{t("home.coverage.miamidade.title")}</h3>
                   <p className="text-sm text-gray-500 mb-4">
@@ -293,7 +304,7 @@ export default function HomePage() {
 
               {/* Broward */}
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <PhotoSlot className="h-52 w-full" alt="Broward County" placeholderText={photoPlaceholder} />
+                <PhotoSlot className="h-52 w-full" url={cms?.coverageBrowardPhotoUrl} alt="Broward County" placeholderText={photoPlaceholder} />
                 <div className="p-6">
                   <h3 className="text-xl font-black text-gray-950 mb-1">{t("home.coverage.broward.title")}</h3>
                   <p className="text-sm text-gray-500 mb-4">
@@ -446,7 +457,7 @@ export default function HomePage() {
 
         {/* ── 8. CTA BANNER ────────────────────────────────────────────────── */}
         <section className="relative py-20 bg-emerald-600 text-white overflow-hidden">
-          <PhotoSlot className="absolute inset-0 w-full h-full opacity-20" placeholderText={photoPlaceholder} />
+          <PhotoSlot url={cms?.ctaBannerPhotoUrl} className="absolute inset-0 w-full h-full opacity-20" placeholderText={photoPlaceholder} />
           <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-black mb-4">
               {t("home.ctaBanner.title")}
