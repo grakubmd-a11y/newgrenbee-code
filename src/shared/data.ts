@@ -77,6 +77,23 @@ export const SERVICES_DATA: Service[] = [
           { label: "No laundry or linen service", priceModifier: 0 },
           { label: "Laundry folding + bed making (+$30)", priceModifier: 30 }
         ]
+      },
+      {
+        name: "extrasWindows",
+        label: "Interior Window Cleaning",
+        options: [
+          { label: "Skip interior windows", priceModifier: 0 },
+          { label: "Clean all interior windows (+$20)", priceModifier: 20 }
+        ]
+      },
+      {
+        name: "clutterLevel",
+        label: "Home Clutter Level",
+        options: [
+          { label: "Tidy — easy access to all surfaces", priceModifier: 0 },
+          { label: "Moderate clutter — some clearing needed (+$15)", priceModifier: 15 },
+          { label: "Heavy clutter — significant pre-clean prep (+$30)", priceModifier: 30 }
+        ]
       }
     ]
   },
@@ -105,12 +122,22 @@ export const SERVICES_DATA: Service[] = [
     ],
     factors: [
       {
+        name: "tvSize",
+        label: "TV Screen Size",
+        options: [
+          { label: "Up to 43 inches", priceModifier: 0 },
+          { label: "44 to 65 inches", priceModifier: 0 },
+          { label: "66 to 85 inches (+$25)", priceModifier: 25 },
+          { label: "86 inches or larger (+$45)", priceModifier: 45 }
+        ]
+      },
+      {
         name: "mountType",
-        label: "Provided Mount Bracket",
+        label: "Mount Bracket",
         options: [
           { label: "I have my own bracket / Flat Fixed Bracket", priceModifier: 0 },
-          { label: "Tilting Wall Bracket provided by tech (+ $20)", priceModifier: 20 },
-          { label: "Premium Full-Motion Swivel Bracket provided by tech (+ $48)", priceModifier: 48 }
+          { label: "Tilting Wall Bracket provided by tech (+$20)", priceModifier: 20 },
+          { label: "Full-Motion Swivel Bracket provided by tech (+$48)", priceModifier: 48 }
         ]
       },
       {
@@ -118,16 +145,24 @@ export const SERVICES_DATA: Service[] = [
         label: "Wall Surface Material",
         options: [
           { label: "Standard Drywall / Wood Studs", priceModifier: 0 },
-          { label: "Concrete, Brick or Masonry (+ $30)", priceModifier: 30 },
-          { label: "Metal Studs Stud-Lock system (+ $25)", priceModifier: 25 }
+          { label: "Concrete, Brick or Masonry (+$30)", priceModifier: 30 },
+          { label: "Metal Studs Stud-Lock system (+$25)", priceModifier: 25 }
         ]
       },
       {
         name: "wireHiding",
-        label: "Wire Management",
+        label: "Wire & Cable Management",
         options: [
           { label: "Tidy bundle with velcro wraps", priceModifier: 0 },
-          { label: "In-wall wire routing with discrete plates (+ $45)", priceModifier: 45 }
+          { label: "In-wall routing with discrete outlet plates (+$45)", priceModifier: 45 }
+        ]
+      },
+      {
+        name: "soundbarSetup",
+        label: "Soundbar / Component Setup",
+        options: [
+          { label: "TV only — no additional components", priceModifier: 0 },
+          { label: "Connect soundbar, console or media device (+$20)", priceModifier: 20 }
         ]
       }
     ]
@@ -168,8 +203,32 @@ export const SERVICES_DATA: Service[] = [
         name: "baggingClippings",
         label: "Clippings Handling",
         options: [
-          { label: "Mulch lawn (natural lawn fertilizing)", priceModifier: 0 },
-          { label: "Collect and bag in green bins (+ $10)", priceModifier: 10 }
+          { label: "Mulch back into lawn (natural fertilizing)", priceModifier: 0 },
+          { label: "Collect and bag for green bin disposal (+$10)", priceModifier: 10 }
+        ]
+      },
+      {
+        name: "edgingService",
+        label: "Edging & Shrub Trimming",
+        options: [
+          { label: "Mowing only — no extra edging", priceModifier: 0 },
+          { label: "Hard edge walkways + trim shrubs & hedges (+$20)", priceModifier: 20 }
+        ]
+      },
+      {
+        name: "debrisCleanup",
+        label: "Yard Debris & Leaf Cleanup",
+        options: [
+          { label: "No debris removal needed", priceModifier: 0 },
+          { label: "Rake & remove leaves and yard debris (+$35)", priceModifier: 35 }
+        ]
+      },
+      {
+        name: "weedControl",
+        label: "Weed Removal",
+        options: [
+          { label: "No weed removal", priceModifier: 0 },
+          { label: "Hand-pull weeds from beds & cracks (+$25)", priceModifier: 25 }
         ]
       }
     ]
@@ -207,11 +266,28 @@ export const SERVICES_DATA: Service[] = [
         ]
       },
       {
+        name: "furnitureBrand",
+        label: "Furniture Brand / Source",
+        options: [
+          { label: "IKEA flat-pack (instructions provided)", priceModifier: 0 },
+          { label: "Other flat-pack brand (Amazon, Wayfair, Target...)", priceModifier: 0 },
+          { label: "Custom / no instructions — may take longer (+$20)", priceModifier: 20 }
+        ]
+      },
+      {
         name: "wallAnchor",
         label: "Anti-Tip Wall Anchoring",
         options: [
           { label: "No wall anchoring needed", priceModifier: 0 },
-          { label: "Anchor heavy items into studs for family safety (+ $15)", priceModifier: 15 }
+          { label: "Anchor heavy items into studs for family safety (+$15)", priceModifier: 15 }
+        ]
+      },
+      {
+        name: "boxHaulAway",
+        label: "Packaging Haul-Away",
+        options: [
+          { label: "I'll handle the boxes myself", priceModifier: 0 },
+          { label: "Tech compresses + takes all packaging to dumpster (+$15)", priceModifier: 15 }
         ]
       }
     ]
@@ -249,11 +325,36 @@ export const SERVICES_DATA: Service[] = [
         ]
       },
       {
-        name: "oilTreatment",
-        label: "Special Oil & Rust Stain Prep",
+        name: "dirtLevel",
+        label: "Surface Condition / Stain Level",
         options: [
-          { label: "Standard atmospheric dirt & mildew clean", priceModifier: 0 },
-          { label: "Degreaser treatment for persistent machinery oil/rust (+ $35)", priceModifier: 35 }
+          { label: "Light — seasonal dust and light mildew", priceModifier: 0 },
+          { label: "Moderate — embedded grime, green algae (+$20)", priceModifier: 20 },
+          { label: "Heavy — deep stains, black mold, years of buildup (+$45)", priceModifier: 45 }
+        ]
+      },
+      {
+        name: "oilTreatment",
+        label: "Oil, Rust & Stain Pre-Treatment",
+        options: [
+          { label: "Standard dirt & mildew clean — no pre-treatment", priceModifier: 0 },
+          { label: "Degreaser for machinery oil/rust spots (+$35)", priceModifier: 35 }
+        ]
+      },
+      {
+        name: "sealingCoating",
+        label: "Protective Sealing After Wash",
+        options: [
+          { label: "Wash only — no sealing", priceModifier: 0 },
+          { label: "Apply concrete or wood protective sealant (+$75)", priceModifier: 75 }
+        ]
+      },
+      {
+        name: "gutteraddon",
+        label: "Gutter Cleaning Add-On",
+        options: [
+          { label: "No gutter cleaning", priceModifier: 0 },
+          { label: "Clear gutters and downspouts while on-site (+$45)", priceModifier: 45 }
         ]
       }
     ]
@@ -293,12 +394,30 @@ export const SERVICES_DATA: Service[] = [
         ]
       },
       {
+        name: "mountItemType",
+        label: "What Are You Mounting?",
+        options: [
+          { label: "Floating shelf or small décor", priceModifier: 0 },
+          { label: "Large mirror or framed artwork", priceModifier: 0 },
+          { label: "Cabinet, towel bar or bathroom fixture", priceModifier: 0 },
+          { label: "Gallery wall (5+ items — coordinated layout) (+$25)", priceModifier: 25 }
+        ]
+      },
+      {
         name: "itemWeight",
         label: "Item Weight Class",
         options: [
           { label: "Light (under 25 lbs) — décor, small shelves", priceModifier: 0 },
-          { label: "Medium (25–60 lbs) — large mirrors, shelving units (+ $15)", priceModifier: 15 },
-          { label: "Heavy (60+ lbs) — cabinets, large artwork, safes (+ $30)", priceModifier: 30 }
+          { label: "Medium (25–60 lbs) — large mirrors, shelving units (+$15)", priceModifier: 15 },
+          { label: "Heavy (60+ lbs) — cabinets, large artwork, safes (+$30)", priceModifier: 30 }
+        ]
+      },
+      {
+        name: "holePatchRepair",
+        label: "Prior Hole Patching",
+        options: [
+          { label: "No patching needed — fresh wall", priceModifier: 0 },
+          { label: "Patch & sand old anchor holes before mounting (+$20)", priceModifier: 20 }
         ]
       }
     ]
