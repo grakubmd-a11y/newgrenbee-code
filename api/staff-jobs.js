@@ -81,6 +81,27 @@ export default async function handler(req, res) {
 
     staffId   = staffSnap.docs[0].id;
     staffName = staffSnap.docs[0].data().name || "";
+
+    // ── Auto-heal: ensure /users/{uid} exists with role="staff" ──────────
+    // This fires on the first sign-in so the admin never has to set the role
+    // manually. Subsequent logins are a no-op (merge only writes missing keys).
+    try {
+      const uid = decoded.uid || decoded.user_id;
+      if (uid) {
+        await db.collection("users").doc(uid).set(
+          {
+            uid,
+            name:  staffName,
+            email,
+            role:  "staff",
+          },
+          { merge: true }          // won't overwrite extra fields if doc exists
+        );
+      }
+    } catch (e) {
+      // Non-fatal — log and continue
+      console.warn("[staff-jobs] Could not auto-create user doc:", e?.message);
+    }
   }
 
   // ── Query bookings ────────────────────────────────────────────────────────

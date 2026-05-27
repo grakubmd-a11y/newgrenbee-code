@@ -544,6 +544,7 @@ export default function AdminPanel({
     e.preventDefault();
     if (!editingStaff?.id || !editingStaff?.name || !editingStaff?.email) return;
 
+    const isNew = !staffList.some(s => s.id === editingStaff.id);
     const actionId = "save-staff";
     beginAction(actionId, "Guardando técnico...");
     try {
@@ -570,8 +571,40 @@ export default function AdminPanel({
       setStaffFormOpen(false);
       setEditingStaff(null);
       await loadDatabaseData();
+
+      // Auto-send invitation email only for newly created staff
+      if (isNew) {
+        // Fire-and-forget — don't block the form close
+        handleSendStaffInvite(st.id, st.name);
+      }
     } catch (err: any) {
       setErrorMessage("Error al guardar técnico: " + err.message);
+    } finally {
+      endAction(actionId);
+    }
+  };
+
+  const handleSendStaffInvite = async (staffId: string, staffName: string) => {
+    const actionId = `invite-staff-${staffId}`;
+    beginAction(actionId, `Enviando invitación a ${staffName}…`);
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) throw new Error("No autenticado");
+      const idToken = await firebaseUser.getIdToken();
+      const resp = await fetch("/api/invite-staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ staffId }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || "Error al enviar invitación");
+      if (data.sent) {
+        triggerSuccess(`✉️ Invitación enviada a ${staffName} (${data.email})`);
+      } else {
+        triggerSuccess(`⚠️ Técnico guardado pero el email no se pudo enviar (RESEND_API_KEY no configurado). El técnico puede entrar a grenbee.com/staff con su cuenta Google de todos modos.`);
+      }
+    } catch (err: any) {
+      setErrorMessage("Error al enviar invitación: " + err.message);
     } finally {
       endAction(actionId);
     }
@@ -3044,7 +3077,20 @@ export default function AdminPanel({
                         )}
                       </td>
                       <td className="p-4 text-right">
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex gap-2 justify-end items-center">
+                          {/* Send / resend invitation */}
+                          <button
+                            onClick={() => handleSendStaffInvite(st.id, st.name)}
+                            disabled={isActionPending(`invite-staff-${st.id}`)}
+                            title={`Enviar invitación a ${st.email}`}
+                            className="text-gray-450 hover:text-brand disabled:opacity-50 disabled:cursor-wait bg-transparent border-none outline-none cursor-pointer"
+                          >
+                            {isActionPending(`invite-staff-${st.id}`) ? (
+                              <Icons.RotateCw size={13} className="animate-spin" />
+                            ) : (
+                              <Icons.Mail size={13} />
+                            )}
+                          </button>
                           <button
                             onClick={() => {
                               setEditingStaff(st);

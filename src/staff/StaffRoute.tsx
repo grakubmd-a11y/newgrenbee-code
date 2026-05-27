@@ -71,28 +71,11 @@ export default function StaffRoute() {
       setAuthUid(firebaseUser.uid);
 
       try {
-        const [tokenResult, profile] = await Promise.all([
-          firebaseUser.getIdTokenResult(true),
-          getUserProfile(firebaseUser.uid).catch(() => null),
-        ]);
-
-        const role = profile?.role;
-        const hasAccess =
-          tokenResult.claims.admin === true ||
-          role === "admin" ||
-          role === "manager" ||
-          role === "staff";
-
-        if (!hasAccess) {
-          setAccessDenied(true);
-          setCurrentUser(null);
-          setChecking(false);
-          return;
-        }
-
-        // Resolve staff doc ID by email (server-side, via staff-jobs endpoint)
-        // We do a minimal fetch just to confirm the staff link exists
-        const idToken = await firebaseUser.getIdToken();
+        // The /api/staff-jobs endpoint is the single authority:
+        // it verifies the email exists in the /staff collection AND
+        // auto-creates /users/{uid} with role="staff" on first login,
+        // so admins never need to set the role manually.
+        const idToken = await firebaseUser.getIdToken(true);
         const resp = await fetch("/api/staff-jobs", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
@@ -101,19 +84,26 @@ export default function StaffRoute() {
         const data = await resp.json().catch(() => ({}));
 
         if (!resp.ok) {
-          // If it's 404 they have a role but no staff doc linked
-          setAuthError(data.error || "Could not load your staff profile.");
+          // 404 → email not in /staff collection → access denied
+          if (resp.status === 404) {
+            setAccessDenied(true);
+          } else {
+            setAuthError(data.error || "Could not load your staff profile.");
+          }
           setCurrentUser(null);
           setChecking(false);
           return;
         }
 
+        // Refresh profile after auto-role assignment
+        const profile = await getUserProfile(firebaseUser.uid).catch(() => null);
+
         setCurrentUser({
           uid:       firebaseUser.uid,
           email:     firebaseUser.email || "",
-          name:      profile?.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Technician",
+          name:      data.staffName || profile?.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Technician",
           staffId:   data.staffId || "",
-          staffName: data.staffName || profile?.name || "",
+          staffName: data.staffName || "",
         });
       } catch (err) {
         setAuthError(getFirebaseAuthErrorMessage(err) || "Auth check failed.");

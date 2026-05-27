@@ -246,6 +246,41 @@ export function buildAbandonedCheckoutEmail(lead, opts = {}) {
   };
 }
 
+// ── Template: Staff Invitation (→ new technician) ────────────────────────────
+/**
+ * @param {{ name:string, email:string }} staff
+ * @param {{ portalUrl?:string, adminName?:string }} opts
+ */
+export function buildStaffInviteEmail(staff, opts = {}) {
+  const portalUrl = opts.portalUrl || "https://grenbee.com/staff";
+  const adminName = opts.adminName || "Greenbee Admin";
+
+  const body = `
+    ${h1("You've been added to the Greenbee team! 🌿")}
+    ${p(`Hi ${staff.name || "there"}, <strong>${adminName}</strong> has added you as a technician on the Greenbee platform. You can now access your assignments, job details, and schedule through the Staff Portal.`)}
+    ${detailTable([
+      detailRow("Your name",  staff.name  || "—"),
+      detailRow("Your email", staff.email || "—"),
+      detailRow("Portal URL", portalUrl),
+    ])}
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${portalUrl}"
+         style="background:${GREEN};color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-weight:800;font-size:15px;display:inline-block;">
+        Access Staff Portal →
+      </a>
+    </div>
+    ${p(`<strong>How to sign in:</strong> Click the button above and sign in with your Google account using <strong>${staff.email}</strong>. No password needed — just your Google account.`, "background:#f0fdf4;padding:12px 16px;border-radius:10px;border-left:3px solid ${GREEN};")}
+    ${divider()}
+    ${p("If you have any questions, contact your manager directly.", "color:#888;font-size:12px;")}
+    ${p("You received this because you were added as a Greenbee technician. If this was a mistake, please ignore this email.", "color:#aaa;font-size:11px;")}
+  `;
+
+  return {
+    subject: `Welcome to Greenbee — access your Staff Portal`,
+    html:    wrap("Welcome to Greenbee Staff", body),
+  };
+}
+
 // ── Send helper ───────────────────────────────────────────────────────────────
 
 /**
