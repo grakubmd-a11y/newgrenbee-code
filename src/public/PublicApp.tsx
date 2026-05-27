@@ -274,8 +274,8 @@ export default function App() {
     }).catch(() => {/* non-fatal */});
 
     setBookings((prev) => [fullBooking, ...prev]);
-    setWizardParams(null);
-    handleTabChange("bookings");
+    // Note: wizard navigation is handled by the onComplete callback below,
+    // triggered when the user clicks "View my bookings" on the confirmation screen.
   }
 
   // Handle language change
@@ -908,6 +908,7 @@ export default function App() {
               activeMembership={activeMembership}
               onSubmitBooking={handleWizardSubmit}
               onBack={() => setWizardParams(null)}
+              onComplete={() => { setWizardParams(null); handleTabChange("bookings"); }}
             />
           </section>
         )}

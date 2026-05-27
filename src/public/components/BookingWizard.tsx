@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Calendar, Clock, User, MapPin, CreditCard, ArrowLeft, ArrowRight,
   CheckCircle2, AlertTriangle, Loader, ShieldCheck, MapPinOff, HelpCircle,
-  Users, CalendarClock, ExternalLink
+  Users, CalendarClock, ExternalLink, Check, Sun, Sunrise, Sunset,
 } from "lucide-react";
 import { Booking, Service } from "../../shared/types";
 import { db } from "../../shared/firebase";
@@ -11,11 +11,11 @@ import { fetchPublicSettingsFromFirestore } from "../../shared/services/firebase
 import StripePaymentPanel from "./StripePaymentPanel";
 
 type BookingDraft = Omit<Booking, "id" | "status" | "createdAt">;
-type WizardStep = 1 | 2 | 3;
+type WizardStep = 1 | 2 | 3 | 4;
 type CoverageStatus = "idle" | "checking" | "covered" | "not-covered" | "unknown";
 type AvailabilityStatus = "idle" | "checking" | "available" | "full";
 type SlotInfo = { available: boolean; slotsRemaining: number };
-type SlotsMap  = Record<string, SlotInfo>;
+type SlotsMap = Record<string, SlotInfo>;
 
 export interface WizardBookingParams {
   serviceId: string;
@@ -35,30 +35,41 @@ interface BookingWizardProps {
   activeMembership?: string | null;
   onSubmitBooking: (draft: BookingDraft) => void;
   onBack: () => void;
+  /** Called when the user clicks "View my bookings" on the confirmation screen */
+  onComplete?: () => void;
 }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const SAME_DAY_FEE = 35;
+const TWO_TECH_FEE = 50;
+
+const TIME_SLOTS = [
+  { label: "Morning",   hours: "09:00 AM – 12:00 PM", desc: "Early start",      Icon: Sunrise  },
+  { label: "Midday",    hours: "12:00 PM – 03:00 PM", desc: "Standard window",  Icon: Sun      },
+  { label: "Afternoon", hours: "03:00 PM – 06:00 PM", desc: "Evening finish",   Icon: Sunset   },
+];
+
+const STEP_LABELS = ["Schedule", "Details", "Pay"];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function generateBookingDays() {
   const days = [];
-  const opts: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
-  for (let i = 1; i <= 8; i++) {
+  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const months   = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  for (let i = 1; i <= 10; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
-    const parts = d.toLocaleDateString("en-US", opts).split(", ");
-    days.push({ rawDate: d.toISOString().split("T")[0], weekday: parts[0], dayMonth: parts[1] || parts[0] });
+    days.push({
+      rawDate:  d.toISOString().split("T")[0],
+      weekday:  weekdays[d.getDay()],
+      day:      d.getDate(),
+      month:    months[d.getMonth()],
+    });
   }
   return days;
 }
-
-const TIME_SLOTS = [
-  { label: "Morning", hours: "09:00 AM – 12:00 PM", desc: "Early start" },
-  { label: "Midday", hours: "12:00 PM – 03:00 PM", desc: "Standard window" },
-  { label: "Afternoon", hours: "03:00 PM – 06:00 PM", desc: "Evening finish" },
-];
-
-const SAME_DAY_FEE = 35;
-const TWO_TECH_FEE = 50;
 
 function clientRequiresTwoTechs(serviceId: string, factors: WizardBookingParams["selectedFactors"]): boolean {
   if (serviceId === "furniture-assembly") return Number(factors?.furnitureComplexity?.modifier) === 50;
@@ -109,44 +120,57 @@ async function checkZipCoverage(zip: string): Promise<CoverageStatus> {
   }
 }
 
-// ─── Step Progress Header ─────────────────────────────────────────────────────
+function formatDate(raw: string): string {
+  if (!raw) return "";
+  const d = new Date(raw + "T12:00:00");
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+}
 
-const STEP_LABELS = ["Schedule", "Your Details", "Review & Pay"];
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-function WizardProgress({ step }: { step: WizardStep }) {
+/** Thin linear progress bar at the very top */
+function ProgressBar({ step }: { step: WizardStep }) {
+  const pct = step >= 4 ? 100 : Math.round(((step - 1) / 3) * 100);
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
+    <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+      <div
+        className="h-full bg-brand rounded-full transition-all duration-500 ease-out"
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+/** Step label row below the progress bar */
+function StepLabels({ step }: { step: WizardStep }) {
+  if (step >= 4) return null;
+  return (
+    <div className="flex justify-between mt-2 px-0.5">
       {STEP_LABELS.map((label, i) => {
-        const n = i + 1 as WizardStep;
-        const done = n < step;
+        const n = i + 1;
+        const done   = n < step;
         const active = n === step;
         return (
-          <React.Fragment key={n}>
-            <div className="flex flex-col items-center gap-1">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  done ? "bg-emerald-500 text-white" : active ? "bg-brand text-white ring-4 ring-brand/20" : "bg-gray-100 text-gray-400"
-                }`}
-              >
-                {done ? <CheckCircle2 size={14} /> : n}
-              </div>
-              <span className={`text-[10px] font-semibold hidden sm:block ${active ? "text-brand" : done ? "text-emerald-600" : "text-gray-400"}`}>
-                {label}
-              </span>
+          <div key={n} className="flex items-center gap-1.5">
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 transition-all ${
+              done   ? "bg-brand text-white"
+              : active ? "bg-brand text-white ring-2 ring-brand/25"
+              : "bg-gray-100 text-gray-400"
+            }`}>
+              {done ? <Check size={10} strokeWidth={3} /> : n}
             </div>
-            {i < STEP_LABELS.length - 1 && (
-              <div className={`w-12 sm:w-20 h-0.5 mb-5 transition-colors ${done ? "bg-emerald-400" : "bg-gray-100"}`} />
-            )}
-          </React.Fragment>
+            <span className={`text-[11px] font-semibold hidden sm:block ${
+              active ? "text-brand" : done ? "text-brand/70" : "text-gray-400"
+            }`}>{label}</span>
+          </div>
         );
       })}
     </div>
   );
 }
 
-// ─── Order Summary Card ───────────────────────────────────────────────────────
-
-function OrderSummary({ service, params, selectedDate, selectedSlot, isSameDay, isTwoTech }: {
+/** Price sidebar — live line-item breakdown */
+function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, isTwoTech }: {
   service: Service;
   params: WizardBookingParams;
   selectedDate: string;
@@ -154,93 +178,219 @@ function OrderSummary({ service, params, selectedDate, selectedSlot, isSameDay, 
   isSameDay: boolean;
   isTwoTech: boolean;
 }) {
-  const displayTotal = params.totalCost
-    + (isSameDay ? SAME_DAY_FEE : 0)
-    + (isTwoTech ? TWO_TECH_FEE : 0);
+  const discountTotal = (params.couponDiscount ?? 0);
+  const sameDayAmt    = isSameDay ? SAME_DAY_FEE : 0;
+  const twoTechAmt    = isTwoTech ? TWO_TECH_FEE : 0;
+  const base          = params.originalCost ?? params.totalCost + discountTotal;
+  const grandTotal    = params.totalCost + sameDayAmt + twoTechAmt;
 
   return (
-    <div className="bg-gray-900 text-white rounded-2xl p-6 space-y-4 sticky top-24">
+    <aside className="lg:col-span-5">
+      <div className="bg-[#0d1117] text-white rounded-2xl p-6 space-y-5 lg:sticky lg:top-24">
+        {/* Service */}
+        <div>
+          <p className="text-[10px] font-extrabold text-brand uppercase tracking-widest mb-1">Order Summary</p>
+          <p className="text-base font-bold truncate">{service.name}</p>
+          {selectedDate && (
+            <p className="text-xs text-gray-400 mt-0.5 font-medium">
+              {formatDate(selectedDate)}{selectedSlot ? ` · ${selectedSlot.split("–")[0].trim()}` : ""}
+            </p>
+          )}
+        </div>
+
+        {/* Line items */}
+        <div className="space-y-2.5 border-t border-white/8 pt-4 text-xs font-mono">
+          <LineItem label={`${params.units} ${service.unitName}${params.units !== 1 ? "s" : ""}`}
+                    value={`$${base.toFixed(2)}`} />
+          {params.frequency !== "once" && (
+            <LineItem label={`${params.frequency} plan`} value="" valueClass="text-brand/80 capitalize" />
+          )}
+          {discountTotal > 0 && params.couponCode && (
+            <LineItem label={`Coupon · ${params.couponCode}`} value={`-$${discountTotal.toFixed(2)}`}
+                      valueClass="text-emerald-400" />
+          )}
+          {sameDayAmt > 0 && (
+            <LineItem label="Same-day fee" value={`+$${sameDayAmt.toFixed(2)}`} valueClass="text-amber-400" />
+          )}
+          {twoTechAmt > 0 && (
+            <LineItem label="2nd technician" value={`+$${twoTechAmt.toFixed(2)}`} valueClass="text-amber-400" />
+          )}
+        </div>
+
+        {/* Total */}
+        <div className="border-t border-white/8 pt-4 flex items-baseline justify-between">
+          <span className="text-sm font-semibold text-gray-400">Total</span>
+          <span className="text-3xl font-extrabold text-brand">${grandTotal.toFixed(2)}</span>
+        </div>
+
+        {/* Alerts */}
+        {isTwoTech && (
+          <div className="flex items-start gap-2 bg-amber-900/25 text-amber-300 text-[11px] rounded-xl px-3 py-2.5">
+            <Users size={13} className="shrink-0 mt-0.5" />
+            <span>Requires 2 technicians — second tech fee added.</span>
+          </div>
+        )}
+        {isSameDay && (
+          <div className="flex items-start gap-2 bg-amber-900/25 text-amber-300 text-[11px] rounded-xl px-3 py-2.5">
+            <CalendarClock size={13} className="shrink-0 mt-0.5" />
+            <span>Same-day booking — priority scheduling fee applies.</span>
+          </div>
+        )}
+
+        {/* Trust badge */}
+        <div className="flex items-center gap-2 text-[11px] text-gray-500 border-t border-white/8 pt-4">
+          <ShieldCheck size={13} className="text-brand shrink-0" />
+          <span>Card authorized now, <strong className="text-gray-400">charged only after service</strong></span>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function LineItem({ label, value, valueClass = "text-white" }: { label: string; value: string; valueClass?: string }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <span className="text-gray-400 truncate">{label}</span>
+      <span className={`font-bold shrink-0 ${valueClass}`}>{value}</span>
+    </div>
+  );
+}
+
+/** Mobile floating price bar */
+function MobileTotal({ total, isSameDay, isTwoTech }: { total: number; isSameDay: boolean; isTwoTech: boolean }) {
+  const grand = total + (isSameDay ? SAME_DAY_FEE : 0) + (isTwoTech ? TWO_TECH_FEE : 0);
+  return (
+    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur border-t border-gray-100 px-4 py-3 flex items-center justify-between shadow-2xl">
+      <span className="text-xs text-gray-500 font-medium">Estimated total</span>
+      <span className="text-lg font-extrabold text-gray-900">${grand.toFixed(2)}</span>
+    </div>
+  );
+}
+
+/** Step section header */
+function StepHeader({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
+  return (
+    <div className="flex items-center gap-3 pb-2">
+      <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon}</div>
       <div>
-        <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Order Summary</p>
-        <h3 className="text-base font-bold mt-1 truncate">{service.name}</h3>
-      </div>
-      <div className="space-y-2 text-xs text-gray-300 border-t border-white/10 pt-4 font-mono">
-        <Row label="Date" value={selectedDate} />
-        <Row label="Window" value={selectedSlot || "—"} />
-        <Row label="Units" value={`${params.units} ${service.unitName}${params.units !== 1 ? "s" : ""}`} />
-        <Row label="Frequency" value={params.frequency} capitalize />
-      </div>
-      {(params.couponCode && params.couponDiscount || isSameDay || isTwoTech) && (
-        <div className="text-xs font-mono space-y-1.5 border-t border-white/10 pt-3">
-          {params.couponCode && params.couponDiscount && (
-            <>
-              <Row label="Subtotal" value={`$${(params.originalCost ?? params.totalCost + params.couponDiscount).toFixed(2)}`} />
-              <Row label={`Coupon ${params.couponCode}`} value={`-$${params.couponDiscount.toFixed(2)}`} valueClass="text-emerald-400" />
-            </>
-          )}
-          {isSameDay && (
-            <Row label="Same-Day Fee" value={`+$${SAME_DAY_FEE}.00`} valueClass="text-amber-400" />
-          )}
-          {isTwoTech && (
-            <Row label="2nd Technician" value={`+$${TWO_TECH_FEE}.00`} valueClass="text-amber-400" />
-          )}
-        </div>
-      )}
-      <div className="flex justify-between items-baseline border-t border-white/10 pt-4">
-        <span className="text-sm font-semibold text-gray-300">Total</span>
-        <span className="text-2xl font-extrabold text-emerald-400">${displayTotal.toFixed(2)}</span>
-      </div>
-      {isTwoTech && (
-        <div className="flex items-start gap-2 text-[10px] text-amber-300 bg-amber-900/30 rounded-lg px-3 py-2">
-          <Users size={12} className="shrink-0 mt-0.5" />
-          <span>This job requires 2 technicians — a second tech fee has been added.</span>
-        </div>
-      )}
-      {isSameDay && (
-        <div className="flex items-start gap-2 text-[10px] text-amber-300 bg-amber-900/30 rounded-lg px-3 py-2">
-          <CalendarClock size={12} className="shrink-0 mt-0.5" />
-          <span>Same-day booking — a priority scheduling fee applies.</span>
-        </div>
-      )}
-      <div className="flex items-center gap-2 text-[10px] text-gray-400 pt-1">
-        <ShieldCheck size={12} className="text-emerald-500 shrink-0" />
-        <span>Card charged only after service completion</span>
+        <h2 className="text-lg font-black text-gray-900 leading-tight">{title}</h2>
+        <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
       </div>
     </div>
   );
 }
 
-function Row({ label, value, capitalize, valueClass }: { label: string; value: string; capitalize?: boolean; valueClass?: string }) {
-  return (
-    <div className="flex justify-between gap-2">
-      <span>{label}:</span>
-      <span className={`text-white font-semibold truncate max-w-[130px] ${capitalize ? "capitalize" : ""} ${valueClass || ""}`}>{value}</span>
-    </div>
-  );
-}
-
-// ─── Coverage Badge ───────────────────────────────────────────────────────────
-
+/** Coverage badge */
 function CoverageBadge({ status }: { status: CoverageStatus }) {
   if (status === "idle") return null;
   if (status === "checking") return (
-    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-      <Loader size={12} className="animate-spin" /> Checking coverage…
+    <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
+      <Loader size={11} className="animate-spin" /> Checking coverage…
     </div>
   );
   if (status === "covered") return (
-    <div className="flex items-center gap-2 text-xs text-emerald-600 mt-1 font-medium">
-      <CheckCircle2 size={12} /> This area is covered — we service your zip code.
+    <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 mt-1 font-semibold">
+      <CheckCircle2 size={11} /> Covered — we service your area.
     </div>
   );
   if (status === "not-covered") return (
-    <div className="flex items-center gap-2 text-xs text-amber-600 mt-1 font-medium">
-      <MapPinOff size={12} /> Your zip code isn't in our current coverage area. You can still submit and we'll confirm availability.
+    <div className="flex items-center gap-1.5 text-[11px] text-amber-600 mt-1 font-semibold">
+      <MapPinOff size={11} /> Outside standard area — you can still book.
     </div>
   );
   return (
-    <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-      <HelpCircle size={12} /> Coverage for this zip couldn't be verified — you can still proceed.
+    <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
+      <HelpCircle size={11} /> Coverage unverified — you can still proceed.
+    </div>
+  );
+}
+
+/** Booking confirmation screen (step 4) */
+function ConfirmationScreen({
+  draft,
+  bookingId,
+  onViewBookings,
+  onBookAnother,
+}: {
+  draft: BookingDraft;
+  bookingId?: string;
+  onViewBookings: () => void;
+  onBookAnother: () => void;
+}) {
+  return (
+    <div className="max-w-xl mx-auto px-4 py-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Icon */}
+      <div className="mx-auto w-20 h-20 rounded-full bg-brand/10 flex items-center justify-center mb-6">
+        <div className="w-14 h-14 rounded-full bg-brand flex items-center justify-center shadow-lg shadow-brand/30">
+          <Check size={28} className="text-white" strokeWidth={3} />
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-black text-gray-900 mb-2">Booking confirmed!</h2>
+      <p className="text-gray-500 text-sm mb-8">
+        Your appointment is scheduled. A confirmation will be sent to <strong>{draft.email}</strong>.
+      </p>
+
+      {/* Booking details card */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 text-left space-y-3 mb-6">
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-3">Booking Details</p>
+        <DetailRow icon={<Calendar size={14} />} label="Service" value={draft.serviceName} />
+        <DetailRow icon={<Calendar size={14} />} label="Date" value={formatDate(draft.bookingDate)} />
+        <DetailRow icon={<Clock size={14} />} label="Window" value={draft.timeSlot} />
+        <DetailRow icon={<MapPin size={14} />} label="Address" value={draft.address} />
+        <DetailRow icon={<User size={14} />} label="Contact" value={`${draft.customerName} · ${draft.email}`} />
+        {bookingId && (
+          <DetailRow icon={<ShieldCheck size={14} />} label="Reference" value={bookingId}
+                     valueClass="font-mono text-brand" />
+        )}
+      </div>
+
+      {/* What happens next */}
+      <div className="bg-gray-50 rounded-2xl p-5 text-left mb-8">
+        <p className="text-xs font-bold text-gray-700 mb-3">What happens next</p>
+        <ul className="space-y-2.5">
+          {[
+            "You'll receive a confirmation email shortly.",
+            "We'll assign a technician and confirm your appointment.",
+            "Your card is held now and charged only after the service is completed.",
+          ].map((item, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-xs text-gray-600">
+              <div className="w-4 h-4 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-black">
+                {i + 1}
+              </div>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          onClick={onViewBookings}
+          className="flex-1 h-12 bg-brand hover:bg-brand-hover text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-brand/20 hover:scale-[1.01]"
+        >
+          View my bookings
+        </button>
+        <button
+          onClick={onBookAnother}
+          className="flex-1 h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition-all"
+        >
+          Book another service
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({ icon, label, value, valueClass = "" }: {
+  icon: React.ReactNode; label: string; value: string; valueClass?: string;
+}) {
+  return (
+    <div className="flex items-start gap-2.5 text-xs">
+      <span className="text-gray-400 mt-0.5 shrink-0">{icon}</span>
+      <span className="text-gray-500 w-16 shrink-0">{label}:</span>
+      <span className={`text-gray-900 font-semibold leading-snug ${valueClass}`}>{value}</span>
     </div>
   );
 }
@@ -254,12 +404,12 @@ export default function BookingWizard({
   activeMembership,
   onSubmitBooking,
   onBack,
+  onComplete,
 }: BookingWizardProps) {
   const service = useMemo(
     () => services.find((s) => s.id === bookingParams.serviceId) || services[0],
     [services, bookingParams.serviceId]
   );
-
   const bookingDays = useMemo(() => generateBookingDays(), []);
 
   // ── Step ──
@@ -272,8 +422,8 @@ export default function BookingWizard({
   const [slotsMap, setSlotsMap] = useState<SlotsMap>({});
   const [slotsLoading, setSlotsLoading] = useState(false);
 
-  // ── Same-day & 2-tech (computed, UI + pricing) ──
-  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+  // ── Same-day & 2-tech ──
+  const today   = useMemo(() => new Date().toISOString().split("T")[0], []);
   const isSameDay = selectedDate === today;
   const isTwoTech = useMemo(
     () => clientRequiresTwoTechs(bookingParams.serviceId, bookingParams.selectedFactors),
@@ -282,30 +432,33 @@ export default function BookingWizard({
 
   // ── Step 2: Details ──
   const [fullName, setFullName] = useState(currentUser?.name || "");
-  const [email, setEmail] = useState(currentUser?.email || "");
-  const [phone, setPhone] = useState(currentUser?.phone || "");
-  const [address, setAddress] = useState(currentUser?.address || "");
-  const [zip, setZip] = useState(() => extractZip(currentUser?.address || ""));
-  const [notes, setNotes] = useState("");
-  const [coverageStatus, setCoverageStatus] = useState<CoverageStatus>("idle");
-  const [coverageConfirmed, setCoverageConfirmed] = useState(false); // user ticked "proceed anyway"
-  const [showCoveragePrompt, setShowCoveragePrompt] = useState(false); // inline prompt visible
+  const [email,    setEmail]    = useState(currentUser?.email || "");
+  const [phone,    setPhone]    = useState(currentUser?.phone || "");
+  const [address,  setAddress]  = useState(currentUser?.address || "");
+  const [zip,      setZip]      = useState(() => extractZip(currentUser?.address || ""));
+  const [notes,    setNotes]    = useState("");
+  const [coverageStatus,    setCoverageStatus]    = useState<CoverageStatus>("idle");
+  const [coverageConfirmed, setCoverageConfirmed] = useState(false);
+  const [showCoveragePrompt,setShowCoveragePrompt]= useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // ── Google Maps autocomplete ──
   const addressInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
-  const [mapsKey, setMapsKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "");
+  const [mapsKey,     setMapsKey]     = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "");
   const [mapsEnabled, setMapsEnabled] = useState(false);
-  const [mapsReady, setMapsReady] = useState(false);
+  const [mapsReady,   setMapsReady]   = useState(false);
 
   // ── Step 3: Pay ──
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [apiLogs, setApiLogs] = useState<string[]>([]);
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isProcessing,     setIsProcessing]     = useState(false);
+  const [termsAccepted,    setTermsAccepted]    = useState(false);
   const [recurringConsent, setRecurringConsent] = useState(false);
-  const [termsError, setTermsError] = useState("");
+  const [termsError,       setTermsError]       = useState("");
   const needsRecurringConsent = bookingParams.frequency !== "once";
+
+  // ── Step 4: Confirmation ──
+  const [confirmedDraft,     setConfirmedDraft]     = useState<BookingDraft | null>(null);
+  const [confirmedBookingId, setConfirmedBookingId] = useState<string | undefined>();
 
   // Load Maps settings
   useEffect(() => {
@@ -330,7 +483,9 @@ export default function BookingWizard({
         await loadMapsScript(mapsKey);
         if (cancelled || !addressInputRef.current || !(window as any).google?.maps?.places?.Autocomplete) return;
         if (autocompleteRef.current) (window as any).google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
-        const ac = new (window as any).google.maps.places.Autocomplete(addressInputRef.current, { fields: ["formatted_address"], types: ["address"] });
+        const ac = new (window as any).google.maps.places.Autocomplete(addressInputRef.current, {
+          fields: ["formatted_address"], types: ["address"],
+        });
         ac.addListener("place_changed", () => {
           const place = ac.getPlace();
           const addr = place?.formatted_address || addressInputRef.current?.value || "";
@@ -370,7 +525,6 @@ export default function BookingWizard({
     setSlotsMap({});
     setSlotsLoading(true);
     setAvailabilityStatus("idle");
-
     fetch("/api/availability", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -381,19 +535,16 @@ export default function BookingWizard({
         if (cancelled) return;
         const map: SlotsMap = data.slots || {};
         setSlotsMap(map);
-
-        // If the currently-selected slot just became full, auto-pick first available
         const current = map[selectedSlot];
         if (current && !current.available) {
           const firstOk = TIME_SLOTS.find((s) => map[s.hours]?.available !== false);
           if (firstOk) setSelectedSlot(firstOk.hours);
         }
       })
-      .catch(() => { /* fail open — no visual indicators */ })
+      .catch(() => {})
       .finally(() => { if (!cancelled) setSlotsLoading(false); });
-
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, step]);
 
   // ── Validation ──
@@ -404,7 +555,7 @@ export default function BookingWizard({
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Valid email required";
     if (phone.replace(/\D/g, "").length < 10) e.phone = "10-digit phone required";
     if (!address.trim()) e.address = "Address required to dispatch";
-    if (!zip || zip.length < 5) e.zip = "5-digit ZIP code required";
+    if (!zip || zip.length < 5) e.zip = "5-digit ZIP required";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -422,7 +573,7 @@ export default function BookingWizard({
       setAvailabilityStatus(ok ? "available" : "full");
       return ok;
     } catch {
-      setAvailabilityStatus("available"); // fail open
+      setAvailabilityStatus("available");
       return true;
     }
   }
@@ -430,43 +581,31 @@ export default function BookingWizard({
   async function goNext() {
     if (!validate()) return;
     if (step === 1) {
-      // Fast-path: if bulk check already says full, block immediately
       const cached = slotsMap[selectedSlot];
-      if (cached && !cached.available) {
-        setAvailabilityStatus("full");
-        return;
-      }
-      // Otherwise do a fresh single-slot confirmation check
+      if (cached && !cached.available) { setAvailabilityStatus("full"); return; }
       const ok = await checkAvailability();
       if (!ok) return;
     }
     if (step === 2 && coverageStatus === "not-covered" && !coverageConfirmed) {
-      // Surface the explicit confirmation prompt instead of proceeding silently
       setShowCoveragePrompt(true);
       return;
     }
-
-    // ── Capture lead when moving to payment step (fire-and-forget) ────────────
-    // User has entered contact info; if they abandon checkout this becomes a lead.
+    // Capture lead on move to payment
     if (step === 2) {
       fetch("/api/capture-lead", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
-          customerName: fullName,
-          phone,
-          serviceId:      bookingParams.serviceId,
-          serviceName:    service.name,
-          address,
-          estimatedValue: bookingParams.totalCost,
+          email, customerName: fullName, phone,
+          serviceId: bookingParams.serviceId, serviceName: service.name,
+          address, estimatedValue: bookingParams.totalCost,
         }),
-      }).catch(() => {/* non-fatal */});
+      }).catch(() => {});
     }
-
     setStep((s) => (s + 1) as WizardStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
   function goBack() {
     if (step === 1) { onBack(); return; }
     setStep((s) => (s - 1) as WizardStep);
@@ -486,445 +625,441 @@ export default function BookingWizard({
       bookingDate: selectedDate,
       timeSlot: selectedSlot,
       customerName: fullName,
-      email,
-      phone,
-      address,
+      email, phone, address,
       units: bookingParams.units,
       selectedFactors: bookingParams.selectedFactors,
       frequency: bookingParams.frequency,
       notes,
       totalCost: bookingParams.totalCost,
       ...(bookingParams.originalCost !== undefined && { originalCost: bookingParams.originalCost }),
-      ...(bookingParams.couponCode && { couponCode: bookingParams.couponCode }),
+      ...(bookingParams.couponCode    && { couponCode: bookingParams.couponCode }),
       ...(bookingParams.couponDiscount && { couponDiscount: bookingParams.couponDiscount }),
       paymentMethod: paymentInfo.paymentMethod,
       paymentStatus: paymentInfo.paymentStatus,
       ...(paymentInfo.stripePaymentIntentId && { stripePaymentIntentId: paymentInfo.stripePaymentIntentId }),
-      ...(paymentInfo.stripePaymentStatus && { stripePaymentStatus: paymentInfo.stripePaymentStatus }),
+      ...(paymentInfo.stripePaymentStatus   && { stripePaymentStatus: paymentInfo.stripePaymentStatus }),
     };
   }
 
   // ── Render ──
+
+  // Confirmation screen (step 4) — full width, no sidebar
+  if (step === 4 && confirmedDraft) {
+    return (
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-4">
+        <ProgressBar step={4} />
+        <ConfirmationScreen
+          draft={confirmedDraft}
+          bookingId={confirmedBookingId}
+          onViewBookings={() => onComplete?.()}
+          onBookAnother={() => { onBack(); }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      {/* Back to estimator */}
-      <button
-        onClick={onBack}
-        className="mb-6 inline-flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-brand transition-colors uppercase tracking-widest"
-      >
-        <ArrowLeft size={14} /> Back to Quote
-      </button>
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6">
+      {/* Progress */}
+      <div className="mb-6">
+        <ProgressBar step={step} />
+        <StepLabels step={step} />
+      </div>
 
-      <WizardProgress step={step} />
-
-      <div className="grid lg:grid-cols-12 gap-8 items-start">
+      <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-20 lg:pb-0">
         {/* ─── Form Column ─── */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-6">
-          {/* ── STEP 1: SCHEDULE ── */}
-          {step === 1 && (
-            <>
-              <StepHeader icon={<Calendar size={18} />} title="Choose Date & Time" sub="Pick the best window for your appointment." />
+        <div className="lg:col-span-7 space-y-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Header strip */}
+            <div className="px-6 pt-6 pb-5 border-b border-gray-50">
+              {step === 1 && <StepHeader icon={<Calendar size={20} />} title="Choose Date & Time" sub="Pick the best day and arrival window for your appointment." />}
+              {step === 2 && <StepHeader icon={<User size={20} />} title="Your Details" sub="We'll dispatch your technician and send confirmations to this info." />}
+              {step === 3 && <StepHeader icon={<CreditCard size={20} />} title="Review & Pay" sub="Your card is authorized now and only charged after service is completed." />}
+            </div>
 
-              {/* Date picker */}
-              <div className="space-y-3">
-                <Label>Appointment Date</Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {bookingDays.map((day) => (
-                    <button
-                      key={day.rawDate}
-                      type="button"
-                      onClick={() => { setSelectedDate(day.rawDate); setAvailabilityStatus("idle"); }}
-                      className={`flex flex-col items-center py-3 rounded-xl border transition-all cursor-pointer ${
-                        selectedDate === day.rawDate
-                          ? "border-brand bg-brand-light text-brand ring-1 ring-brand font-bold"
-                          : "border-gray-100 hover:border-gray-200 text-gray-600"
-                      }`}
-                    >
-                      <span className="text-[10px] uppercase font-bold tracking-wider">{day.weekday}</span>
-                      <span className="text-xs font-extrabold mt-1">{day.dayMonth}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Time slot picker */}
-              <div className="space-y-3">
-                <Label icon={<Clock size={13} className="text-brand" />}>
-                  Arrival Window
-                  {slotsLoading && <Loader size={11} className="animate-spin ml-1.5 text-gray-400 inline-block" />}
-                </Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {TIME_SLOTS.map((slot) => {
-                    const info      = slotsMap[slot.hours];
-                    const isFull    = info ? !info.available : false;
-                    const isAlmost  = info && info.available && info.slotsRemaining === 1;
-                    const isSelected = selectedSlot === slot.hours;
-
-                    return (
-                      <button
-                        key={slot.hours}
-                        type="button"
-                        disabled={isFull}
-                        onClick={() => { setSelectedSlot(slot.hours); setAvailabilityStatus("idle"); }}
-                        className={`relative flex flex-col text-left p-3.5 rounded-xl border transition-all ${
-                          isFull
-                            ? "border-gray-150 bg-gray-50 text-gray-300 cursor-not-allowed opacity-60"
-                            : isSelected
-                              ? "border-brand bg-brand-light text-brand ring-1 ring-brand font-bold cursor-pointer"
-                              : "border-gray-100 hover:border-gray-200 text-gray-600 cursor-pointer"
-                        }`}
-                      >
-                        <span className="text-xs font-bold">{slot.label}</span>
-                        <span className="text-xs font-extrabold text-gray-900 mt-0.5">{slot.hours}</span>
-                        <span className="text-[9px] text-gray-400 mt-1">{slot.desc}</span>
-
-                        {/* Status badge */}
-                        {isFull && (
-                          <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 border border-rose-200">
-                            Full
-                          </span>
-                        )}
-                        {isAlmost && !isFull && (
-                          <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
-                            1 left
-                          </span>
-                        )}
-                        {info && info.available && !isAlmost && (
-                          <span className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
-                            Open
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Availability feedback (shown after clicking Next) */}
-                {availabilityStatus === "checking" && (
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                    <Loader size={12} className="animate-spin" /> Checking availability…
-                  </div>
-                )}
-                {availabilityStatus === "full" && (
-                  <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 font-semibold">
-                    <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                    <span>This window is fully booked. Please choose a different date or time.</span>
-                  </div>
-                )}
-                {availabilityStatus === "available" && (
-                  <div className="flex items-center gap-2 text-xs text-emerald-600 mt-1 font-medium">
-                    <CheckCircle2 size={12} /> Slot available — proceed to confirm.
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* ── STEP 2: DETAILS ── */}
-          {step === 2 && (
-            <>
-              <StepHeader icon={<User size={18} />} title="Your Details" sub="We'll use this to dispatch your technician and send confirmations." />
-
-              <Field label="Full Name" error={errors.fullName}>
-                <Input icon={<User size={14} />} value={fullName} onChange={setFullName} placeholder="Jane Doe" />
-              </Field>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Email" error={errors.email}>
-                  <Input icon={<CheckCircle2 size={14} />} type="email" value={email} onChange={setEmail} placeholder="jane@example.com" />
-                </Field>
-                <Field label="Phone" error={errors.phone}>
-                  <Input icon={<Clock size={14} />} type="tel" value={phone} onChange={setPhone} placeholder="(305) 555-0100" />
-                </Field>
-              </div>
-
-              <Field label="Property Address" error={errors.address}>
-                <div className="relative">
-                  <span className="absolute left-3 top-3.5 text-gray-400"><MapPin size={14} /></span>
-                  <input
-                    ref={addressInputRef}
-                    type="text"
-                    value={address}
-                    onChange={(e) => {
-                      setAddress(e.target.value);
-                      setErrors((prev) => { const { address: _a, ...rest } = prev; return rest; });
-                    }}
-                    placeholder="123 Ocean Drive, Miami, FL 33139"
-                    className={`pl-9 w-full rounded-xl border py-3 px-3.5 text-xs text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none ${
-                      errors.address ? "border-rose-400 bg-rose-50/10" : "border-gray-200"
-                    }`}
-                  />
-                </div>
-                {mapsReady && !errors.address && (
-                  <p className="text-[10px] text-emerald-600 mt-1">Address autocomplete active.</p>
-                )}
-              </Field>
-
-              {/* Zip + Coverage */}
-              <Field label="Zip Code" error={errors.zip}>
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    value={zip}
-                    onChange={(e) => {
-                      setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
-                      setErrors((prev) => { const { zip: _z, ...rest } = prev; return rest; });
-                    }}
-                    placeholder="33139"
-                    maxLength={5}
-                    className={`w-28 border rounded-xl px-3 py-2.5 text-xs font-mono focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none ${
-                      errors.zip ? "border-rose-400 bg-rose-50/10" : "border-gray-200"
-                    }`}
-                  />
-                  <CoverageBadge status={coverageStatus} />
-                </div>
-              </Field>
-
-              {/* Out-of-coverage explicit confirmation prompt */}
-              {showCoveragePrompt && coverageStatus === "not-covered" && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <MapPinOff size={15} className="text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-amber-800">ZIP {zip} is outside our current service area</p>
-                      <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
-                        You can still book — our team will review and confirm availability within your area before dispatching a technician.
-                      </p>
+            <div className="px-6 py-6 space-y-6">
+              {/* ── STEP 1: SCHEDULE ── */}
+              {step === 1 && (
+                <>
+                  {/* Date picker */}
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-widest">Appointment Date</p>
+                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+                      {bookingDays.map((day) => {
+                        const isSelected = selectedDate === day.rawDate;
+                        return (
+                          <button
+                            key={day.rawDate}
+                            type="button"
+                            onClick={() => { setSelectedDate(day.rawDate); setAvailabilityStatus("idle"); }}
+                            className={`flex flex-col items-center gap-0.5 min-w-[60px] py-3.5 px-2 rounded-xl border transition-all snap-start cursor-pointer ${
+                              isSelected
+                                ? "border-brand bg-brand text-white shadow-md shadow-brand/25"
+                                : "border-gray-100 hover:border-brand/40 hover:bg-brand/5 text-gray-700"
+                            }`}
+                          >
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? "text-white/80" : "text-gray-400"}`}>
+                              {day.weekday}
+                            </span>
+                            <span className="text-base font-black leading-none">{day.day}</span>
+                            <span className={`text-[10px] ${isSelected ? "text-white/70" : "text-gray-400"}`}>{day.month}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={coverageConfirmed}
-                      onChange={(e) => setCoverageConfirmed(e.target.checked)}
-                      className="h-4 w-4 rounded border-amber-300 accent-amber-600 cursor-pointer"
-                    />
-                    <span className="text-xs font-semibold text-amber-800">
-                      I understand and want to proceed with this booking
-                    </span>
-                  </label>
-                  {coverageConfirmed && (
-                    <p className="text-[10px] text-amber-600">
-                      ✓ Click <strong>Continue</strong> to proceed to payment.
+
+                  {/* Time slot picker */}
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-widest flex items-center gap-2">
+                      Arrival Window
+                      {slotsLoading && <Loader size={11} className="animate-spin text-gray-400" />}
                     </p>
-                  )}
-                </div>
-              )}
+                    <div className="grid grid-cols-3 gap-3">
+                      {TIME_SLOTS.map(({ label, hours, desc, Icon }) => {
+                        const info       = slotsMap[hours];
+                        const isFull     = info ? !info.available : false;
+                        const isAlmost   = info?.available && info.slotsRemaining === 1;
+                        const isSelected = selectedSlot === hours;
+                        return (
+                          <button
+                            key={hours}
+                            type="button"
+                            disabled={isFull}
+                            onClick={() => { setSelectedSlot(hours); setAvailabilityStatus("idle"); }}
+                            className={`relative flex flex-col items-center gap-2 py-4 px-3 rounded-xl border transition-all text-center ${
+                              isFull
+                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                                : isSelected
+                                  ? "border-brand bg-brand text-white shadow-md shadow-brand/25 cursor-pointer"
+                                  : "border-gray-100 hover:border-brand/40 hover:bg-brand/5 cursor-pointer"
+                            }`}
+                          >
+                            <Icon size={22} className={isSelected ? "text-white" : isFull ? "text-gray-300" : "text-brand/70"} />
+                            <div>
+                              <p className={`text-xs font-bold leading-tight ${isSelected ? "text-white" : isFull ? "text-gray-300" : "text-gray-800"}`}>{label}</p>
+                              <p className={`text-[10px] mt-0.5 leading-tight ${isSelected ? "text-white/75" : "text-gray-400"}`}>{hours.split("–")[0].trim()}</p>
+                              <p className={`text-[9px] mt-0.5 ${isSelected ? "text-white/60" : "text-gray-400"}`}>{desc}</p>
+                            </div>
+                            {isFull && (
+                              <span className="absolute top-1.5 right-1.5 text-[8px] font-black bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full uppercase tracking-wide">Full</span>
+                            )}
+                            {isAlmost && !isFull && (
+                              <span className="absolute top-1.5 right-1.5 text-[8px] font-black bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full uppercase tracking-wide">1 left</span>
+                            )}
+                            {info?.available && !isAlmost && (
+                              <span className={`absolute top-1.5 right-1.5 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide ${isSelected ? "bg-white/20 text-white" : "bg-emerald-50 text-emerald-600"}`}>Open</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
 
-              <Field label="Access Notes (optional)">
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Gate code, lockbox location, parking instructions, pets…"
-                  className="w-full border border-gray-200 rounded-xl px-3.5 py-3 text-xs text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none resize-none"
-                />
-              </Field>
-            </>
-          )}
-
-          {/* ── STEP 3: REVIEW & PAY ── */}
-          {step === 3 && (
-            <>
-              <StepHeader icon={<CreditCard size={18} />} title="Review & Pay" sub="Your card is only charged after the service is completed." />
-
-              {/* Booking summary (inline for this step) */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs font-mono text-gray-600">
-                <div className="flex justify-between"><span>Name:</span><span className="font-bold text-gray-900">{fullName}</span></div>
-                <div className="flex justify-between"><span>Email:</span><span className="font-bold text-gray-900 truncate max-w-[180px]">{email}</span></div>
-                <div className="flex justify-between"><span>Date:</span><span className="font-bold text-gray-900">{selectedDate}</span></div>
-                <div className="flex justify-between"><span>Window:</span><span className="font-bold text-gray-900">{selectedSlot}</span></div>
-                <div className="flex justify-between"><span>Address:</span><span className="font-bold text-gray-900 truncate max-w-[180px]">{address}</span></div>
-              </div>
-
-              {/* Out-of-area reminder in Step 3 */}
-              {coverageStatus === "not-covered" && coverageConfirmed && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-amber-800 text-xs leading-normal">
-                  <MapPinOff size={15} className="text-amber-600 shrink-0 mt-0.5" />
-                  <span>ZIP <strong>{zip}</strong> is outside our standard area. Our team will confirm before dispatching.</span>
-                </div>
-              )}
-
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 flex gap-2 text-emerald-800 text-xs leading-normal">
-                <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                <span>We authorize (hold) your card now but <strong>only charge after the technician completes the service</strong> and you confirm the work is done.</span>
-              </div>
-
-              {/* Terms & consent */}
-              <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Authorization & Consent</p>
-
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => { setTermsAccepted(e.target.checked); setTermsError(""); }}
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer"
-                  />
-                  <span className="text-xs text-gray-700 leading-relaxed">
-                    I have read and agree to the{" "}
-                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
-                      Terms of Service <ExternalLink size={10} />
-                    </a>{" "}
-                    and{" "}
-                    <a href="/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
-                      Cancellation Policy <ExternalLink size={10} />
-                    </a>.{" "}
-                    <span className="text-rose-500 font-bold">*</span>
-                  </span>
-                </label>
-
-                {needsRecurringConsent && (
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={recurringConsent}
-                      onChange={(e) => { setRecurringConsent(e.target.checked); setTermsError(""); }}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer"
-                    />
-                    <span className="text-xs text-gray-700 leading-relaxed">
-                      I authorize Greenbee to charge my card on a{" "}
-                      <span className="font-semibold capitalize">{bookingParams.frequency}</span> basis
-                      until I cancel. I understand I can cancel anytime with 24 hours' notice.{" "}
-                      <span className="text-rose-500 font-bold">*</span>
-                    </span>
-                  </label>
-                )}
-
-                {termsError && (
-                  <div className="flex items-center gap-2 text-xs text-rose-600 font-semibold">
-                    <AlertTriangle size={13} /> {termsError}
+                    {availabilityStatus === "checking" && (
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Loader size={12} className="animate-spin" /> Confirming availability…
+                      </div>
+                    )}
+                    {availabilityStatus === "full" && (
+                      <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 font-semibold">
+                        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                        This slot is fully booked. Please choose a different date or time.
+                      </div>
+                    )}
+                    {availabilityStatus === "available" && (
+                      <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold">
+                        <CheckCircle2 size={12} /> Slot available — proceed to your details.
+                      </div>
+                    )}
                   </div>
+                </>
+              )}
+
+              {/* ── STEP 2: DETAILS ── */}
+              {step === 2 && (
+                <>
+                  <FormField label="Full Name" error={errors.fullName}>
+                    <TextInput icon={<User size={14} />} value={fullName} onChange={setFullName}
+                      placeholder="Jane Doe" hasError={!!errors.fullName} />
+                  </FormField>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <FormField label="Email" error={errors.email}>
+                      <TextInput icon={<CheckCircle2 size={14} />} type="email" value={email} onChange={setEmail}
+                        placeholder="jane@example.com" hasError={!!errors.email} />
+                    </FormField>
+                    <FormField label="Phone" error={errors.phone}>
+                      <TextInput icon={<Clock size={14} />} type="tel" value={phone} onChange={setPhone}
+                        placeholder="(305) 555-0100" hasError={!!errors.phone} />
+                    </FormField>
+                  </div>
+
+                  <FormField label="Property Address" error={errors.address}>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"><MapPin size={14} /></span>
+                      <input
+                        ref={addressInputRef}
+                        type="text"
+                        value={address}
+                        onChange={(e) => {
+                          setAddress(e.target.value);
+                          setErrors((prev) => { const { address: _a, ...rest } = prev; return rest; });
+                        }}
+                        placeholder="123 Ocean Drive, Miami, FL 33139"
+                        className={`pl-9 w-full rounded-xl border py-3 px-3.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none transition-all ${
+                          errors.address ? "border-rose-400 bg-rose-50/20" : "border-gray-200"
+                        }`}
+                      />
+                    </div>
+                    {mapsReady && !errors.address && (
+                      <p className="text-[10px] text-emerald-600 mt-1 font-medium">
+                        ✓ Address autocomplete active
+                      </p>
+                    )}
+                  </FormField>
+
+                  <div className="grid sm:grid-cols-2 gap-4 items-end">
+                    <FormField label="ZIP Code" error={errors.zip}>
+                      <input
+                        type="text"
+                        value={zip}
+                        onChange={(e) => {
+                          setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+                          setErrors((prev) => { const { zip: _z, ...rest } = prev; return rest; });
+                        }}
+                        placeholder="33139"
+                        maxLength={5}
+                        className={`w-full border rounded-xl px-3.5 py-3 text-sm font-mono focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none transition-all ${
+                          errors.zip ? "border-rose-400 bg-rose-50/20" : "border-gray-200"
+                        }`}
+                      />
+                      <CoverageBadge status={coverageStatus} />
+                    </FormField>
+                    <div className="pb-0.5">
+                      {/* spacer */}
+                    </div>
+                  </div>
+
+                  {showCoveragePrompt && coverageStatus === "not-covered" && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <MapPinOff size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-bold text-amber-800">ZIP {zip} is outside our standard service area</p>
+                          <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                            You can still book — our team will review and confirm availability before dispatching.
+                          </p>
+                        </div>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={coverageConfirmed}
+                          onChange={(e) => setCoverageConfirmed(e.target.checked)}
+                          className="h-4 w-4 rounded border-amber-300 accent-amber-600 cursor-pointer" />
+                        <span className="text-xs font-semibold text-amber-800">I understand and want to proceed</span>
+                      </label>
+                    </div>
+                  )}
+
+                  <FormField label="Access Notes (optional)">
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Gate code, lockbox location, parking instructions, pets…"
+                      className="w-full border border-gray-200 rounded-xl px-3.5 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none resize-none transition-all"
+                    />
+                  </FormField>
+                </>
+              )}
+
+              {/* ── STEP 3: REVIEW & PAY ── */}
+              {step === 3 && (
+                <>
+                  {/* Inline recap */}
+                  <div className="bg-gray-50 rounded-xl p-4 grid sm:grid-cols-2 gap-2 text-xs">
+                    {[
+                      { l: "Service",  v: service.name },
+                      { l: "Date",     v: formatDate(selectedDate) },
+                      { l: "Window",   v: selectedSlot },
+                      { l: "Address",  v: address },
+                      { l: "Contact",  v: `${fullName} · ${email}` },
+                    ].map(({ l, v }) => (
+                      <div key={l} className="flex gap-1.5">
+                        <span className="text-gray-400 w-14 shrink-0">{l}:</span>
+                        <span className="font-semibold text-gray-800 truncate">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {coverageStatus === "not-covered" && coverageConfirmed && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-xs text-amber-800">
+                      <MapPinOff size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                      ZIP <strong className="mx-1">{zip}</strong> is outside our standard area. Our team will confirm before dispatching.
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border border-brand/20 bg-brand/5 p-3.5 flex gap-2.5 text-xs text-brand leading-relaxed">
+                    <ShieldCheck size={15} className="shrink-0 mt-0.5" />
+                    <span>We authorize (hold) your card now but <strong>only charge after the technician completes the service</strong>.</span>
+                  </div>
+
+                  {/* Terms */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 space-y-3">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Authorization & Consent</p>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input type="checkbox" checked={termsAccepted}
+                        onChange={(e) => { setTermsAccepted(e.target.checked); setTermsError(""); }}
+                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
+                      <span className="text-xs text-gray-700 leading-relaxed">
+                        I agree to the{" "}
+                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                          Terms of Service <ExternalLink size={10} />
+                        </a>{" "}and{" "}
+                        <a href="/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                          Cancellation Policy <ExternalLink size={10} />
+                        </a>. <span className="text-rose-500 font-bold">*</span>
+                      </span>
+                    </label>
+                    {needsRecurringConsent && (
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" checked={recurringConsent}
+                          onChange={(e) => { setRecurringConsent(e.target.checked); setTermsError(""); }}
+                          className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
+                        <span className="text-xs text-gray-700 leading-relaxed">
+                          I authorize recurring <strong className="capitalize">{bookingParams.frequency}</strong> charges until I cancel.{" "}
+                          <span className="text-rose-500 font-bold">*</span>
+                        </span>
+                      </label>
+                    )}
+                    {termsError && (
+                      <div className="flex items-center gap-2 text-xs text-rose-600 font-semibold">
+                        <AlertTriangle size={13} /> {termsError}
+                      </div>
+                    )}
+                  </div>
+
+                  <StripePaymentPanel
+                    bookingParams={{
+                      ...bookingParams,
+                      membership: activeMembership ?? null,
+                      sameDayFee: isSameDay,
+                      twoTechFee: isTwoTech,
+                    }}
+                    service={service}
+                    selectedDate={selectedDate}
+                    selectedSlot={selectedSlot}
+                    validateBeforePayment={() => {
+                      if (!termsAccepted) {
+                        setTermsError("Please accept the Terms of Service and Cancellation Policy to continue.");
+                        return false;
+                      }
+                      if (needsRecurringConsent && !recurringConsent) {
+                        setTermsError("Please authorize recurring charges for your subscription.");
+                        return false;
+                      }
+                      setTermsError("");
+                      return true;
+                    }}
+                    onPaymentStarted={() => setIsProcessing(true)}
+                    onPaymentFinished={() => setIsProcessing(false)}
+                    onLog={() => {/* logs intentionally suppressed in production UI */}}
+                    onSubmitBooking={(draft) => {
+                      // Extract the pre-generated booking ID set by StripePaymentPanel
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const ext = draft as any;
+                      setConfirmedBookingId(ext._bookingId);
+                      setConfirmedDraft(draft);
+                      setStep(4);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      onSubmitBooking(draft); // triggers Firestore save, emails, etc.
+                    }}
+                    buildBookingDraft={({ paymentIntentId, paymentIntentStatus, paymentStatus }) =>
+                      buildDraft({ paymentMethod: "card", paymentStatus, stripePaymentIntentId: paymentIntentId, stripePaymentStatus: paymentIntentStatus })
+                    }
+                    isProcessing={isProcessing}
+                  />
+                </>
+              )}
+            </div>
+
+            {/* ─── Navigation ─── */}
+            {step < 4 && (
+              <div className="px-6 py-4 border-t border-gray-50 flex justify-between items-center">
+                <button
+                  onClick={goBack}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-400 hover:text-gray-700 transition-colors"
+                >
+                  <ArrowLeft size={15} />
+                  {step === 1 ? "Back to Quote" : "Back"}
+                </button>
+
+                {step < 3 && (
+                  <button
+                    onClick={goNext}
+                    disabled={availabilityStatus === "checking" || (showCoveragePrompt && coverageStatus === "not-covered" && !coverageConfirmed)}
+                    className="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md hover:shadow-brand/20 hover:scale-[1.01]"
+                  >
+                    {availabilityStatus === "checking"
+                      ? <><Loader size={14} className="animate-spin" /> Checking…</>
+                      : (showCoveragePrompt && coverageStatus === "not-covered")
+                        ? <>Confirm & Continue <ArrowRight size={14} /></>
+                        : <>Continue <ArrowRight size={14} /></>
+                    }
+                  </button>
                 )}
               </div>
-
-              <StripePaymentPanel
-                bookingParams={{
-                  ...bookingParams,
-                  membership: activeMembership ?? null,
-                  sameDayFee: isSameDay,
-                  twoTechFee: isTwoTech,
-                }}
-                service={service}
-                selectedDate={selectedDate}
-                selectedSlot={selectedSlot}
-                validateBeforePayment={() => {
-                  if (!termsAccepted) {
-                    setTermsError("Please accept the Terms of Service and Cancellation Policy to continue.");
-                    return false;
-                  }
-                  if (needsRecurringConsent && !recurringConsent) {
-                    setTermsError("Please authorize recurring charges for your subscription.");
-                    return false;
-                  }
-                  setTermsError("");
-                  return true;
-                }}
-                onPaymentStarted={() => setIsProcessing(true)}
-                onPaymentFinished={() => setIsProcessing(false)}
-                onLog={setApiLogs}
-                onSubmitBooking={onSubmitBooking}
-                buildBookingDraft={({ paymentIntentId, paymentIntentStatus, paymentStatus }) =>
-                  buildDraft({ paymentMethod: "card", paymentStatus, stripePaymentIntentId: paymentIntentId, stripePaymentStatus: paymentIntentStatus })
-                }
-                isProcessing={isProcessing}
-              />
-
-              {apiLogs.length > 0 && (
-                <div className="bg-slate-950 rounded-xl p-3 font-mono text-[10px] space-y-1 text-gray-400 max-h-32 overflow-y-auto">
-                  {apiLogs.map((log, i) => (
-                    <div key={i} className={log.toLowerCase().includes("fail") || log.toLowerCase().includes("error") ? "text-rose-400" : log.toLowerCase().includes("confirmed") || log.toLowerCase().includes("finalized") ? "text-emerald-400" : ""}>{log}</div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ─── Navigation Buttons ─── */}
-          <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-            <button
-              onClick={goBack}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors"
-            >
-              <ArrowLeft size={15} /> {step === 1 ? "Back to Quote" : "Back"}
-            </button>
-
-            {step < 3 && (
-              <button
-                onClick={goNext}
-                disabled={showCoveragePrompt && coverageStatus === "not-covered" && !coverageConfirmed}
-                className="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {showCoveragePrompt && coverageStatus === "not-covered"
-                  ? "Confirm & Continue"
-                  : "Continue"}
-                <ArrowRight size={15} />
-              </button>
             )}
           </div>
         </div>
 
-        {/* ─── Summary Column ─── */}
-        <div className="lg:col-span-5">
-          <OrderSummary
-            service={service}
-            params={bookingParams}
-            selectedDate={selectedDate}
-            selectedSlot={selectedSlot}
-            isSameDay={isSameDay}
-            isTwoTech={isTwoTech}
-          />
-        </div>
+        {/* ─── Price Sidebar ─── */}
+        <PriceSidebar
+          service={service}
+          params={bookingParams}
+          selectedDate={selectedDate}
+          selectedSlot={selectedSlot}
+          isSameDay={isSameDay}
+          isTwoTech={isTwoTech}
+        />
       </div>
+
+      {/* Mobile floating total */}
+      <MobileTotal total={bookingParams.totalCost} isSameDay={isSameDay} isTwoTech={isTwoTech} />
     </div>
   );
 }
 
-// ─── Small UI helpers ─────────────────────────────────────────────────────────
+// ─── Reusable form components ─────────────────────────────────────────────────
 
-function StepHeader({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
+function FormField({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-lg bg-brand-light text-brand flex items-center justify-center shrink-0 mt-0.5">{icon}</div>
-      <div>
-        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-        <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
-      </div>
-    </div>
-  );
-}
-
-function Label({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
-  return (
-    <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5 mb-1.5">
-      {icon}{children}
-    </label>
-  );
-}
-
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-xs font-semibold text-gray-700 block mb-1.5">{label}</label>
+    <div className="space-y-1.5">
+      <label className="block text-xs font-bold text-gray-700 tracking-wide">{label}</label>
       {children}
-      {error && <p className="text-[10px] text-rose-500 mt-1 font-semibold">{error}</p>}
+      {error && <p className="text-[11px] text-rose-500 font-semibold">{error}</p>}
     </div>
   );
 }
 
-function Input({ icon, type = "text", value, onChange, placeholder }: {
-  icon?: React.ReactNode; type?: string; value: string;
-  onChange: (v: string) => void; placeholder?: string;
+function TextInput({ icon, type = "text", value, onChange, placeholder, hasError = false }: {
+  icon?: React.ReactNode;
+  type?: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  hasError?: boolean;
 }) {
   return (
     <div className="relative">
-      {icon && <span className="absolute left-3 top-3.5 text-gray-400">{icon}</span>}
+      {icon && <span className="absolute left-3.5 top-3.5 text-gray-400 pointer-events-none">{icon}</span>}
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`${icon ? "pl-9" : "pl-3.5"} w-full rounded-xl border border-gray-200 py-3 pr-3.5 text-xs text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none`}
+        className={`${icon ? "pl-9" : "pl-3.5"} w-full rounded-xl border py-3 px-3.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none transition-all ${
+          hasError ? "border-rose-400 bg-rose-50/20" : "border-gray-200"
+        }`}
       />
     </div>
   );
