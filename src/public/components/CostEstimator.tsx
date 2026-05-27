@@ -251,7 +251,7 @@ export default function CostEstimator({
         })}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start lg:items-stretch">
         {/* Left Interactive Calculator (8 cols lg) */}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm space-y-6">
           <div>
@@ -408,7 +408,7 @@ export default function CostEstimator({
         </div>
 
         {/* Right Dynamic Receipt Block (5 cols lg) */}
-        <div className="lg:col-span-5 relative">
+        <div className="lg:col-span-5">
           <div className="sticky top-24 bg-white rounded-2xl border border-gray-200 shadow-lg p-6 md:p-8 space-y-6 overflow-hidden">
             {/* Visual Header Graphic */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-brand"></div>

@@ -748,7 +748,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-50 flex flex-col font-sans antialiased text-gray-800">
+    <div className="min-h-screen overflow-x-clip bg-gray-50 flex flex-col font-sans antialiased text-gray-800">
       {/* Modern SaaS Operators Bar (Visible ONLY to verified admins) */}
       {isAdmin && (
         <div className="bg-[#0f172a] text-slate-300 text-xs px-4 py-2 flex items-center justify-between border-b border-slate-800 sticky top-0 z-50 select-none shadow-sm transition-all animate-in slide-in-from-top duration-300">
