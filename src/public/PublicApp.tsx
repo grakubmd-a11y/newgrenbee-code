@@ -176,18 +176,34 @@ export default function App() {
   const [wizardParams, setWizardParams] = useState<WizardBookingParams | null>(null);
 
   async function handleWizardSubmit(draft: Omit<Booking, "id" | "status" | "createdAt">) {
-    const id = `BK-${Math.floor(Math.random() * 90000) + 10000}`;
+    // StripePaymentPanel may attach private metadata to the draft:
+    //   _bookingId    — ID pre-generated before calling confirm-payment
+    //   _serverSaved  — true when confirm-payment already wrote to Firestore via Admin SDK
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ext = draft as any;
+    const id = ext._bookingId || `BK-${Math.floor(Math.random() * 90000) + 10000}`;
+    const serverSaved: boolean = ext._serverSaved === true;
+
+    // Strip private fields before building the Firestore document
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _bookingId: _bid, _serverSaved: _ss, ...cleanDraft } = ext;
+
     const fullBooking: Booking = {
-      ...draft,
+      ...cleanDraft,
       id,
       status: "scheduled",
       createdAt: new Date().toISOString(),
       userId: currentUser?.uid ?? currentUser?.email ?? "guest",
     };
-    try {
-      await createBookingInFirestore(fullBooking);
-    } catch (err) {
-      console.error("Failed to save booking to Firestore:", err);
+
+    if (!serverSaved) {
+      // Fallback: try to write from the client (succeeds when auth is ready;
+      // fails silently when auth.currentUser is null due to redirect race condition)
+      try {
+        await createBookingInFirestore(fullBooking);
+      } catch (err) {
+        console.error("Failed to save booking to Firestore:", err);
+      }
     }
 
     // ── Booking confirmation email (fire-and-forget, signed-in users only) ─

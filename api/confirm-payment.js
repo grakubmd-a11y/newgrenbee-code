@@ -85,6 +85,55 @@ async function recordCouponUsage(couponCode) {
   return { recorded: true };
 }
 
+/**
+ * Minimal server-side validation of the booking payload.
+ * We trust the pricing because it was authorised by create-payment-intent;
+ * we only need the shape to be safe to write.
+ */
+function isBookingPayloadValid(booking) {
+  if (!booking || typeof booking !== "object") return false;
+  const required = [
+    "id", "serviceId", "serviceName", "bookingDate", "timeSlot",
+    "customerName", "email", "phone", "address",
+  ];
+  return (
+    required.every(
+      (f) => typeof booking[f] === "string" && booking[f].length > 0
+    ) &&
+    typeof booking.units === "number" &&
+    typeof booking.totalCost === "number"
+  );
+}
+
+/**
+ * Save the booking document to Firestore using the Admin SDK.
+ * Bypasses client-side security rules — payment has already been verified.
+ * Returns { saved: true } or { saved: false, reason: string }.
+ */
+async function saveBookingToFirestore(booking, paymentIntentId) {
+  const db = getFirestore();
+  if (!db) return { saved: false, reason: "Firebase Admin not configured." };
+  if (!isBookingPayloadValid(booking)) {
+    return { saved: false, reason: "Booking payload failed validation." };
+  }
+
+  // Always force the authoritative status fields server-side
+  const safeBooking = {
+    ...booking,
+    status:    "scheduled",
+    createdAt: booking.createdAt || new Date().toISOString(),
+    // Ensure the PI that was verified is stored
+    stripePaymentIntentId: paymentIntentId,
+  };
+
+  try {
+    await db.collection("bookings").doc(safeBooking.id).set(safeBooking);
+    return { saved: true };
+  } catch (err) {
+    return { saved: false, reason: err instanceof Error ? err.message : "Firestore write failed." };
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -117,11 +166,18 @@ export default async function handler(req, res) {
       ? await recordCouponUsage(body.couponCode)
       : { recorded: false, reason: "No coupon code supplied." };
 
+    // ── Server-side Firestore booking save (bypasses client auth) ─────────
+    const bookingResult = body.booking
+      ? await saveBookingToFirestore(body.booking, paymentIntent.id)
+      : { saved: false, reason: "No booking data supplied." };
+
     return sendJson(res, 200, {
       ok: true,
       paymentIntentId: paymentIntent.id,
       paymentIntentStatus: paymentIntent.status,
-      couponUsage
+      couponUsage,
+      firestoreSaved:       bookingResult.saved,
+      firestoreSaveReason:  bookingResult.reason ?? null,
     });
   } catch (error) {
     return sendJson(res, 500, {

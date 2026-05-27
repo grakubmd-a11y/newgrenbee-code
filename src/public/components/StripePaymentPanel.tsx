@@ -103,12 +103,32 @@ function EmbeddedStripeForm({
         return;
       }
 
+      const paymentStatus = paymentIntent.status === "succeeded" ? "paid" : "authorized";
+
+      // Build the booking draft and generate a stable ID before calling the server.
+      // This lets confirm-payment save the booking via Admin SDK (bypasses Firestore
+      // security rules), which is the authoritative write for unauthenticated and
+      // race-condition scenarios after a Google redirect sign-in.
+      const bookingId = `BK-${Math.floor(Math.random() * 90000) + 10000}`;
+      const bookingDraft = buildBookingDraft({
+        paymentIntentId:     paymentIntent.id,
+        paymentIntentStatus: paymentIntent.status,
+        paymentStatus,
+      });
+      const serverBooking = {
+        ...bookingDraft,
+        id:        bookingId,
+        status:    "scheduled",
+        createdAt: new Date().toISOString(),
+      };
+
       const confirmResponse = await fetch("/api/confirm-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           paymentIntentId: paymentIntent.id,
-          couponCode: bookingParams.couponCode || ""
+          couponCode:      bookingParams.couponCode || "",
+          booking:         serverBooking,
         })
       });
       const confirmPayload = await confirmResponse.json().catch(() => ({}));
@@ -116,21 +136,22 @@ function EmbeddedStripeForm({
         throw new Error(confirmPayload.error || "Could not verify Stripe payment.");
       }
 
-      const paymentStatus = paymentIntent.status === "succeeded" ? "paid" : "authorized";
       onLog([
         "[GATEWAY] Stripe authorization confirmed inside embedded checkout.",
         `[SERVER] PaymentIntent ${paymentIntent.id} status: ${paymentIntent.status}`,
+        confirmPayload.firestoreSaved
+          ? `[SERVER] Booking ${bookingId} saved to Firestore via Admin SDK.`
+          : `[SERVER] Firestore save skipped: ${confirmPayload.firestoreSaveReason || "unknown"}`,
         confirmPayload.couponUsage?.recorded
           ? "[SERVER] Coupon usage count recorded after payment confirmation."
           : `[SERVER] Coupon usage count not recorded: ${confirmPayload.couponUsage?.reason || "No coupon used."}`,
         "[CLIENT] Booking finalized and ready to save."
       ]);
 
-      onSubmitBooking(buildBookingDraft({
-        paymentIntentId: paymentIntent.id,
-        paymentIntentStatus: paymentIntent.status,
-        paymentStatus
-      }));
+      // Attach the pre-generated ID and server-save flag so handleWizardSubmit
+      // can use the same ID and skip the redundant client-side Firestore write.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onSubmitBooking({ ...bookingDraft, _bookingId: bookingId, _serverSaved: confirmPayload.firestoreSaved === true } as any);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Could not complete Stripe payment.";
       setMessage(errorMessage);
