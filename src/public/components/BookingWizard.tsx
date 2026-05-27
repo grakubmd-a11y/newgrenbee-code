@@ -288,6 +288,8 @@ export default function BookingWizard({
   const [zip, setZip] = useState(() => extractZip(currentUser?.address || ""));
   const [notes, setNotes] = useState("");
   const [coverageStatus, setCoverageStatus] = useState<CoverageStatus>("idle");
+  const [coverageConfirmed, setCoverageConfirmed] = useState(false); // user ticked "proceed anyway"
+  const [showCoveragePrompt, setShowCoveragePrompt] = useState(false); // inline prompt visible
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // ── Google Maps autocomplete ──
@@ -353,6 +355,8 @@ export default function BookingWizard({
   // Coverage check on zip change
   useEffect(() => {
     if (!zip || zip.length < 5) { setCoverageStatus("idle"); return; }
+    setCoverageConfirmed(false);
+    setShowCoveragePrompt(false);
     let cancelled = false;
     setCoverageStatus("checking");
     checkZipCoverage(zip).then((r) => { if (!cancelled) setCoverageStatus(r); });
@@ -400,6 +404,7 @@ export default function BookingWizard({
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Valid email required";
     if (phone.replace(/\D/g, "").length < 10) e.phone = "10-digit phone required";
     if (!address.trim()) e.address = "Address required to dispatch";
+    if (!zip || zip.length < 5) e.zip = "5-digit ZIP code required";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -434,6 +439,11 @@ export default function BookingWizard({
       // Otherwise do a fresh single-slot confirmation check
       const ok = await checkAvailability();
       if (!ok) return;
+    }
+    if (step === 2 && coverageStatus === "not-covered" && !coverageConfirmed) {
+      // Surface the explicit confirmation prompt instead of proceeding silently
+      setShowCoveragePrompt(true);
+      return;
     }
     setStep((s) => (s + 1) as WizardStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -632,19 +642,55 @@ export default function BookingWizard({
               </Field>
 
               {/* Zip + Coverage */}
-              <Field label="Zip Code">
-                <div className="flex gap-2">
+              <Field label="Zip Code" error={errors.zip}>
+                <div className="flex gap-2 items-center">
                   <input
                     type="text"
                     value={zip}
-                    onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                    onChange={(e) => {
+                      setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+                      setErrors((prev) => { const { zip: _z, ...rest } = prev; return rest; });
+                    }}
                     placeholder="33139"
                     maxLength={5}
-                    className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-mono focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
+                    className={`w-28 border rounded-xl px-3 py-2.5 text-xs font-mono focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none ${
+                      errors.zip ? "border-rose-400 bg-rose-50/10" : "border-gray-200"
+                    }`}
                   />
                   <CoverageBadge status={coverageStatus} />
                 </div>
               </Field>
+
+              {/* Out-of-coverage explicit confirmation prompt */}
+              {showCoveragePrompt && coverageStatus === "not-covered" && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <MapPinOff size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-amber-800">ZIP {zip} is outside our current service area</p>
+                      <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                        You can still book — our team will review and confirm availability within your area before dispatching a technician.
+                      </p>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={coverageConfirmed}
+                      onChange={(e) => setCoverageConfirmed(e.target.checked)}
+                      className="h-4 w-4 rounded border-amber-300 accent-amber-600 cursor-pointer"
+                    />
+                    <span className="text-xs font-semibold text-amber-800">
+                      I understand and want to proceed with this booking
+                    </span>
+                  </label>
+                  {coverageConfirmed && (
+                    <p className="text-[10px] text-amber-600">
+                      ✓ Click <strong>Continue</strong> to proceed to payment.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <Field label="Access Notes (optional)">
                 <textarea
@@ -671,6 +717,14 @@ export default function BookingWizard({
                 <div className="flex justify-between"><span>Window:</span><span className="font-bold text-gray-900">{selectedSlot}</span></div>
                 <div className="flex justify-between"><span>Address:</span><span className="font-bold text-gray-900 truncate max-w-[180px]">{address}</span></div>
               </div>
+
+              {/* Out-of-area reminder in Step 3 */}
+              {coverageStatus === "not-covered" && coverageConfirmed && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-amber-800 text-xs leading-normal">
+                  <MapPinOff size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                  <span>ZIP <strong>{zip}</strong> is outside our standard area. Our team will confirm before dispatching.</span>
+                </div>
+              )}
 
               <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 flex gap-2 text-emerald-800 text-xs leading-normal">
                 <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
@@ -779,9 +833,12 @@ export default function BookingWizard({
             {step < 3 && (
               <button
                 onClick={goNext}
-                className="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm"
+                disabled={showCoveragePrompt && coverageStatus === "not-covered" && !coverageConfirmed}
+                className="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {step === 2 && coverageStatus === "not-covered" ? "Continue Anyway" : "Continue"}
+                {showCoveragePrompt && coverageStatus === "not-covered"
+                  ? "Confirm & Continue"
+                  : "Continue"}
                 <ArrowRight size={15} />
               </button>
             )}
