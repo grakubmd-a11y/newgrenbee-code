@@ -2,6 +2,17 @@
 
 React + Tailwind + Firebase app for the new Grenbee website.
 
+## For AI Agents — Start Here
+
+If you are an AI agent (Claude Code, Codex, Copilot, or any other model), read these docs **before doing anything**:
+
+| Document | Purpose |
+|---|---|
+| [`docs/AGENT_ONBOARDING.md`](docs/AGENT_ONBOARDING.md) | **Start here** — project overview, stack, rules, current state |
+| [`docs/AGENT_SYSTEM.md`](docs/AGENT_SYSTEM.md) | Your role, what you can/cannot do, coordination protocol |
+| [`docs/AGENT_TASK_REGISTRY.md`](docs/AGENT_TASK_REGISTRY.md) | Active tasks, file ownership, parallel work rules |
+| [`docs/PRODUCTION_READINESS.md`](docs/PRODUCTION_READINESS.md) | What's built, what's missing, pre-production gates |
+
 ## Structure
 
 ```text

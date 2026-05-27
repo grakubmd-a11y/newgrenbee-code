@@ -34,7 +34,7 @@ export interface Service {
   popularUnitValue: number;
 }
 
-export type BookingStatus = 'scheduled' | 'dispatched' | 'in-progress' | 'completed' | 'cancelled';
+export type BookingStatus = 'scheduled' | 'dispatched' | 'in-progress' | 'completed' | 'cancelled' | 'needs_assignment';
 
 export interface Booking {
   id: string;
@@ -63,6 +63,20 @@ export interface Booking {
   stripePaymentStatus?: string;
   assignedStaffId?: string;
   assignedStaffName?: string;
+  /** Two-tech jobs — primary technician */
+  primaryStaffId?: string;
+  primaryStaffName?: string;
+  /** Two-tech jobs — helper technician */
+  helperStaffId?: string;
+  helperStaffName?: string;
+  /** When true, auto-assign will find and assign two staff members */
+  requiresTwoStaff?: boolean;
+  /** Explicit ZIP code for zone matching (extracted from address if absent) */
+  zipCode?: string;
+  /** Overrides the service-level duration estimate (minutes) */
+  estimatedDurationMinutes?: number;
+  /** Staff member preferred by this customer or booking */
+  preferredStaffId?: string;
   /** Notes left by the technician when closing the job */
   completionNotes?: string;
   /** Admin-set payout override for this specific job (in $) */
@@ -101,6 +115,8 @@ export interface Staff {
   phone: string;
   active: boolean;
   serviceIds: string[];
+  /** ZIP codes this staff member serves. Empty = all zones. */
+  zipCodes?: string[];
   /** How this technician is paid */
   payoutModel?: PayoutModel;
   /**
