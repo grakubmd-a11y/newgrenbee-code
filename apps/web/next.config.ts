@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
 
-// Stable Vercel project URL for the operational app (grenbee-app).
+// Custom domain for the operational app (grenbee-app).
+// Using the custom domain (not the raw Vercel project URL) because grenbee-app
+// has Vercel SSO protection enabled for non-custom-domain URLs.
 // Set GRENBEE_APP_URL in Vercel → grenbee-web environment variables to override.
-// This URL is the project alias — it always points to the latest production deployment.
 const APP_URL =
   process.env.GRENBEE_APP_URL ||
-  "https://grenbee-app-grakubmd-6842s-projects.vercel.app";
+  "https://app.grenbee.com";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

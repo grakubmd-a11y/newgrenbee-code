@@ -40,15 +40,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── app.grenbee.com ── permanent redirect to grenbee.com ─────────────────
-  // Preserves the full path and query string so deep links still work.
-  if (hostname === "app.grenbee.com") {
-    const destination = new URL(
-      pathname + request.nextUrl.search,
-      "https://grenbee.com"
-    );
-    return NextResponse.redirect(destination, 301);
-  }
+  // ── app.grenbee.com ── no redirect ───────────────────────────────────────
+  // This domain is used as the rewrite destination from grenbee-web's
+  // multi-zone proxy (Next.js rewrites grenbee.com/book → app.grenbee.com/book
+  // server-side). Adding a redirect here would cause an infinite loop.
+  // app.grenbee.com is not exposed in customer-facing links or emails;
+  // it is a technical proxy target only.
 
   return NextResponse.next();
 }
