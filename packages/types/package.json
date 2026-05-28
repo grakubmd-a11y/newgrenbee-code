@@ -1,0 +1,10 @@
+{
+  "name": "@grenbee/types",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./index.ts"
+  },
+  "main": "./index.ts",
+  "types": "./index.ts"
+}

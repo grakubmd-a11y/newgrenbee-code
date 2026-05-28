@@ -1,0 +1,16 @@
+{
+  "name": "@grenbee/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./index.ts",
+    "./locales/en": "./locales/en.json",
+    "./locales/es": "./locales/es.json"
+  },
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "i18next": "*",
+    "react-i18next": "*"
+  }
+}

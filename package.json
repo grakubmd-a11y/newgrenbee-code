@@ -1,47 +1,25 @@
 {
-  "name": "grenbee-firebase-web",
+  "name": "grenbee",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev --port 3000",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .next",
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=@grenbee/web",
+    "dev:app": "turbo dev --filter=@grenbee/app",
+    "build": "turbo build",
+    "build:web": "turbo build --filter=@grenbee/web",
+    "build:app": "turbo build --filter=@grenbee/app",
+    "typecheck": "turbo typecheck",
+    "lint": "turbo lint",
     "admin:grant": "node ./scripts/grant-admin-role.mjs",
     "rules:deploy": "node ./scripts/deploy-firestore-rules.mjs"
   },
-  "dependencies": {
-    "@google/genai": "^2.4.0",
-    "@stripe/react-stripe-js": "^6.4.0",
-    "@stripe/stripe-js": "^9.6.0",
-    "@tailwindcss/postcss": "^4.3.0",
-    "dotenv": "^17.2.3",
-    "express": "^4.21.2",
-    "firebase": "^12.13.0",
-    "firebase-admin": "^13.6.0",
-    "i18next": "^26.3.0",
-    "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
-    "next": "^15.5.18",
-    "react": "^19.0.1",
-    "react-dom": "^19.0.1",
-    "react-i18next": "^17.0.8",
-    "react-router-dom": "^7.15.1",
-    "resend": "^6.12.4",
-    "stripe": "^22.1.1"
-  },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.14.0",
-    "@types/react": "^19.2.15",
-    "@types/react-dom": "^19.2.3",
-    "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
-    "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
+    "turbo": "^2.5.4",
     "typescript": "~5.8.2"
   }
 }
