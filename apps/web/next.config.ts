@@ -32,7 +32,14 @@ const nextConfig: NextConfig = {
       { source: "/checkout/:path*",   destination: `${APP_URL}/checkout/:path*` },
       { source: "/bookings",          destination: `${APP_URL}/bookings` },
       { source: "/bookings/:path*",   destination: `${APP_URL}/bookings/:path*` },
-      // API routes — all relative fetch() calls from the booking app go here
+      // API routes — proxied to grenbee-app because all booking/payment/staff
+      // components use relative fetch("/api/...") calls and apps/web has NO
+      // API routes of its own (verified at time of writing: no app/api/ dir).
+      //
+      // ⚠️  IMPORTANT: If apps/web ever adds its own API routes (e.g. /api/contact),
+      // replace this blanket rewrite with specific routes for each grenbee-app
+      // endpoint to avoid accidentally proxying the new web-side routes.
+      // See: https://nextjs.org/docs/app/api-reference/config/next-config-js/rewrites
       { source: "/api/:path*",        destination: `${APP_URL}/api/:path*` },
     ];
   },
