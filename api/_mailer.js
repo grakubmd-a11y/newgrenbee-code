@@ -197,6 +197,38 @@ export function buildStaffAssignmentEmail(booking, staff) {
   };
 }
 
+// ── Template: 24h Appointment Reminder (→ customer) ──────────────────────────
+/**
+ * Sent ~24 hours before the appointment.
+ * @param {object} booking  Full booking document
+ */
+export function buildAppointmentReminderEmail(booking) {
+  const staffLine = booking.assignedStaffName
+    ? detailRow("Your Technician", booking.assignedStaffName)
+    : "";
+
+  const body = `
+    ${h1("Your appointment is tomorrow! ⏰")}
+    ${p(`Hi ${booking.customerName?.split(" ")[0] || "there"}, just a friendly reminder that your <strong>${booking.serviceName}</strong> is scheduled for <strong>tomorrow</strong>. Here are the details:`)}
+    ${detailTable([
+      detailRow("Service",       booking.serviceName),
+      detailRow("Date",          friendlyDate(booking.bookingDate)),
+      detailRow("Arrival Window",booking.timeSlot || "—"),
+      detailRow("Address",       booking.address || "—"),
+      staffLine,
+      booking.notes ? detailRow("Your Notes", booking.notes) : "",
+    ].filter(Boolean))}
+    ${p("Please make sure someone is available to receive the technician at the arrival window.", "background:#f0fdf4;padding:12px 16px;border-radius:10px;border-left:3px solid #0ead6b;")}
+    ${divider()}
+    ${p("Need to reschedule or have questions? Log in to <strong>My Account</strong> on our website.", "color:#888;font-size:12px;")}
+  `;
+
+  return {
+    subject: `Reminder: ${booking.serviceName} appointment tomorrow`,
+    html:    wrap("Appointment reminder", body),
+  };
+}
+
 // ── Template: Recurring Charge Receipt (→ customer) ──────────────────────────
 export function buildRecurringReceiptEmail(plan, booking) {
   const body = `
