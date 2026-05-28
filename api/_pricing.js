@@ -92,6 +92,7 @@ export function requiresTwoTechs(serviceId, selectedFactors = {}) {
  *   membership?: string | null,
  *   couponDiscount?: number,
  *   sameDayFee?: boolean,
+ *   sameDayFeeAmount?: number,  — override the default $35; read from Firestore settings
  *   twoTechFee?: boolean,
  * }} params
  * @returns {{ totalCents: number, breakdown: object }}
@@ -104,6 +105,7 @@ export function calculatePrice({
   membership = null,
   couponDiscount = 0,
   sameDayFee = false,
+  sameDayFeeAmount = SAME_DAY_FEE,
   twoTechFee = false,
 }) {
   const svc = SERVICE_PRICING[serviceId];
@@ -151,8 +153,8 @@ export function calculatePrice({
   let priceAfterDiscounts = Math.max(0, subtotal - discountAmount - memberDiscount);
 
   // ── Surcharges ─────────────────────────────────────────────────────────────
-  const sameDayAmount = sameDayFee  ? SAME_DAY_FEE  : 0;
-  const twoTechAmount = twoTechFee  ? TWO_TECH_FEE  : 0;
+  const sameDayAmount = sameDayFee  ? sameDayFeeAmount : 0;
+  const twoTechAmount = twoTechFee  ? TWO_TECH_FEE     : 0;
   const totalBeforeCoupon = priceAfterDiscounts + sameDayAmount + twoTechAmount;
 
   // ── Coupon ─────────────────────────────────────────────────────────────────

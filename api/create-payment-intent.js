@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import admin from "firebase-admin";
 import { getFirestore as _adminGetFs } from "firebase-admin/firestore";
-import { calculatePrice, requiresTwoTechs } from "./_pricing.js";
+import { calculatePrice, requiresTwoTechs, SAME_DAY_FEE } from "./_pricing.js";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const hasStripeSecretKey =
@@ -84,6 +84,23 @@ async function getOrCreateStripeCustomer({ userId, email, name, db, stripe }) {
   }
 }
 
+/**
+ * Read the sameDayFee amount from Firestore settings/business.
+ * Falls back to the hardcoded constant so the system never fails.
+ */
+async function resolveSameDayFeeAmount() {
+  const db = getFirestore();
+  if (!db) return SAME_DAY_FEE;
+  try {
+    const snap = await db.collection("settings").doc("business").get();
+    if (snap.exists) {
+      const val = Number(snap.data()?.sameDayFee);
+      if (Number.isFinite(val) && val > 0) return val;
+    }
+  } catch { /* fall through */ }
+  return SAME_DAY_FEE;
+}
+
 async function resolveServerCouponDiscount(couponCode) {
   const docId = couponDocId(couponCode);
   if (!docId) return 0;
@@ -139,10 +156,11 @@ export default async function handler(req, res) {
     const today = new Date().toISOString().split("T")[0];
     const sameDayFee = Boolean(clientSameDay) && booking.bookingDate === today;
 
-    // Validate coupon against Firestore to get the authoritative discount
-    const couponDiscount = couponCode
-      ? await resolveServerCouponDiscount(couponCode)
-      : 0;
+    // Read dynamic same-day fee amount from admin settings (fallback: $35)
+    const [couponDiscount, sameDayFeeAmount] = await Promise.all([
+      couponCode ? resolveServerCouponDiscount(couponCode) : Promise.resolve(0),
+      resolveSameDayFeeAmount(),
+    ]);
 
     // Canonical price calculation — throws on unknown service or tampered modifier
     const { totalCents, breakdown } = calculatePrice({
@@ -153,6 +171,7 @@ export default async function handler(req, res) {
       membership,
       couponDiscount,
       sameDayFee,
+      sameDayFeeAmount,
       twoTechFee,
     });
 
@@ -190,7 +209,8 @@ export default async function handler(req, res) {
         frequency:      cleanMeta(frequency),
         couponCode:     cleanMeta(couponCode),
         couponDiscount: String(couponDiscount),
-        sameDayFee:     String(sameDayFee),
+        sameDayFee:       String(sameDayFee),
+        sameDayFeeAmount: String(sameDayFeeAmount),
         twoTechFee:     String(twoTechFee),
         userId:         cleanMeta(userId),
         source:         "grenbee-web",

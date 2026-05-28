@@ -20,8 +20,10 @@
 
 import { Resend } from "resend";
 
-const apiKey  = process.env.RESEND_API_KEY || "";
-const FROM    = process.env.NOTIFY_FROM    || "Greenbee <noreply@grenbee.app>";
+const apiKey       = process.env.RESEND_API_KEY    || "";
+const FROM         = process.env.NOTIFY_FROM       || "Greenbee <noreply@grenbee.app>";
+/** Business owner alert address — set NOTIFY_ADMIN_EMAIL in Vercel env vars */
+export const ADMIN_EMAIL = process.env.NOTIFY_ADMIN_EMAIL || "";
 const resend  = apiKey && !apiKey.includes("REPLACE_ME") ? new Resend(apiKey) : null;
 
 // ── Brand colour helpers ──────────────────────────────────────────────────────
@@ -129,6 +131,44 @@ export function buildBookingConfirmationEmail(booking) {
   return {
     subject: `Booking confirmed — ${booking.serviceName} on ${friendlyDate(booking.bookingDate)}`,
     html:    wrap(`Booking confirmed — ${booking.serviceName}`, body),
+  };
+}
+
+// ── Template: New Booking Alert (→ business admin) ───────────────────────────
+/**
+ * Alert sent to the business owner / admin when a new booking is confirmed.
+ * @param {object} booking  Full booking document
+ */
+export function buildAdminNewBookingEmail(booking) {
+  const freq = booking.frequency && booking.frequency !== "once"
+    ? ` · <strong>${booking.frequency}</strong> recurring plan`
+    : "";
+
+  const body = `
+    ${h1("New booking received! 🔔")}
+    ${p("A customer just completed a booking. Review the details below and assign a technician.")}
+    ${detailTable([
+      detailRow("Booking ID",    booking.id),
+      detailRow("Service",       booking.serviceName + (booking.units > 1 ? ` · ${booking.units} units` : "")),
+      detailRow("Customer",      booking.customerName || "—"),
+      detailRow("Email",         booking.email || "—"),
+      detailRow("Phone",         booking.phone || "—"),
+      detailRow("Date",          friendlyDate(booking.bookingDate)),
+      detailRow("Time Slot",     booking.timeSlot || "—"),
+      detailRow("Address",       booking.address || "—"),
+      detailRow("Total",         usd(booking.totalCost) + freq),
+      booking.notes ? detailRow("Customer Notes", booking.notes) : "",
+    ].filter(Boolean))}
+    ${booking.frequency !== "once"
+      ? p(`<strong>Recurring plan:</strong> This customer signed up for <strong>${booking.frequency}</strong> service. A recurring plan has been created and future charges will run automatically.`, "background:#f0fdf4;padding:12px 16px;border-radius:10px;border-left:3px solid #0ead6b;")
+      : ""}
+    ${divider()}
+    ${p("Log in to the Admin Panel to assign a technician and confirm the booking.", "color:#888;font-size:12px;")}
+  `;
+
+  return {
+    subject: `New booking: ${booking.serviceName} — ${booking.customerName || "Unknown"} on ${friendlyDate(booking.bookingDate)}`,
+    html:    wrap("New booking received", body),
   };
 }
 
