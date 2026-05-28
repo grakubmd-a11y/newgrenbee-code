@@ -23,9 +23,9 @@ export default async function handler(req, res) {
   }
 
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "";
-  const stripePublishableKey = process.env.VITE_STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY || "";
+  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
   const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
-  const googleMapsKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || "";
+  const googleMapsKey = process.env.GOOGLE_MAPS_API_KEY || "";
   const firebaseAdminJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_ADMIN_CREDENTIALS || "";
 
   return sendJson(res, 200, {

@@ -197,7 +197,7 @@ export default function MyAccount({
 
   // Google Maps autocomplete
   const [googleMapsKey,               setGoogleMapsKey]               = useState(
-    (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY) || ""
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
   );
   const [isAddressAutocompleteEnabled, setIsAddressAutocompleteEnabled] = useState(false);
   const [isAddressAutocompleteReady,   setIsAddressAutocompleteReady]   = useState(false);
