@@ -41,7 +41,7 @@ interface BookingWizardProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SAME_DAY_FEE = 35;
+const DEFAULT_sameDayFee = 35;
 const TWO_TECH_FEE = 50;
 
 const STEP_LABELS = ["Schedule", "Details", "Pay"];
@@ -152,16 +152,17 @@ function StepLabels({ step }: { step: WizardStep }) {
 }
 
 /** Price sidebar — live line-item breakdown */
-function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, isTwoTech }: {
+function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, isTwoTech, sameDayFee }: {
   service: Service;
   params: WizardBookingParams;
   selectedDate: string;
   selectedSlot: string;
   isSameDay: boolean;
   isTwoTech: boolean;
+  sameDayFee: number;
 }) {
   const discountTotal = (params.couponDiscount ?? 0);
-  const sameDayAmt    = isSameDay ? SAME_DAY_FEE : 0;
+  const sameDayAmt    = isSameDay ? sameDayFee : 0;
   const twoTechAmt    = isTwoTech ? TWO_TECH_FEE : 0;
   const base          = params.originalCost ?? params.totalCost + discountTotal;
   const grandTotal    = params.totalCost + sameDayAmt + twoTechAmt;
@@ -239,8 +240,8 @@ function LineItem({ label, value, valueClass = "text-white" }: { label: string; 
 }
 
 /** Mobile floating price bar */
-function MobileTotal({ total, isSameDay, isTwoTech }: { total: number; isSameDay: boolean; isTwoTech: boolean }) {
-  const grand = total + (isSameDay ? SAME_DAY_FEE : 0) + (isTwoTech ? TWO_TECH_FEE : 0);
+function MobileTotal({ total, isSameDay, isTwoTech, sameDayFee }: { total: number; isSameDay: boolean; isTwoTech: boolean; sameDayFee: number }) {
+  const grand = total + (isSameDay ? sameDayFee : 0) + (isTwoTech ? TWO_TECH_FEE : 0);
   return (
     <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur border-t border-gray-100 px-4 py-3 flex items-center justify-between shadow-2xl">
       <span className="text-xs text-gray-500 font-medium">Estimated total</span>
@@ -407,6 +408,8 @@ export default function BookingWizard({
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>("idle");
   const [slotsMap, setSlotsMap] = useState<SlotsMap>({});
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const [busyDates, setBusyDates] = useState<Set<string>>(new Set());
+  const [sameDayFee, setSameDayFee] = useState(DEFAULT_sameDayFee);
 
   // ── Same-day & 2-tech ──
   const today   = useMemo(() => new Date().toISOString().split("T")[0], []);
@@ -446,7 +449,7 @@ export default function BookingWizard({
   const [confirmedDraft,     setConfirmedDraft]     = useState<BookingDraft | null>(null);
   const [confirmedBookingId, setConfirmedBookingId] = useState<string | undefined>();
 
-  // Load Maps settings
+  // Load Maps settings + same-day fee
   useEffect(() => {
     let cancelled = false;
     fetchPublicSettingsFromFirestore().then((settings) => {
@@ -455,6 +458,7 @@ export default function BookingWizard({
         setMapsKey(settings.googleMapsApiKey.trim());
       }
       setMapsEnabled(settings.googleMapsEnabled === true && settings.googleMapsAutocompleteEnabled !== false);
+      if (typeof settings.sameDayFee === "number") setSameDayFee(settings.sameDayFee);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -503,6 +507,20 @@ export default function BookingWizard({
     checkZipCoverage(zip).then((r) => { if (!cancelled) setCoverageStatus(r); });
     return () => { cancelled = true; };
   }, [zip]);
+
+  // Fetch busy dates for a given month (called from SchedulePicker's onMonthChange)
+  function handleMonthChange(year: number, month: number) {
+    fetch("/api/availability", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year, month }),
+    })
+      .then((r) => r.json())
+      .then((data: { busyDates?: string[] }) => {
+        if (data.busyDates) setBusyDates(new Set(data.busyDates));
+      })
+      .catch(() => {});
+  }
 
   // Bulk slot-availability check when date changes (step 1 only)
   useEffect(() => {
@@ -655,7 +673,7 @@ export default function BookingWizard({
       <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-20 lg:pb-0">
         {/* ─── Form Column ─── */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
             {/* Header strip */}
             <div className="px-6 pt-6 pb-5 border-b border-gray-50">
               {step === 1 && <StepHeader icon={<Calendar size={20} />} title="Choose Date & Time" sub="Pick the best day and arrival window for your appointment." />}
@@ -674,6 +692,9 @@ export default function BookingWizard({
                     onTimeChange={(t) => { setSelectedSlot(t); setAvailabilityStatus("idle"); }}
                     slotsMap={slotsMap}
                     slotsLoading={slotsLoading}
+                    busyDates={busyDates}
+                    sameDayFee={sameDayFee}
+                    onMonthChange={handleMonthChange}
                   />
 
                   {availabilityStatus === "checking" && (
@@ -940,11 +961,12 @@ export default function BookingWizard({
           selectedSlot={selectedSlot}
           isSameDay={isSameDay}
           isTwoTech={isTwoTech}
+          sameDayFee={sameDayFee}
         />
       </div>
 
       {/* Mobile floating total */}
-      <MobileTotal total={bookingParams.totalCost} isSameDay={isSameDay} isTwoTech={isTwoTech} />
+      <MobileTotal total={bookingParams.totalCost} isSameDay={isSameDay} isTwoTech={isTwoTech} sameDayFee={sameDayFee} />
     </div>
   );
 }

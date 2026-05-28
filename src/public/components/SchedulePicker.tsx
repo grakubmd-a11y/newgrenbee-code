@@ -48,6 +48,12 @@ interface Props {
   onTimeChange: (time: string) => void;
   slotsMap: Record<string, SlotInfo>;
   slotsLoading: boolean;
+  /** Set of "YYYY-MM-DD" dates where every slot is fully booked */
+  busyDates?: Set<string>;
+  /** Same-day surcharge amount (shown as tooltip on today's cell) */
+  sameDayFee?: number;
+  /** Called whenever the user navigates to a different month */
+  onMonthChange?: (year: number, month: number) => void;
 }
 
 // ─── Calendar cell ────────────────────────────────────────────────────────────
@@ -105,6 +111,9 @@ export default function SchedulePicker({
   onTimeChange,
   slotsMap,
   slotsLoading,
+  busyDates,
+  sameDayFee,
+  onMonthChange,
 }: Props) {
   // Use a stable today reference (midnight local)
   const today = useMemo(() => {
@@ -143,6 +152,12 @@ export default function SchedulePicker({
   const cells = useMemo(() => buildCells(cursor, today, maxDate), [cursor, today, maxDate]);
 
   const monthLabel = `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`;
+
+  // Notify parent when the visible month changes so it can fetch busy dates
+  React.useEffect(() => {
+    onMonthChange?.(cursor.getFullYear(), cursor.getMonth() + 1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor]);
 
   return (
     <div className="space-y-5">
@@ -185,26 +200,55 @@ export default function SchedulePicker({
           {cells.map((cell, i) => {
             if (cell.isEmpty) return <div key={i} className="h-9" />;
 
-            const isSelected = selectedDate === cell.rawDate;
+            const isSelected  = selectedDate === cell.rawDate;
+            const isBusy      = !cell.disabled && (busyDates?.has(cell.rawDate) ?? false);
+            const effectivelyDisabled = cell.disabled || isBusy;
+
+            // Which tooltip to show (busy wins over same-day)
+            const showBusy    = isBusy;
+            const showSameDay = !isBusy && cell.isToday && !!sameDayFee;
 
             return (
-              <button
-                key={cell.rawDate}
-                type="button"
-                disabled={cell.disabled}
-                onClick={() => onDateChange(cell.rawDate)}
-                className={`h-9 w-full rounded-lg text-xs font-semibold transition-all border border-transparent ${
-                  cell.disabled
-                    ? "text-gray-200 cursor-not-allowed"
-                    : isSelected
-                    ? "bg-brand text-white font-bold shadow-sm shadow-brand/30"
-                    : cell.isToday
-                    ? "border-brand/60 text-brand font-bold hover:bg-brand/10 cursor-pointer"
-                    : "text-gray-700 hover:bg-brand/10 hover:text-brand cursor-pointer"
-                }`}
-              >
-                {cell.label}
-              </button>
+              <div key={cell.rawDate} className="relative group">
+                <button
+                  type="button"
+                  disabled={effectivelyDisabled}
+                  onClick={() => !effectivelyDisabled && onDateChange(cell.rawDate)}
+                  className={`h-9 w-full rounded-lg text-xs font-semibold transition-all border border-transparent ${
+                    effectivelyDisabled
+                      ? isBusy
+                        ? "text-gray-300 line-through decoration-gray-300 cursor-not-allowed"
+                        : "text-gray-200 cursor-not-allowed"
+                      : isSelected
+                      ? "bg-brand text-white font-bold shadow-sm shadow-brand/30"
+                      : cell.isToday
+                      ? "border-brand/60 text-brand font-bold hover:bg-brand/10 cursor-pointer"
+                      : "text-gray-700 hover:bg-brand/10 hover:text-brand cursor-pointer"
+                  }`}
+                >
+                  {cell.label}
+                </button>
+
+                {/* "Ocupado" tooltip for fully-booked days */}
+                {showBusy && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-20 whitespace-nowrap">
+                    <div className="bg-gray-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                      Ocupado
+                    </div>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                  </div>
+                )}
+
+                {/* Same-day surcharge tooltip for today */}
+                {showSameDay && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-20 whitespace-nowrap">
+                    <div className="bg-amber-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                      +${sameDayFee} cargo mismo día
+                    </div>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-amber-600" />
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

@@ -472,7 +472,8 @@ export async function fetchSettingsFromFirestore(): Promise<BusinessSettings> {
       googleMapsEnabled: false,
       googleMapsApiKey: "",
       googleMapsAutocompleteEnabled: true,
-      googleAuthEnabled: true
+      googleAuthEnabled: true,
+      sameDayFee: 35,
     };
 
     console.log("Seeding business settings into Firestore...");
@@ -498,7 +499,9 @@ export async function saveSettingsInFirestore(settings: BusinessSettings): Promi
       googleMapsEnabled: settings.googleMapsEnabled || false,
       googleMapsApiKey: settings.googleMapsApiKey || "",
       googleMapsAutocompleteEnabled: settings.googleMapsAutocompleteEnabled !== false,
-      googleAuthEnabled: settings.googleAuthEnabled !== false
+      googleAuthEnabled: settings.googleAuthEnabled !== false,
+      sameDayFee: settings.sameDayFee ?? 35,
+      ...(settings.crmWebhookUrl !== undefined && { crmWebhookUrl: settings.crmWebhookUrl }),
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);

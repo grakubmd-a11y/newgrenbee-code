@@ -56,13 +56,61 @@ function getFirestore() {
 
 const MAX_CONCURRENT = 3;
 
+const KNOWN_SLOTS = [
+  "08:00", "09:00", "10:00", "11:00", "12:00",
+  "13:00", "14:00", "15:00", "16:00", "17:00",
+];
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return sendJson(res, 405, { error: "Method not allowed" });
   }
 
-  const { date, timeSlot } = parseBody(req);
+  const { date, timeSlot, year, month } = parseBody(req);
+
+  // ── Month-level busy-dates query: { year, month } ─────────────────────────
+  if (!date && year && month) {
+    const db = getFirestore();
+    if (!db) return sendJson(res, 200, { busyDates: [] });
+
+    try {
+      const y = Number(year);
+      const m = Number(month);
+      const startDate = `${y}-${String(m).padStart(2, "0")}-01`;
+      const nextM = m === 12 ? 1 : m + 1;
+      const nextY = m === 12 ? y + 1 : y;
+      const endDate = `${nextY}-${String(nextM).padStart(2, "0")}-01`;
+
+      const snap = await db
+        .collection("bookings")
+        .where("bookingDate", ">=", startDate)
+        .where("bookingDate", "<", endDate)
+        .where("status", "in", ["scheduled", "dispatched", "in-progress", "confirmed"])
+        .get();
+
+      // Count per date → slot
+      const perDate = {};
+      for (const doc of snap.docs) {
+        const { bookingDate, timeSlot: ts } = doc.data();
+        if (!bookingDate || !ts) continue;
+        if (!perDate[bookingDate]) perDate[bookingDate] = {};
+        perDate[bookingDate][ts] = (perDate[bookingDate][ts] || 0) + 1;
+      }
+
+      // A day is "busy" when every known slot is at or above MAX_CONCURRENT
+      const busyDates = [];
+      for (const [d, slots] of Object.entries(perDate)) {
+        const fullCount = KNOWN_SLOTS.filter(s => (slots[s] || 0) >= MAX_CONCURRENT).length;
+        if (fullCount >= KNOWN_SLOTS.length) busyDates.push(d);
+      }
+
+      return sendJson(res, 200, { busyDates });
+    } catch {
+      return sendJson(res, 200, { busyDates: [] });
+    }
+  }
+
   if (!date) {
     return sendJson(res, 400, { error: "date is required." });
   }
@@ -112,12 +160,6 @@ export default async function handler(req, res) {
     // ── Bulk response — all known slots ────────────────────────────────────
     // Return status for every slot that had at least one booking PLUS any
     // slot the caller might not know about (so the UI can show all statuses).
-    // We also include all 10 hourly slots so the UI always gets
-    // a full picture even if no bookings exist yet.
-    const KNOWN_SLOTS = [
-      "08:00", "09:00", "10:00", "11:00", "12:00",
-      "13:00", "14:00", "15:00", "16:00", "17:00",
-    ];
 
     const allSlotKeys = new Set([...KNOWN_SLOTS, ...Object.keys(counts)]);
     const slots = {};

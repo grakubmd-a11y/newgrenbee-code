@@ -117,7 +117,8 @@ export default function AdminPanel({
     googleMapsEnabled: false,
     googleMapsApiKey: "",
     googleMapsAutocompleteEnabled: true,
-    googleAuthEnabled: true
+    googleAuthEnabled: true,
+    sameDayFee: 35,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
@@ -3810,6 +3811,24 @@ export default function AdminPanel({
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono"
               />
               <p className="text-[10px] text-gray-400">Recibe eventos de leads (contactado, recuperado, perdido, email enviado) en tu CRM, Zapier o Make.</p>
+            </div>
+
+            {/* Same-day fee */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 block">
+                Cargo por reserva del mismo día ($)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={businessSettings.sameDayFee ?? 35}
+                onChange={(e) => setBusinessSettings({ ...businessSettings, sameDayFee: Math.max(0, Number(e.target.value)) })}
+                className="w-32 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono"
+              />
+              <p className="text-[10px] text-gray-400">
+                Se suma automáticamente al total cuando el cliente selecciona el día de hoy. Se muestra como aviso en el calendario.
+              </p>
             </div>
 
             <div className="bg-amber-50/30 border border-amber-900/10 p-4 rounded-xl flex items-center justify-between">

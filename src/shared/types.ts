@@ -162,6 +162,8 @@ export interface BusinessSettings {
   googleAuthEnabled?: boolean;
   /** Outgoing webhook URL for CRM integrations (Zapier, Make, HubSpot, etc.) */
   crmWebhookUrl?: string;
+  /** Extra fee charged when the customer books for today (same-day booking). Default 35. */
+  sameDayFee?: number;
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────────
