@@ -211,8 +211,9 @@ export default function Navbar({
               </Link>
               <button
                 onClick={() => setActiveTab("membership")}
-                className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
               >
+                <Award size={15} className="text-amber-500 shrink-0" />
                 {t("nav.membership", "Membership")}
               </button>
               <Link
@@ -289,8 +290,8 @@ export default function Navbar({
                           onClick={() => { setActiveTab("membership"); setIsUserMenuOpen(false); }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
                         >
-                          <Award size={15} className="text-gray-400 shrink-0" />
-                          <span>{t("nav.membership", "Membership")}</span>
+                          <Award size={15} className="text-amber-500 shrink-0" />
+                          <span className="text-amber-600 font-semibold">{t("nav.membership", "Membership")}</span>
                         </button>
                       </div>
 
