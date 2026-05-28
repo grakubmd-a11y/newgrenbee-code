@@ -56,7 +56,7 @@ export default function SiteNavbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
             <span className="text-xl font-extrabold text-gray-950 tracking-tight leading-none">
-              Green<span className="text-emerald-500">bee</span>
+              Gren<span className="text-emerald-500">bee</span>
             </span>
           </Link>
 

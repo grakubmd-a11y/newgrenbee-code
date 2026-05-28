@@ -403,8 +403,17 @@ export default function Navbar({
                             : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                         }`}
                       >
-                        <IconComp size={18} className={isActive ? "text-brand" : "text-gray-400"} />
-                        <span className="flex-1 text-left">{tab.label}</span>
+                        <IconComp
+                          size={18}
+                          className={
+                            isActive
+                              ? "text-brand"
+                              : tab.id === "membership"
+                              ? "text-amber-500"
+                              : "text-gray-400"
+                          }
+                        />
+                        <span className={`flex-1 text-left ${!isActive && tab.id === "membership" ? "text-amber-600 font-extrabold" : ""}`}>{tab.label}</span>
                         
                         {tab.badge !== undefined && tab.badge > 0 && (
                           <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white">
