@@ -27,26 +27,36 @@
 
 ---
 
+## Monorepo / Imports
+
+- **Never use relative `../../src/shared/` imports** — that directory no longer exists. All shared code is in `packages/` and imported as `@grenbee/types`, `@grenbee/firebase`, `@grenbee/firebase/services`, `@grenbee/firebase/contexts`, `@grenbee/i18n`, `@grenbee/config`. [WHY]: The project migrated from a Vite monolith to a Turborepo monorepo; the old `src/` imports will cause build failures.
+- **Packages export TypeScript source directly** — no build step needed. [WHY]: `transpilePackages` in each app's `next.config.ts` handles compilation; you don't need to run a separate build for packages after editing them.
+- **TypeScript paths are defined per-app** in `apps/web/tsconfig.json` and `apps/app/tsconfig.json`. [WHY]: Each app resolves `@grenbee/*` to `../../packages/*/index.ts` — if you add a new export path, add it to both tsconfigs.
+
 ## Pricing & Business Logic
 
-- `api/_pricing.js` is the single source of truth for all prices. If you change a price or add a factor, you must update BOTH `api/_pricing.js` AND `src/shared/data.ts` — they must stay in sync or the UI will show a different price than what Stripe charges.
+- `apps/app/api/_pricing.js` is the single source of truth for all prices. If you change a price or add a factor, you must update BOTH `apps/app/api/_pricing.js` AND `packages/config/index.ts` (SERVICES_DATA) — they must stay in sync or the UI will show a different price than what Stripe charges.
 - The server never trusts `twoTechFee` from the client — it re-derives it from `selectedFactors`. Same for `sameDayFee` — the server verifies `bookingDate === today`, ignoring the client flag.
-- `ALLOWED_MODIFIERS` in `api/_pricing.js` is a security allowlist. Any modifier value not in it throws a 400. When adding a new factor option, add it here first or payments will break.
+- `ALLOWED_MODIFIERS` in `apps/app/api/_pricing.js` is a security allowlist. Any modifier value not in it throws a 400. When adding a new factor option, add it here first or payments will break.
 
 ## Stripe
 
-- `capture_method: "manual"` is intentional — do not change to `automatic`. Authorization happens at booking, capture happens after the technician completes the job in `api/confirm-payment.js`.
-- The Stripe publishable key can come from two places: `VITE_STRIPE_PUBLISHABLE_KEY` env var OR Firestore `settings` doc. The Firestore one takes precedence at runtime. See `StripePaymentPanel.tsx`.
+- `capture_method: "manual"` is intentional — do not change to `automatic`. Authorization happens at booking, capture happens after the technician completes the job in `apps/app/api/confirm-payment.js`.
+- The Stripe publishable key is `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (replaces the old `VITE_STRIPE_PUBLISHABLE_KEY`). It can also be overridden at runtime from Firestore `settings` doc — the Firestore value takes precedence. See `apps/app/components/StripePaymentPanel.tsx`.
 
 ## Firebase Admin (api/ files)
 
 - Every `api/` file that needs Firestore initializes its own instance using a local `getFirestore()` helper. Always check `admin.apps.length` before calling `initializeApp` or you'll get a "already exists" error.
-- The Firestore DB uses a custom ID (`ai-studio-590843c3-6656-4faa-a42c-fc98f2b5ecb1`), not the default. This is already handled in the client config at `src/shared/firebase.ts`.
+- **CRITICAL**: The Firestore DB uses a custom ID (`ai-studio-590843c3-6656-4faa-a42c-fc98f2b5ecb1`), not the default. Always pass it to `getFirestore(app, DB_ID)`. Omitting it silently reads/writes the wrong (empty) database.
 - When Firestore Admin is not configured (no env var), all api/ endpoints fail open — they return a safe default instead of crashing. This is intentional for local dev.
+
+## Firebase Auth — Authorized Domains
+
+- Any new domain (e.g. `control-room.grenbee.com`) must be added to **two places** before Google Sign-In works: (1) Firebase Console → Authentication → Settings → Authorized Domains, and (2) Google Cloud Console → OAuth Client "Grenbee" → Authorized JavaScript Origins + Redirect URIs. [WHY]: Missing either one silently blocks the popup from completing.
 
 ## Coupons
 
-- Coupon documents are stored by a derived key, not the raw code. The key is: lowercase, trim, replace non-alphanumeric with `-`. A coupon with code `SAVE20` is stored as doc ID `save20`. See `couponDocId()` in `api/create-payment-intent.js`.
+- Coupon documents are stored by a derived key, not the raw code. The key is: lowercase, trim, replace non-alphanumeric with `-`. A coupon with code `SAVE20` is stored as doc ID `save20`. See `couponDocId()` in `apps/app/api/create-payment-intent.js`.
 - The server validates the coupon independently of what the client sends. The client's `couponDiscount` value is ignored — the server looks it up in Firestore.
 
 ## Booking Wizard
@@ -56,11 +66,17 @@
 
 ## Staff Assignment
 
-- Two-tech bookings escriben `primaryStaffId` + `helperStaffId` pero también mantienen `assignedStaffId = primaryStaffId` por backward compatibility — muchas partes del sistema (admin panel, staff portal, webhooks) leen solo `assignedStaffId`. Si eliminas ese campo en dos-tech, esas partes quedan ciegas al técnico asignado.
-- `needs_assignment` es un status válido de BookingStatus — se asigna cuando no hay suficiente staff disponible para el slot. El admin panel debe mostrarlo y permitir reasignación manual.
-- El overlap check incluye travel buffer en ambos lados: `[existStart - buffer, existEnd + buffer]`. Dos jobs back-to-back con 30 min de buffer entre ellos se consideran en conflicto. Si el buffer es demasiado agresivo, ajustar `DEFAULT_TRAVEL_BUFFER` en `api/auto-assign-staff.js`.
-- El scoring no penaliza overlap — lo excluye completamente. El score solo compara candidatos ya disponibles.
+- Two-tech bookings write `primaryStaffId` + `helperStaffId` but also keep `assignedStaffId = primaryStaffId` for backward compatibility — admin panel, staff portal, and webhooks read only `assignedStaffId`. Removing it breaks those views.
+- `needs_assignment` is a valid `BookingStatus` — set when no staff is available for the slot. The admin panel must show it and allow manual reassignment.
+- The overlap check includes a travel buffer on both sides: `[existStart - buffer, existEnd + buffer]`. Adjust `DEFAULT_TRAVEL_BUFFER` in `apps/app/api/auto-assign-staff.js` if it's too aggressive.
 
 ## i18n
 
-- Language is `'en' | 'es'`, persisted in localStorage. Components read it via context or prop drilling — there is no i18n library, it's manual string switching.
+- react-i18next is the i18n library (not manual string switching). Language is `'en' | 'es'`, set via `i18n.changeLanguage()` in the locale layout components (`apps/web/app/[country]/(en)/layout.tsx` and `.../es/layout.tsx`). [WHY]: Language is driven by URL prefix (`/us/` = en, `/us/es/` = es) — do not call `i18n.changeLanguage()` directly from a button or component.
+- Translation files live in `packages/i18n/locales/en.json` and `es.json` (351 keys each). Always add to both files when creating new UI text.
+
+## Next.js / App Router
+
+- Both apps use `"use client"` on all page and component files — there are no Server Components in use yet. [WHY]: Components use Firebase, React state, and browser APIs that are incompatible with SSR.
+- `src/pages/` was the old Vite pages directory and no longer exists. Do not create a `pages/` directory inside either Next.js app — Next.js will treat it as a Pages Router and conflict with the App Router.
+- `strictNullChecks: false` in both tsconfigs is intentional — the codebase predates strict null checks and enabling it causes hundreds of errors.
