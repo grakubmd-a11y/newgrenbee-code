@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import * as Icons from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { CouponRule, Service, ServiceFactor, ServiceFactorOption } from "../../shared/types";
 import { SERVICES_DATA } from "../../shared/data";
 import { fetchPublicCouponByCode } from "../../shared/services/firebaseService";
@@ -26,12 +27,13 @@ interface CostEstimatorProps {
   services?: Service[];
 }
 
-export default function CostEstimator({ 
-  initialServiceId = "house-cleaning", 
-  activeMembership = null, 
+export default function CostEstimator({
+  initialServiceId = "house-cleaning",
+  activeMembership = null,
   onProceedToBook,
   services = SERVICES_DATA
 }: CostEstimatorProps) {
+  const { t } = useTranslation();
   // 1. Core State
   const [activeServiceId, setActiveServiceId] = useState<string>(initialServiceId);
   const activeService = useMemo(() => {
@@ -112,10 +114,10 @@ export default function CostEstimator({
 
     const freqPct = Math.round(discountRate * 100);
     const frequencyLabels: Record<string, string> = {
-      once:        "One-Time Service",
-      weekly:      `Weekly Subscription (-${freqPct}%)`,
-      "bi-weekly": `Bi-Weekly Subscription (-${freqPct}%)`,
-      monthly:     `Monthly Subscription (-${freqPct}%)`,
+      once:        t("estimator.frequency.receiptOnce"),
+      weekly:      t("estimator.frequency.receiptWeekly",   { pct: freqPct }),
+      "bi-weekly": t("estimator.frequency.receiptBiWeekly", { pct: freqPct }),
+      monthly:     t("estimator.frequency.receiptMonthly",  { pct: freqPct }),
     };
 
     const estimatedMinutes = quote.estimatedDurationMin;
@@ -167,7 +169,7 @@ export default function CostEstimator({
 const handleApplyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
     if (!code) {
-      setCouponStatus({ type: "error", message: "Enter a coupon code." });
+      setCouponStatus({ type: "error", message: t("estimator.coupon.enterCode") });
       return;
     }
 
@@ -177,16 +179,16 @@ const handleApplyCoupon = async () => {
       const coupon = await fetchPublicCouponByCode(code);
       if (!coupon) {
         setAppliedCoupon(null);
-        setCouponStatus({ type: "error", message: "Coupon not found or unavailable." });
+        setCouponStatus({ type: "error", message: t("estimator.coupon.notFound") });
         return;
       }
 
       setAppliedCoupon(coupon);
       setCouponInput(coupon.code);
-      setCouponStatus({ type: "success", message: `Coupon ${coupon.code} is applied.` });
+      setCouponStatus({ type: "success", message: t("estimator.coupon.applied", { code: coupon.code }) });
     } catch (error) {
       setAppliedCoupon(null);
-      setCouponStatus({ type: "error", message: error instanceof Error ? error.message : "Could not validate coupon." });
+      setCouponStatus({ type: "error", message: error instanceof Error ? error.message : t("estimator.coupon.error") });
     } finally {
       setIsCheckingCoupon(false);
     }
@@ -256,13 +258,13 @@ const handleApplyCoupon = async () => {
         <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm space-y-6">
           <div>
             <span className="text-[10px] text-brand font-extrabold uppercase tracking-widest bg-brand-light px-2.5 py-1 rounded-full">
-              Live Price Simulator
+              {t("estimator.badge")}
             </span>
             <h2 className="mt-2.5 text-xl font-bold text-gray-900 tracking-tight">
-              Customize Your {activeService.name} Pack
+              {t("estimator.title", { service: activeService.name })}
             </h2>
             <p className="mt-1 text-xs text-gray-500">
-              Adjust size, add premium add-ons, and select frequency to generate an instant quote.
+              {t("estimator.subtitle")}
             </p>
           </div>
 
@@ -274,15 +276,11 @@ const handleApplyCoupon = async () => {
                   {activeService.unitLabel}
                 </label>
                 <span className="text-[11px] text-gray-400 font-medium">
-                  {activeService.id === "house-cleaning" && "* Bedrooms & bathrooms are set via the options below"}
-                  {activeService.id === "tv-installation" && "* First TV bracket install covered in basic rate"}
-                  {activeService.id === "lawn-mowing" && "* Rate is calculated per 1,000 sq ft block"}
-                  {activeService.id === "furniture-assembly" && "* Select number of retail flat-pack boxes"}
-                  {activeService.id === "pressure-washing" && "* Rate calculated per 500 sq ft area units"}
+                  {t(`estimator.serviceNotes.${activeService.id}` as any)}
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-xs text-gray-400 block font-medium">Current Selection</span>
+                <span className="text-xs text-gray-400 block font-medium">{t("estimator.currentSelection")}</span>
                 <span className="text-base font-extrabold text-brand tracking-tight">
                   {unitLabelValue}
                 </span>
@@ -413,19 +411,19 @@ const handleApplyCoupon = async () => {
           <div className="border-t border-gray-100 pt-5 space-y-3">
             <div>
               <span className="text-xs text-gray-500 font-bold tracking-tight uppercase block flex items-center justify-between">
-                <span>Service Frequency</span>
+                <span>{t("estimator.frequency.label")}</span>
                 <span className="text-[10px] text-brand font-extrabold normal-case bg-brand-light px-2 py-0.5 rounded">
-                  Save on Repeat Contracts
+                  {t("estimator.frequency.saveBadge")}
                 </span>
               </span>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
               {([
-                { id: "once"      , label: "One-Time" , sub: "Standard" },
-                { id: "weekly"    , label: "Weekly"   , sub: `Save ${Math.round(RECURRENCE_DISCOUNT_RATES.weekly      * 100)}%` },
-                { id: "bi-weekly" , label: "Bi-Weekly", sub: `Save ${Math.round(RECURRENCE_DISCOUNT_RATES["bi-weekly"] * 100)}%` },
-                { id: "monthly"   , label: "Monthly"  , sub: `Save ${Math.round(RECURRENCE_DISCOUNT_RATES.monthly     * 100)}%` },
+                { id: "once"      , label: t("estimator.frequency.once"),     sub: t("estimator.frequency.onceSub") },
+                { id: "weekly"    , label: t("estimator.frequency.weekly"),    sub: t("estimator.frequency.save", { pct: Math.round(RECURRENCE_DISCOUNT_RATES.weekly      * 100) }) },
+                { id: "bi-weekly" , label: t("estimator.frequency.biWeekly"), sub: t("estimator.frequency.save", { pct: Math.round(RECURRENCE_DISCOUNT_RATES["bi-weekly"] * 100) }) },
+                { id: "monthly"   , label: t("estimator.frequency.monthly"),  sub: t("estimator.frequency.save", { pct: Math.round(RECURRENCE_DISCOUNT_RATES.monthly     * 100) }) },
               ] as const).map((freqItem) => {
                 const isActive = frequency === freqItem.id;
                 return (
@@ -460,8 +458,8 @@ const handleApplyCoupon = async () => {
             
             <div className="flex justify-between items-start border-b border-gray-100 pb-4">
               <div>
-                <h3 className="text-base font-bold text-gray-900 tracking-tight">Dynamic Estimate</h3>
-                <span className="text-[10px] text-gray-400 font-medium">Springfield Dispatch Hub</span>
+                <h3 className="text-base font-bold text-gray-900 tracking-tight">{t("estimator.receipt.title")}</h3>
+                <span className="text-[10px] text-gray-400 font-medium">Grenbee</span>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
                 <Icons.Calculator size={18} />
@@ -472,14 +470,14 @@ const handleApplyCoupon = async () => {
             <div className="space-y-4 font-mono text-xs text-gray-600">
               {/* Row 1 */}
               <div className="flex justify-between">
-                <span>{activeService.name} Base:</span>
+                <span>{t("estimator.receipt.base", { service: activeService.name })}</span>
                 <span className="font-bold text-gray-900">${pricingBreakdown.basePrice}.00</span>
               </div>
 
               {/* Row 2 */}
               {pricingBreakdown.additionalUnitsCost > 0 && (
                 <div className="flex justify-between">
-                  <span>Additional Units:</span>
+                  <span>{t("estimator.receipt.additionalUnits")}</span>
                   <span className="font-bold text-gray-900">+${pricingBreakdown.additionalUnitsCost}.00</span>
                 </div>
               )}
@@ -493,7 +491,7 @@ const handleApplyCoupon = async () => {
               ))}
 
               <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between font-bold text-gray-800">
-                <span>Service Subtotal:</span>
+                <span>{t("estimator.receipt.subtotal")}</span>
                 <span>${pricingBreakdown.subtotal}.00</span>
               </div>
 
@@ -508,7 +506,7 @@ const handleApplyCoupon = async () => {
               {/* Membership Discount */}
               {pricingBreakdown.membershipDiscountAmount > 0 && (
                 <div className="flex justify-between text-brand bg-brand-light/60 p-2 rounded text-[11px] font-bold border border-brand/15">
-                  <span className="capitalize">{activeMembership} Member Savings (-{(pricingBreakdown.memberDiscountRate * 100).toFixed(0)}%):</span>
+                  <span>{t("estimator.receipt.memberSavings", { plan: activeMembership, pct: (pricingBreakdown.memberDiscountRate * 100).toFixed(0) })}:</span>
                   <span>-${pricingBreakdown.membershipDiscountAmount.toFixed(2)}</span>
                 </div>
               )}
@@ -516,7 +514,7 @@ const handleApplyCoupon = async () => {
               <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/60 p-3 font-sans space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-gray-500">
-                    Promo Code
+                    {t("estimator.coupon.label")}
                   </span>
                   {appliedCoupon && (
                     <button
@@ -524,7 +522,7 @@ const handleApplyCoupon = async () => {
                       onClick={handleRemoveCoupon}
                       className="text-[10px] font-bold text-gray-400 hover:text-rose-500 transition-colors cursor-pointer"
                     >
-                      Remove
+                      {t("estimator.coupon.remove")}
                     </button>
                   )}
                 </div>
@@ -545,7 +543,7 @@ const handleApplyCoupon = async () => {
                         handleApplyCoupon();
                       }
                     }}
-                    placeholder="SAVE20"
+                    placeholder={t("estimator.coupon.placeholder")}
                     className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wide text-gray-800 placeholder:text-gray-300 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                   />
                   <button
@@ -555,7 +553,7 @@ const handleApplyCoupon = async () => {
                     className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-white transition-colors hover:bg-brand disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isCheckingCoupon && <Icons.Loader size={12} className="animate-spin" />}
-                    <span>{isCheckingCoupon ? "Checking" : "Apply"}</span>
+                    <span>{isCheckingCoupon ? t("estimator.coupon.checking") : t("estimator.coupon.apply")}</span>
                   </button>
                 </div>
 
@@ -577,13 +575,13 @@ const handleApplyCoupon = async () => {
 
               {pricingBreakdown.couponDiscountAmount > 0 && appliedCoupon && (
                 <div className="flex justify-between text-emerald-700 bg-emerald-50 p-2 rounded text-[11px] font-bold border border-emerald-100">
-                  <span>Coupon {appliedCoupon.code}:</span>
+                  <span>{t("estimator.receipt.coupon", { code: appliedCoupon.code })}</span>
                   <span>-${pricingBreakdown.couponDiscountAmount.toFixed(2)}</span>
                 </div>
               )}
 
               <div className="border-t-2 border-double border-gray-300 pt-4 flex justify-between items-baseline">
-                <span className="font-sans text-sm font-extrabold text-gray-900">Estimated Total:</span>
+                <span className="font-sans text-sm font-extrabold text-gray-900">{t("estimator.receipt.estimatedTotal")}</span>
                 <span className="font-sans text-2xl font-extrabold text-brand tracking-tight">
                   ${pricingBreakdown.finalTotal.toFixed(2)}
                 </span>
@@ -592,7 +590,7 @@ const handleApplyCoupon = async () => {
               {/* Time Indicator */}
               <div className="flex items-center gap-2 bg-brand-light text-brand p-2.5 rounded-xl font-sans font-semibold text-xs">
                 <Icons.Clock size={14} className="flex-shrink-0" />
-                <span>Completion Window: approx. {pricingBreakdown.estTimeStr}</span>
+                <span>{t("estimator.receipt.completionWindow", { time: pricingBreakdown.estTimeStr })}</span>
               </div>
             </div>
 
@@ -604,19 +602,19 @@ const handleApplyCoupon = async () => {
                 onClick={triggerProceed}
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-bold shadow-md shadow-brand/10 transition-all hover:scale-[1.01] cursor-pointer"
               >
-                <span>Proceed to Scheduling</span>
+                <span>{t("estimator.cta.proceed")}</span>
                 <Icons.ArrowRight size={16} />
               </button>
               
               <div className="flex justify-center items-center gap-1.5 text-[11px] text-gray-400 font-medium">
                 <Icons.ShieldCheck size={14} className="text-emerald-500" />
-                <span>No pre-payment. Cancel anytime.</span>
+                <span>{t("estimator.cta.trust")}</span>
               </div>
             </div>
 
             {/* Specifications Summary */}
             <div className="border-t border-gray-100 pt-4">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-2">Included In This Service Quote:</span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-2">{t("estimator.included")}</span>
               <ul className="space-y-1.5 text-xs text-gray-500">
                 {activeService.includedSpecs.map((spec, index) => (
                   <li key={index} className="flex items-start gap-1.5">

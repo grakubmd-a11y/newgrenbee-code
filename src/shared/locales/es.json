@@ -865,5 +865,59 @@
       "quote": "\"Tus descuentos están activos y aparecerán automáticamente en cada recibo de presupuesto.\"",
       "cta": "Empezar a Explorar Beneficios"
     }
+  },
+  "estimator": {
+    "badge": "Simulador de Precio en Vivo",
+    "title": "Personaliza tu Pack de {{service}}",
+    "subtitle": "Ajusta el tamaño, agrega complementos premium y selecciona la frecuencia para generar una cotización instantánea.",
+    "currentSelection": "Selección Actual",
+    "serviceNotes": {
+      "house-cleaning":     "* Habitaciones y baños se configuran en las opciones de abajo",
+      "tv-installation":    "* El primer soporte de TV está incluido en la tarifa base",
+      "lawn-mowing":        "* La tarifa se calcula por bloque de 1,000 pies cuadrados",
+      "furniture-assembly": "* Selecciona el número de cajas de muebles por armar",
+      "pressure-washing":   "* Tarifa calculada por unidades de 500 pies cuadrados",
+      "wall-mounting":      ""
+    },
+    "frequency": {
+      "label": "Frecuencia del Servicio",
+      "saveBadge": "Ahorra en Contratos Repetidos",
+      "once":       "Una Vez",
+      "onceSub":    "Estándar",
+      "weekly":     "Semanal",
+      "biWeekly":   "Quincenal",
+      "monthly":    "Mensual",
+      "save":       "Ahorra {{pct}}%",
+      "receiptOnce":     "Servicio Único",
+      "receiptWeekly":   "Suscripción Semanal (-{{pct}}%)",
+      "receiptBiWeekly": "Suscripción Quincenal (-{{pct}}%)",
+      "receiptMonthly":  "Suscripción Mensual (-{{pct}}%)"
+    },
+    "receipt": {
+      "title": "Presupuesto Dinámico",
+      "base": "Base {{service}}:",
+      "additionalUnits": "Unidades Adicionales:",
+      "subtotal": "Subtotal del Servicio:",
+      "estimatedTotal": "Total Estimado:",
+      "completionWindow": "Ventana de Finalización: aprox. {{time}}",
+      "memberSavings": "Descuento Membresía {{plan}} (-{{pct}}%)",
+      "coupon": "Cupón {{code}}:"
+    },
+    "coupon": {
+      "label": "Código Promocional",
+      "placeholder": "AHORRA20",
+      "apply": "Aplicar",
+      "checking": "Verificando",
+      "remove": "Eliminar",
+      "enterCode": "Ingresa un código de cupón.",
+      "notFound": "Cupón no encontrado o no disponible.",
+      "applied": "Cupón {{code}} aplicado.",
+      "error": "No se pudo validar el cupón."
+    },
+    "cta": {
+      "proceed": "Continuar a Programación",
+      "trust": "Sin pago previo. Cancela cuando quieras."
+    },
+    "included": "Incluido en Esta Cotización:"
   }
 }

@@ -865,5 +865,59 @@
       "quote": "\"Your discounts are live and will show up automatically on every estimate receipt.\"",
       "cta": "Start Exploring Benefits"
     }
+  },
+  "estimator": {
+    "badge": "Live Price Simulator",
+    "title": "Customize Your {{service}} Pack",
+    "subtitle": "Adjust size, add premium add-ons, and select frequency to generate an instant quote.",
+    "currentSelection": "Current Selection",
+    "serviceNotes": {
+      "house-cleaning":     "* Bedrooms & bathrooms are set via the options below",
+      "tv-installation":    "* First TV bracket install covered in basic rate",
+      "lawn-mowing":        "* Rate is calculated per 1,000 sq ft block",
+      "furniture-assembly": "* Select number of retail flat-pack boxes",
+      "pressure-washing":   "* Rate calculated per 500 sq ft area units",
+      "wall-mounting":      ""
+    },
+    "frequency": {
+      "label": "Service Frequency",
+      "saveBadge": "Save on Repeat Contracts",
+      "once":       "One-Time",
+      "onceSub":    "Standard",
+      "weekly":     "Weekly",
+      "biWeekly":   "Bi-Weekly",
+      "monthly":    "Monthly",
+      "save":       "Save {{pct}}%",
+      "receiptOnce":     "One-Time Service",
+      "receiptWeekly":   "Weekly Subscription (-{{pct}}%)",
+      "receiptBiWeekly": "Bi-Weekly Subscription (-{{pct}}%)",
+      "receiptMonthly":  "Monthly Subscription (-{{pct}}%)"
+    },
+    "receipt": {
+      "title": "Dynamic Estimate",
+      "base": "{{service}} Base:",
+      "additionalUnits": "Additional Units:",
+      "subtotal": "Service Subtotal:",
+      "estimatedTotal": "Estimated Total:",
+      "completionWindow": "Completion Window: approx. {{time}}",
+      "memberSavings": "{{plan}} Member Savings (-{{pct}}%)",
+      "coupon": "Coupon {{code}}:"
+    },
+    "coupon": {
+      "label": "Promo Code",
+      "placeholder": "SAVE20",
+      "apply": "Apply",
+      "checking": "Checking",
+      "remove": "Remove",
+      "enterCode": "Enter a coupon code.",
+      "notFound": "Coupon not found or unavailable.",
+      "applied": "Coupon {{code}} is applied.",
+      "error": "Could not validate coupon."
+    },
+    "cta": {
+      "proceed": "Proceed to Scheduling",
+      "trust": "No pre-payment. Cancel anytime."
+    },
+    "included": "Included In This Service Quote:"
   }
 }
