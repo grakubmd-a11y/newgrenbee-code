@@ -209,6 +209,12 @@ export default function Navbar({
               >
                 FAQ
               </Link>
+              <button
+                onClick={() => setActiveTab("membership")}
+                className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                {t("nav.membership", "Membership")}
+              </button>
               <Link
                 to="/contact"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
