@@ -166,56 +166,84 @@ export default function HomePage() {
       <div className="min-h-screen flex flex-col bg-white">
         <SiteNavbar />
 
-        {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
-        <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[580px] flex items-center">
-          {/* Background photo slot */}
-          <PhotoSlot
-            url={cms?.heroPhotoUrl}
-            className="absolute inset-0 w-full h-full"
-            placeholderText={photoPlaceholder}
-          />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gray-950/70" />
+        {/* ── 1. HERO ───────────────────────────────────────────���──────────── */}
+        <section className="relative w-full overflow-hidden bg-white text-gray-950 min-h-[600px] md:min-h-[680px] flex items-center">
+          {/* Subtle gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-blue-50" />
+          
+          {/* Decorative accent circle */}
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-100 rounded-full opacity-40 blur-3xl" />
+          
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center py-16 md:py-24">
+              
+              {/* Left side: Content */}
+              <div className="flex flex-col justify-center">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 bg-emerald-500/15 text-emerald-700 border border-emerald-200 rounded-full px-4 py-1.5 text-sm font-semibold mb-6 w-fit">
+                  <Icons.Star className="w-4 h-4 fill-emerald-500 text-emerald-500" />
+                  {t("home.hero.badge")}
+                </div>
 
-          <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-24 md:py-36 w-full">
-            <div className="max-w-2xl">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
-                <Icons.Star className="w-4 h-4 fill-emerald-400 text-emerald-400" />
-                {t("home.hero.badge")}
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-gray-950 mb-6">
+                  {heroHeadline}
+                </h1>
+
+                <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+                  {heroSubtitle}
+                </p>
+
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                  <button
+                    onClick={scrollToEstimator}
+                    className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors shadow-lg cursor-pointer"
+                  >
+                    {heroCta}
+                    <Icons.ArrowRight className="w-4 h-4" />
+                  </button>
+                  <a
+                    href={`tel:${phone.replace(/\D/g, "")}`}
+                    className="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-950 font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-gray-200"
+                  >
+                    <Icons.Phone className="w-4 h-4" />
+                    {phone}
+                  </a>
+                </div>
+
+                {/* Trust statement */}
+                <p className="text-sm text-gray-600 flex items-center gap-2">
+                  <Icons.CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  {t("home.hero.trustNote")}
+                </p>
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6">
-                {heroHeadline}
-              </h1>
-
-              <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
-                {heroSubtitle}
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                <button
-                  onClick={scrollToEstimator}
-                  className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors shadow-lg cursor-pointer"
-                >
-                  {heroCta}
-                  <Icons.ArrowRight className="w-4 h-4" />
-                </button>
-                <a
-                  href={`tel:${phone.replace(/\D/g, "")}`}
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-white/20"
-                >
-                  <Icons.Phone className="w-4 h-4" />
-                  {phone}
-                </a>
+              {/* Right side: Image with modern shape */}
+              <div className="hidden lg:flex items-center justify-center relative">
+                {/* Decorative background shape */}
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-3xl transform -rotate-6 opacity-10" />
+                
+                {/* Image container with rounded corners and shadow */}
+                <div className="relative z-10 w-full max-w-sm">
+                  <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                    <img
+                      src="/hero-image.png"
+                      alt="Professional lawn care and house cleaning services"
+                      className="w-full h-auto object-cover aspect-square md:aspect-auto"
+                    />
+                    {/* Shine effect overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/0 via-transparent to-white/10" />
+                  </div>
+                  
+                  {/* Floating accent badge */}
+                  <div className="absolute -bottom-4 -left-4 z-20 bg-white rounded-full p-4 shadow-xl border-4 border-emerald-500">
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-emerald-600">100%</div>
+                      <div className="text-xs font-bold text-gray-700">Satisfacción</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              {/* Trust statement */}
-              <p className="text-sm text-gray-400 flex items-center gap-2">
-                <Icons.CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                {t("home.hero.trustNote")}
-              </p>
             </div>
           </div>
         </section>
