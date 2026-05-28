@@ -60,7 +60,7 @@ const BEFORE_AFTER_DATA: Record<string, {
   "house-cleaning": {
     title: "Limpieza de Casa",
     beforeTitle: "Antes (Estado Inicial)",
-    afterTitle: "Después (Resplandor GreenServe)",
+    afterTitle: "Después (Resplandor Grenbee)",
     beforeDesc: "Residuos de polvo fino en repisas, platos sucios en fregadero, rastros de mascotas en alfombras y grifos opacos.",
     afterDesc: "Encimeras con recubrimiento brillante, pisos higienizados al vacío, vajilla lavada y aroma fresco a pino silvestre.",
     beforeStyle: "from-amber-100 to-amber-200/60 text-stone-700",
@@ -116,12 +116,12 @@ const BEFORE_AFTER_DATA: Record<string, {
 
 const FAQ_DATA = [
   {
-    question: "¿Cómo funciona la garantía de satisfacción de GreenServe?",
+    question: "¿Cómo funciona la garantía de satisfacción de Grenbee?",
     answer: "No cobramos nada por adelantado. Una vez finalizado el trabajo en tu domicilio, tu cuadrilla asignada te mostrará el resultado mediante una caminata de revisión final. Solo cuando nos indicas tu total conformidad se realiza el cobro seguro en nuestra pasarela. Si detectas algún detalle físico pendiente, lo corregimos de inmediato sin costo adicional."
   },
   {
     question: "¿Tengo que proporcionar mis propios productos o herramental?",
-    answer: "Para nada. Todas nuestras cuadrillas GreenServe llegan en unidades equipadas con herramientas industriales de primer nivel (aspiradoras con filtros HEPA, soportes estructurales de alta gama certificados, detergentes amigables con mascotas e hidrolavadoras de alta presión). Relájate, nosotros nos encargamos."
+    answer: "Para nada. Todas nuestras cuadrillas Grenbee llegan en unidades equipadas con herramientas industriales de primer nivel (aspiradoras con filtros HEPA, soportes estructurales de alta gama certificados, detergentes amigables con mascotas e hidrolavadoras de alta presión). Relájate, nosotros nos encargamos."
   },
   {
     question: "¿Es requisito que me encuentre en casa para el servicio?",
@@ -947,9 +947,9 @@ export default function App() {
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
-                <h2 className="text-3xl md:text-4xl font-black text-gray-950">About Greenbee</h2>
+                <h2 className="text-3xl md:text-4xl font-black text-gray-950">About Grenbee</h2>
                 <p className="text-gray-600 leading-relaxed">
-                  Greenbee is Springfield's trusted platform for professional home services. We connect homeowners with certified, vetted technicians for cleaning, lawn care, TV installation, furniture assembly, and pressure washing.
+                  Grenbee is Springfield's trusted platform for professional home services. We connect homeowners with certified, vetted technicians for cleaning, lawn care, TV installation, furniture assembly, and pressure washing.
                 </p>
                 <p className="text-gray-600 leading-relaxed">
                   With over 500 satisfied customers and a 4.9/5 rating, we're committed to making home service booking simple, transparent, and reliable.
@@ -1015,7 +1015,7 @@ export default function App() {
               Professional home services — cleaning, lawn care, TV installation, furniture assembly, pressure washing, and wall mounting — booked in minutes.
             </p>
             <p className="text-[11px] text-gray-400">
-              © {new Date().getFullYear()} Greenbee. All rights reserved.
+              © {new Date().getFullYear()} Grenbee. All rights reserved.
             </p>
             {isAdmin && (
               <a

@@ -69,7 +69,7 @@ export default async function handler(req, res) {
   }
 
   // ── Get caller name for the invitation ───────────────────────────────────
-  let adminName = "Greenbee Admin";
+  let adminName = "Grenbee Admin";
   try {
     const callerDoc = await db.collection("users").doc(decoded.uid || decoded.user_id).get();
     adminName = callerDoc.data()?.name || adminName;

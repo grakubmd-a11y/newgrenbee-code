@@ -24,7 +24,7 @@ export interface SiteSettings {
 const DEFAULTS: SiteSettings = {
   phone: "(305) 555-0000",
   email: "support@grenbee.com",
-  businessName: "Greenbee",
+  businessName: "Grenbee",
 };
 
 const SiteSettingsContext = createContext<SiteSettings>(DEFAULTS);

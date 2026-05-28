@@ -1,14 +1,14 @@
 /**
  * AreaLandingPage.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Dynamic SEO landing page for each city/area Greenbee serves.
+ * Dynamic SEO landing page for each city/area Grenbee serves.
  * Route: /areas/:areaSlug
  *
  * Structure (mirrors Stellar Window Cleaners approach):
  *   1. Hero — photo + headline + CTAs
  *   2. Trust stats
  *   3. Services grid
- *   4. "The Greenbee Difference"
+ *   4. "The Grenbee Difference"
  *   5. Service plans (links to /plans)
  *   6. Testimonials
  *   7. Neighborhoods served (SEO internal links)

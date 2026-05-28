@@ -462,7 +462,7 @@ export async function fetchSettingsFromFirestore(): Promise<BusinessSettings> {
 
     const defaultBiz: BusinessSettings = {
       id: "business",
-      name: "Greenbee Home Services Hub",
+      name: "Grenbee Home Services Hub",
       phone: "(800) 555-GREE",
       email: "hola@greenbee.com",
       timezone: "Central Standard Time (CST)",

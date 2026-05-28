@@ -30,7 +30,7 @@
     "assembly": "Assembly"
   },
   "features": {
-    "title": "Why Choose Greenbee?",
+    "title": "Why Choose Grenbee?",
     "subtitle": "We make home services simple, reliable, and affordable",
     "items": [
       {
@@ -63,7 +63,7 @@
       {
         "name": "Michael Chen",
         "role": "Business Owner, Texas",
-        "text": "I use Greenbee for all our commercial cleaning needs. Consistent quality and reliable service."
+        "text": "I use Grenbee for all our commercial cleaning needs. Consistent quality and reliable service."
       },
       {
         "name": "Emily Rodriguez",
@@ -96,7 +96,7 @@
   },
   "cta": {
     "title": "Ready to Get Started?",
-    "subtitle": "Join thousands of homeowners who trust Greenbee for their home service needs.",
+    "subtitle": "Join thousands of homeowners who trust Grenbee for their home service needs.",
     "browse": "Browse Services",
     "contact": "Contact Us",
     "rating": "4.9/5 from 2,500+ reviews"
@@ -126,13 +126,13 @@
     "toggleMenu": "Toggle menu"
   },
   "home": {
-    "pageTitle": "Greenbee — Professional Lawn Care & Home Cleaning in Utah County, UT",
+    "pageTitle": "Grenbee — Professional Lawn Care & Home Cleaning in Utah County, UT",
     "metaDescription": "Book professional lawn care and house cleaning in Mapleton, Spanish Fork, Springville, and Utah County. Instant online quotes, same-week availability, eco-friendly products.",
     "hero": {
       "badge": "200+ Five-Star Reviews in Utah County",
       "title": "Professional Lawn Care & Home Cleaning in Utah County, UT",
       "titleHighlight": "Home Cleaning",
-      "subtitle": "Greenbee delivers reliable, eco-friendly home services across Utah County. Book online in minutes — same-week availability guaranteed.",
+      "subtitle": "Grenbee delivers reliable, eco-friendly home services across Utah County. Book online in minutes — same-week availability guaranteed.",
       "ctaPrimary": "Get a Free Quote",
       "ctaPhone": "(305) 555-0000",
       "trustNote": "Talk to a real person — we typically respond within the hour."
@@ -173,7 +173,7 @@
     },
     "standard": {
       "eyebrow": "Our Promise",
-      "title": "The Greenbee Standard",
+      "title": "The Grenbee Standard",
       "subtitle": "Every job backed by our four-pillar guarantee.",
       "pillars": [
         {
@@ -243,7 +243,7 @@
         {
           "name": "Maria G.",
           "location": "Mapleton, UT",
-          "text": "Greenbee has been maintaining our lawn for 6 months. Always on time, always perfect. My neighbors keep asking who does our yard!"
+          "text": "Grenbee has been maintaining our lawn for 6 months. Always on time, always perfect. My neighbors keep asking who does our yard!"
         },
         {
           "name": "Jason T.",
@@ -293,7 +293,7 @@
         },
         {
           "q": "Are your technicians insured?",
-          "a": "Yes. All Greenbee technicians are background-checked, licensed, and fully insured. Your home is protected."
+          "a": "Yes. All Grenbee technicians are background-checked, licensed, and fully insured. Your home is protected."
         },
         {
           "q": "What's your satisfaction guarantee?",
@@ -333,16 +333,16 @@
     }
   },
   "areas": {
-    "pageTitle": "Coverage Areas | Greenbee",
-    "metaDescription": "Check if Greenbee serves your city. We cover Utah County — Mapleton, Spanish Fork, Springville, Payson, Salem. Join the waitlist for Salt Lake County.",
+    "pageTitle": "Coverage Areas | Grenbee",
+    "metaDescription": "Check if Grenbee serves your city. We cover Utah County — Mapleton, Spanish Fork, Springville, Payson, Salem. Join the waitlist for Salt Lake County.",
     "heading": "Coverage Areas",
-    "subheading": "Greenbee is growing fast. Check if we currently serve your city or join the waitlist to be notified when we expand to your area.",
+    "subheading": "Grenbee is growing fast. Check if we currently serve your city or join the waitlist to be notified when we expand to your area.",
     "availableNow": "Available Now",
     "comingSoon": "Coming Soon",
     "comingSoonLabel": "Coming soon",
     "waitlist": {
       "heading": "Not in your area yet?",
-      "subheading": "Leave your zip code and email and we'll notify you the moment Greenbee launches near you.",
+      "subheading": "Leave your zip code and email and we'll notify you the moment Grenbee launches near you.",
       "successMessage": "You're on the list! We'll email you when we reach your area.",
       "zipPlaceholder": "Zip code",
       "notifyMe": "Notify Me"
@@ -375,7 +375,7 @@
     "bookNow": "Book now",
     "difference": {
       "eyebrow": "Our Promise",
-      "title": "The Greenbee Difference",
+      "title": "The Grenbee Difference",
       "pillars": [
         {
           "title": "Spotless Results",
@@ -410,7 +410,7 @@
       "button": "Book a Service in {{city}}"
     },
     "notAvailable": {
-      "pageTitle": "Area Not Found | Greenbee",
+      "pageTitle": "Area Not Found | Grenbee",
       "heading": "Area not available",
       "body": "We don't currently serve this area, but we're expanding soon.",
       "backLink": "← View all service areas"
@@ -418,20 +418,20 @@
     "photoPlaceholder": "Photo — add from Admin → Media",
     "fallback": {
       "heroHeadline": "Professional Home Services in {{city}}, {{state}}",
-      "heroSubtitle": "Greenbee brings professional lawn care, cleaning, and home maintenance to {{city}}. Reliable technicians. Transparent pricing. Satisfaction guaranteed.",
-      "introParagraph": "Looking for dependable home services in {{city}}? Greenbee connects you with vetted, insured technicians ready to handle lawn mowing, house cleaning, pressure washing, and more. We serve homeowners across {{city}} and surrounding neighborhoods.",
+      "heroSubtitle": "Grenbee brings professional lawn care, cleaning, and home maintenance to {{city}}. Reliable technicians. Transparent pricing. Satisfaction guaranteed.",
+      "introParagraph": "Looking for dependable home services in {{city}}? Grenbee connects you with vetted, insured technicians ready to handle lawn mowing, house cleaning, pressure washing, and more. We serve homeowners across {{city}} and surrounding neighborhoods.",
       "serviceDescriptions": {
         "lawnMowing": "Keep your {{city}} lawn looking its best with regular professional mowing, edging, and blowoff.",
         "houseCleaning": "From standard maintenance cleans to deep structural cleans, our team keeps {{city}} homes spotless.",
         "pressureWashing": "Remove dirt, mold, and grime from driveways, patios, and exteriors with professional pressure washing.",
         "tvInstallation": "Professional TV wall mounting and installation for {{city}} homeowners. Any wall type, any size."
       },
-      "seoTitle": "Home Services in {{city}}, {{state}} | Greenbee",
+      "seoTitle": "Home Services in {{city}}, {{state}} | Grenbee",
       "seoDescription": "Professional lawn care, house cleaning & home maintenance in {{city}}, {{state}}. Vetted technicians, transparent pricing, satisfaction guaranteed. Book online.",
       "testimonials": [
         {
           "name": "Maria G.",
-          "text": "Greenbee has been amazing — always on time and the lawn looks perfect every week."
+          "text": "Grenbee has been amazing — always on time and the lawn looks perfect every week."
         },
         {
           "name": "Jason T.",
@@ -453,7 +453,7 @@
         },
         {
           "q": "Are your technicians insured?",
-          "a": "Yes. All Greenbee technicians are vetted, background-checked, and fully insured."
+          "a": "Yes. All Grenbee technicians are vetted, background-checked, and fully insured."
         },
         {
           "q": "Can I book a recurring service?",
@@ -467,10 +467,10 @@
     }
   },
   "faq": {
-    "pageTitle": "FAQ | Greenbee Home Services",
-    "metaDescription": "Answers to the most common questions about booking, pricing, payments, cancellations, and service quality at Greenbee.",
+    "pageTitle": "FAQ | Grenbee Home Services",
+    "metaDescription": "Answers to the most common questions about booking, pricing, payments, cancellations, and service quality at Grenbee.",
     "heading": "Frequently Asked Questions",
-    "subheading": "Everything you need to know about booking and using Greenbee.",
+    "subheading": "Everything you need to know about booking and using Grenbee.",
     "stillQuestion": "Still have a question?",
     "teamAvailable": "Our team is available Mon–Sat 8 AM – 7 PM EST.",
     "contactUs": "Contact Us",
@@ -554,7 +554,7 @@
         "name": "Service Quality & Guarantees",
         "items": [
           {
-            "q": "What is the Greenbee satisfaction guarantee?",
+            "q": "What is the Grenbee satisfaction guarantee?",
             "a": "If you're not satisfied with the completed work, contact us within 48 hours and we'll send a Provider back to redo the affected portion at no charge, or issue a partial refund."
           },
           {
@@ -601,7 +601,7 @@
           },
           {
             "q": "Is my payment information secure?",
-            "a": "Greenbee never stores card numbers. All payment data is handled exclusively by Stripe, which is PCI DSS Level 1 certified — the highest level of payment security."
+            "a": "Grenbee never stores card numbers. All payment data is handled exclusively by Stripe, which is PCI DSS Level 1 certified — the highest level of payment security."
           }
         ]
       },
@@ -618,15 +618,15 @@
           },
           {
             "q": "How does payment work for providers?",
-            "a": "Providers receive payment via direct deposit after each completed and verified service, typically within 2–3 business days. Greenbee charges a platform commission on each booking."
+            "a": "Providers receive payment via direct deposit after each completed and verified service, typically within 2–3 business days. Grenbee charges a platform commission on each booking."
           }
         ]
       }
     ]
   },
   "contact": {
-    "pageTitle": "Contact Us | Greenbee",
-    "metaDescription": "Get in touch with Greenbee. Request a custom quote, ask about coverage, report a service issue, or inquire about becoming a provider.",
+    "pageTitle": "Contact Us | Grenbee",
+    "metaDescription": "Get in touch with Grenbee. Request a custom quote, ask about coverage, report a service issue, or inquire about becoming a provider.",
     "heading": "Contact Us",
     "subheading": "Have an unusual project, a question, or need help with a booking? We're here to help.",
     "email": "Email",
@@ -785,7 +785,7 @@
       "sizeYard": "yard",
       "customQuoteLabel": "Custom quote",
       "successTitle": "We'll be in touch!",
-      "successBody": "Thanks! We received your interest in the <strong>{{planName}}</strong> plan for a <strong>{{sizeLabel}}</strong> yard. Someone from the Greenbee team will contact you within 24 hours.",
+      "successBody": "Thanks! We received your interest in the <strong>{{planName}}</strong> plan for a <strong>{{sizeLabel}}</strong> yard. Someone from the Grenbee team will contact you within 24 hours.",
       "close": "Close",
       "fullName": "Full Name *",
       "namePlaceholder": "Jane Smith",
@@ -797,7 +797,7 @@
       "addressPlaceholder": "123 Main St, City, State",
       "requestCustomQuote": "Request a Custom Quote",
       "getStarted": "Get Started",
-      "noPaymentNote": "No payment required now. A Greenbee team member will contact you to confirm details and schedule your first visit."
+      "noPaymentNote": "No payment required now. A Grenbee team member will contact you to confirm details and schedule your first visit."
     }
   },
   "legal": {
@@ -805,10 +805,65 @@
     "legalNotice": "Legal Notice: "
   },
   "notFound": {
-    "pageTitle": "Page Not Found | Greenbee",
-    "metaDescription": "The page you're looking for doesn't exist. Return to Greenbee's homepage to book a home service.",
+    "pageTitle": "Page Not Found | Grenbee",
+    "metaDescription": "The page you're looking for doesn't exist. Return to Grenbee's homepage to book a home service.",
     "title": "Page Not Found",
     "body": "The page you're looking for doesn't exist or may have been moved.",
     "cta": "Go to Home"
+  },
+  "membership": {
+    "badge": "Home Services Club Program",
+    "title": "Elevate Your Home Care",
+    "subtitle": "Choose a membership plan that fits your lifestyle. Enjoy priority scheduling, exclusive discounts, and peace of mind all year round.",
+    "activeBanner": "Active Plan: {{plan}} enabled (+ automatic savings!)",
+    "cancelBtn": "Cancel Subscription",
+    "bestValue": "Best Value",
+    "activePlanBadge": "Active Plan",
+    "subscribed": "✓ Subscribed",
+    "period": "/mo",
+    "plans": {
+      "essential": {
+        "tagline": "Perfect for routine maintenance and peace of mind.",
+        "features": [
+          "Priority booking status",
+          "Annual comprehensive inspection",
+          "5% discount on all services"
+        ],
+        "buttonText": "Select Essential"
+      },
+      "preferred": {
+        "tagline": "Our most popular plan for comprehensive care.",
+        "features": [
+          "Top priority booking",
+          "Bi-annual comprehensive inspections",
+          "10% discount on all services",
+          "24/7 emergency response line"
+        ],
+        "buttonText": "Get Preferred"
+      },
+      "premium": {
+        "tagline": "Ultimate coverage and dedicated support.",
+        "features": [
+          "VIP guaranteed same-day booking",
+          "Quarterly deep-dive inspections",
+          "15% discount on all services",
+          "Dedicated account manager"
+        ],
+        "buttonText": "Select Premium"
+      }
+    },
+    "howTitle": "How Your Membership Works",
+    "howSubtitle": "Simple home wellness managed directly via your dashboard",
+    "steps": [
+      { "title": "1. Book Instantly",  "desc": "Enjoy priority access to our calendar. Schedule services with zero hassle through your dedicated dashboard." },
+      { "title": "2. We Manage It",    "desc": "Our vetted professionals handle the work to the highest standards, while your discounts apply automatically." },
+      { "title": "3. Relax",           "desc": "Sit back and enjoy a perfectly maintained home, knowing Grenbee is always just a tap away." }
+    ],
+    "celebration": {
+      "title": "Welcome to the Club!",
+      "body": "You are now officially subscribed to the {{plan}} plan. Your priority discounts are active and will apply automatically at checkout!",
+      "quote": "\"Your discounts are live and will show up automatically on every estimate receipt.\"",
+      "cta": "Start Exploring Benefits"
+    }
   }
 }

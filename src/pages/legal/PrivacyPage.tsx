@@ -4,10 +4,10 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      pageTitle="Privacy Policy | Greenbee"
-      metaDescription="Learn how Greenbee collects, uses, and protects your personal information. We use Stripe for secure payments and Firebase for data storage."
+      pageTitle="Privacy Policy | Grenbee"
+      metaDescription="Learn how Grenbee collects, uses, and protects your personal information. We use Stripe for secure payments and Firebase for data storage."
       lastUpdated="May 2026"
-      intro="Greenbee is committed to protecting your personal information. This policy explains what data we collect, how we use it, and the choices you have."
+      intro="Grenbee is committed to protecting your personal information. This policy explains what data we collect, how we use it, and the choices you have."
       disclaimer="This document is a placeholder and must be reviewed by a licensed attorney before going live with real payment processing or user data collection."
       sections={[
         {
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
           content: [
             "Account information: name, email address, and profile preferences you provide at sign-up.",
             "Service details: addresses, access instructions, scheduling preferences, and booking history.",
-            "Payment data: processed exclusively by Stripe — Greenbee never stores raw card numbers.",
+            "Payment data: processed exclusively by Stripe — Grenbee never stores raw card numbers.",
             "Device and usage data: browser type, IP address, pages visited, and time spent on the platform.",
             "Optional: phone number, pet information, lockbox codes, and special notes you choose to share.",
           ],
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         {
           title: "Data Sharing",
           content: [
-            "Greenbee shares only the minimum necessary information with service Providers to carry out your booking.",
+            "Grenbee shares only the minimum necessary information with service Providers to carry out your booking.",
             "We use trusted third-party services: Firebase (Google) for authentication and data storage, Stripe for payments.",
             "We do not sell personal data to advertisers or data brokers.",
             "We may disclose information in response to lawful requests by public authorities.",

@@ -29,14 +29,14 @@ function emptyArea(id: string, city: string, state: string): AreaContent {
     state,
     active: true,
     heroHeadline: `Professional Home Services in ${city}, ${state}`,
-    heroSubtitle: `Greenbee brings top-rated lawn care and cleaning to ${city}. Book online in minutes.`,
-    introParagraph: `Greenbee is proud to serve ${city} and the surrounding communities. Our licensed and insured technicians deliver reliable, eco-friendly home services on your schedule.`,
+    heroSubtitle: `Grenbee brings top-rated lawn care and cleaning to ${city}. Book online in minutes.`,
+    introParagraph: `Grenbee is proud to serve ${city} and the surrounding communities. Our licensed and insured technicians deliver reliable, eco-friendly home services on your schedule.`,
     serviceBlocks: [],
     testimonials: [],
     neighborhoods: [],
     faqs: [],
-    seoTitle: `Home Services in ${city}, ${state} | Greenbee`,
-    seoDescription: `Book professional lawn care and house cleaning in ${city}, ${state}. Same-week availability, eco-friendly products. Get an instant quote from Greenbee.`,
+    seoTitle: `Home Services in ${city}, ${state} | Grenbee`,
+    seoDescription: `Book professional lawn care and house cleaning in ${city}, ${state}. Same-week availability, eco-friendly products. Get an instant quote from Grenbee.`,
     updatedAt: new Date().toISOString(),
   };
 }

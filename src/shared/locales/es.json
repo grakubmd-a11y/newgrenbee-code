@@ -30,7 +30,7 @@
     "assembly": "Ensamblaje"
   },
   "features": {
-    "title": "¿Por Qué Elegir Greenbee?",
+    "title": "¿Por Qué Elegir Grenbee?",
     "subtitle": "Hacemos que los servicios del hogar sean simples, confiables y asequibles",
     "items": [
       {
@@ -63,7 +63,7 @@
       {
         "name": "Michael Chen",
         "role": "Dueño de Negocio, Texas",
-        "text": "Uso Greenbee para todas nuestras necesidades de limpieza comercial. Calidad consistente y servicio confiable."
+        "text": "Uso Grenbee para todas nuestras necesidades de limpieza comercial. Calidad consistente y servicio confiable."
       },
       {
         "name": "Emily Rodriguez",
@@ -96,7 +96,7 @@
   },
   "cta": {
     "title": "¿Listo para Comenzar?",
-    "subtitle": "Únete a miles de propietarios que confían en Greenbee para sus necesidades de servicios del hogar.",
+    "subtitle": "Únete a miles de propietarios que confían en Grenbee para sus necesidades de servicios del hogar.",
     "browse": "Explorar Servicios",
     "contact": "Contáctanos",
     "rating": "4.9/5 de más de 2,500 reseñas"
@@ -126,13 +126,13 @@
     "toggleMenu": "Abrir menú"
   },
   "home": {
-    "pageTitle": "Greenbee — Cuidado de Césped y Limpieza del Hogar en Utah County, UT",
+    "pageTitle": "Grenbee — Cuidado de Césped y Limpieza del Hogar en Utah County, UT",
     "metaDescription": "Reserva cuidado de césped y limpieza del hogar en Mapleton, Spanish Fork, Springville y Utah County. Cotizaciones en línea instantáneas, disponibilidad en la misma semana, productos ecológicos.",
     "hero": {
       "badge": "Más de 200 Reseñas de Cinco Estrellas en Utah County",
       "title": "Cuidado de Césped y Limpieza del Hogar en Utah County, UT",
       "titleHighlight": "Limpieza del Hogar",
-      "subtitle": "Greenbee ofrece servicios del hogar confiables y ecológicos en Utah County. Reserva en línea en minutos — disponibilidad garantizada en la misma semana.",
+      "subtitle": "Grenbee ofrece servicios del hogar confiables y ecológicos en Utah County. Reserva en línea en minutos — disponibilidad garantizada en la misma semana.",
       "ctaPrimary": "Obtener Cotización Gratis",
       "ctaPhone": "(305) 555-0000",
       "trustNote": "Habla con una persona real — generalmente respondemos en menos de una hora."
@@ -173,7 +173,7 @@
     },
     "standard": {
       "eyebrow": "Nuestra Promesa",
-      "title": "El Estándar Greenbee",
+      "title": "El Estándar Grenbee",
       "subtitle": "Cada trabajo respaldado por nuestra garantía de cuatro pilares.",
       "pillars": [
         {
@@ -243,7 +243,7 @@
         {
           "name": "Maria G.",
           "location": "Mapleton, UT",
-          "text": "Greenbee ha estado manteniendo nuestro césped por 6 meses. Siempre puntual, siempre perfecto. ¡Mis vecinos no paran de preguntar quién nos corta el jardín!"
+          "text": "Grenbee ha estado manteniendo nuestro césped por 6 meses. Siempre puntual, siempre perfecto. ¡Mis vecinos no paran de preguntar quién nos corta el jardín!"
         },
         {
           "name": "Jason T.",
@@ -293,7 +293,7 @@
         },
         {
           "q": "¿Sus técnicos están asegurados?",
-          "a": "Sí. Todos los técnicos de Greenbee tienen verificación de antecedentes, licencia y seguro completo. Tu hogar está protegido."
+          "a": "Sí. Todos los técnicos de Grenbee tienen verificación de antecedentes, licencia y seguro completo. Tu hogar está protegido."
         },
         {
           "q": "¿Cuál es su garantía de satisfacción?",
@@ -333,16 +333,16 @@
     }
   },
   "areas": {
-    "pageTitle": "Áreas de Cobertura | Greenbee",
-    "metaDescription": "Verifica si Greenbee atiende tu ciudad. Cubrimos Utah County — Mapleton, Spanish Fork, Springville, Payson, Salem. Lista de espera para Salt Lake County.",
+    "pageTitle": "Áreas de Cobertura | Grenbee",
+    "metaDescription": "Verifica si Grenbee atiende tu ciudad. Cubrimos Utah County — Mapleton, Spanish Fork, Springville, Payson, Salem. Lista de espera para Salt Lake County.",
     "heading": "Áreas de Cobertura",
-    "subheading": "Greenbee está creciendo rápidamente. Verifica si actualmente atendemos tu ciudad o únete a la lista de espera para ser notificado cuando nos expandamos a tu área.",
+    "subheading": "Grenbee está creciendo rápidamente. Verifica si actualmente atendemos tu ciudad o únete a la lista de espera para ser notificado cuando nos expandamos a tu área.",
     "availableNow": "Disponible Ahora",
     "comingSoon": "Próximamente",
     "comingSoonLabel": "Próximamente",
     "waitlist": {
       "heading": "¿Todavía no estamos en tu área?",
-      "subheading": "Déjanos tu código postal y correo electrónico y te notificaremos en cuanto Greenbee llegue cerca de ti.",
+      "subheading": "Déjanos tu código postal y correo electrónico y te notificaremos en cuanto Grenbee llegue cerca de ti.",
       "successMessage": "¡Estás en la lista! Te enviaremos un correo cuando lleguemos a tu área.",
       "zipPlaceholder": "Código postal",
       "notifyMe": "Notifícame"
@@ -375,7 +375,7 @@
     "bookNow": "Reservar ahora",
     "difference": {
       "eyebrow": "Nuestra Promesa",
-      "title": "La Diferencia Greenbee",
+      "title": "La Diferencia Grenbee",
       "pillars": [
         {
           "title": "Resultados Impecables",
@@ -410,7 +410,7 @@
       "button": "Reservar Servicio en {{city}}"
     },
     "notAvailable": {
-      "pageTitle": "Área No Encontrada | Greenbee",
+      "pageTitle": "Área No Encontrada | Grenbee",
       "heading": "Área no disponible",
       "body": "Actualmente no atendemos esta área, pero nos estamos expandiendo pronto.",
       "backLink": "← Ver todas las áreas de servicio"
@@ -418,20 +418,20 @@
     "photoPlaceholder": "Foto — agregar desde Admin → Medios",
     "fallback": {
       "heroHeadline": "Servicios Profesionales del Hogar en {{city}}, {{state}}",
-      "heroSubtitle": "Greenbee lleva cuidado de jardín, limpieza y mantenimiento del hogar a {{city}}. Técnicos confiables. Precios transparentes. Satisfacción garantizada.",
-      "introParagraph": "¿Buscas servicios del hogar confiables en {{city}}? Greenbee te conecta con técnicos verificados y asegurados listos para corte de césped, limpieza del hogar, lavado a presión y más. Atendemos propietarios en {{city}} y sus alrededores.",
+      "heroSubtitle": "Grenbee lleva cuidado de jardín, limpieza y mantenimiento del hogar a {{city}}. Técnicos confiables. Precios transparentes. Satisfacción garantizada.",
+      "introParagraph": "¿Buscas servicios del hogar confiables en {{city}}? Grenbee te conecta con técnicos verificados y asegurados listos para corte de césped, limpieza del hogar, lavado a presión y más. Atendemos propietarios en {{city}} y sus alrededores.",
       "serviceDescriptions": {
         "lawnMowing": "Mantén tu jardín en {{city}} impecable con corte profesional regular, bordeado y soplado.",
         "houseCleaning": "Desde limpiezas de mantenimiento hasta limpiezas profundas, nuestro equipo mantiene los hogares de {{city}} impecables.",
         "pressureWashing": "Elimina suciedad, moho y mugre de entradas, patios y exteriores con lavado a presión profesional.",
         "tvInstallation": "Instalación profesional de TV en pared para propietarios de {{city}}. Cualquier tipo de pared, cualquier tamaño."
       },
-      "seoTitle": "Servicios del Hogar en {{city}}, {{state}} | Greenbee",
+      "seoTitle": "Servicios del Hogar en {{city}}, {{state}} | Grenbee",
       "seoDescription": "Cuidado de césped, limpieza del hogar y mantenimiento profesional en {{city}}, {{state}}. Técnicos verificados, precios transparentes, satisfacción garantizada. Reserva en línea.",
       "testimonials": [
         {
           "name": "María G.",
-          "text": "Greenbee ha sido increíble — siempre a tiempo y el jardín se ve perfecto cada semana."
+          "text": "Grenbee ha sido increíble — siempre a tiempo y el jardín se ve perfecto cada semana."
         },
         {
           "name": "Jason T.",
@@ -453,7 +453,7 @@
         },
         {
           "q": "¿Están asegurados sus técnicos?",
-          "a": "Sí. Todos los técnicos de Greenbee están verificados, con antecedentes revisados y completamente asegurados."
+          "a": "Sí. Todos los técnicos de Grenbee están verificados, con antecedentes revisados y completamente asegurados."
         },
         {
           "q": "¿Puedo reservar un servicio recurrente?",
@@ -467,10 +467,10 @@
     }
   },
   "faq": {
-    "pageTitle": "FAQ | Greenbee Servicios del Hogar",
-    "metaDescription": "Respuestas a las preguntas más comunes sobre reservas, precios, pagos, cancelaciones y calidad del servicio en Greenbee.",
+    "pageTitle": "FAQ | Grenbee Servicios del Hogar",
+    "metaDescription": "Respuestas a las preguntas más comunes sobre reservas, precios, pagos, cancelaciones y calidad del servicio en Grenbee.",
     "heading": "Preguntas Frecuentes",
-    "subheading": "Todo lo que necesitas saber sobre cómo reservar y usar Greenbee.",
+    "subheading": "Todo lo que necesitas saber sobre cómo reservar y usar Grenbee.",
     "stillQuestion": "¿Todavía tienes una pregunta?",
     "teamAvailable": "Nuestro equipo está disponible de lunes a sábado de 8 AM a 7 PM EST.",
     "contactUs": "Contáctanos",
@@ -554,7 +554,7 @@
         "name": "Calidad del Servicio y Garantías",
         "items": [
           {
-            "q": "¿Cuál es la garantía de satisfacción de Greenbee?",
+            "q": "¿Cuál es la garantía de satisfacción de Grenbee?",
             "a": "Si no estás satisfecho con el trabajo completado, contáctanos dentro de las 48 horas y enviaremos un Proveedor a rehacer la parte afectada sin costo, o emitiremos un reembolso parcial."
           },
           {
@@ -601,7 +601,7 @@
           },
           {
             "q": "¿Es segura mi información de pago?",
-            "a": "Greenbee nunca almacena números de tarjeta. Todos los datos de pago son manejados exclusivamente por Stripe, que tiene certificación PCI DSS Nivel 1 — el más alto nivel de seguridad de pagos."
+            "a": "Grenbee nunca almacena números de tarjeta. Todos los datos de pago son manejados exclusivamente por Stripe, que tiene certificación PCI DSS Nivel 1 — el más alto nivel de seguridad de pagos."
           }
         ]
       },
@@ -618,15 +618,15 @@
           },
           {
             "q": "¿Cómo funciona el pago para los proveedores?",
-            "a": "Los Proveedores reciben el pago mediante depósito directo después de cada servicio completado y verificado, generalmente dentro de 2–3 días hábiles. Greenbee cobra una comisión de plataforma en cada reserva."
+            "a": "Los Proveedores reciben el pago mediante depósito directo después de cada servicio completado y verificado, generalmente dentro de 2–3 días hábiles. Grenbee cobra una comisión de plataforma en cada reserva."
           }
         ]
       }
     ]
   },
   "contact": {
-    "pageTitle": "Contáctanos | Greenbee",
-    "metaDescription": "Ponte en contacto con Greenbee. Solicita una cotización personalizada, pregunta sobre cobertura, reporta un problema de servicio o consulta sobre convertirte en proveedor.",
+    "pageTitle": "Contáctanos | Grenbee",
+    "metaDescription": "Ponte en contacto con Grenbee. Solicita una cotización personalizada, pregunta sobre cobertura, reporta un problema de servicio o consulta sobre convertirte en proveedor.",
     "heading": "Contáctanos",
     "subheading": "¿Tienes un proyecto especial, una pregunta o necesitas ayuda con una reserva? Estamos aquí para ayudarte.",
     "email": "Correo",
@@ -785,7 +785,7 @@
       "sizeYard": "jardín",
       "customQuoteLabel": "Cotización personalizada",
       "successTitle": "¡Nos pondremos en contacto!",
-      "successBody": "¡Gracias! Recibimos tu interés en el plan <strong>{{planName}}</strong> para un jardín de tamaño <strong>{{sizeLabel}}</strong>. Alguien del equipo Greenbee te contactará dentro de 24 horas.",
+      "successBody": "¡Gracias! Recibimos tu interés en el plan <strong>{{planName}}</strong> para un jardín de tamaño <strong>{{sizeLabel}}</strong>. Alguien del equipo Grenbee te contactará dentro de 24 horas.",
       "close": "Cerrar",
       "fullName": "Nombre Completo *",
       "namePlaceholder": "Jane Smith",
@@ -797,7 +797,7 @@
       "addressPlaceholder": "123 Calle Principal, Ciudad, Estado",
       "requestCustomQuote": "Solicitar Cotización Personalizada",
       "getStarted": "Comenzar",
-      "noPaymentNote": "No se requiere pago ahora. Un miembro del equipo Greenbee te contactará para confirmar los detalles y programar tu primera visita."
+      "noPaymentNote": "No se requiere pago ahora. Un miembro del equipo Grenbee te contactará para confirmar los detalles y programar tu primera visita."
     }
   },
   "legal": {
@@ -805,10 +805,65 @@
     "legalNotice": "Aviso Legal: "
   },
   "notFound": {
-    "pageTitle": "Página No Encontrada | Greenbee",
-    "metaDescription": "La página que buscas no existe. Vuelve a la página principal de Greenbee para reservar un servicio.",
+    "pageTitle": "Página No Encontrada | Grenbee",
+    "metaDescription": "La página que buscas no existe. Vuelve a la página principal de Grenbee para reservar un servicio.",
     "title": "Página No Encontrada",
     "body": "La página que buscas no existe o fue movida.",
     "cta": "Ir al Inicio"
+  },
+  "membership": {
+    "badge": "Programa Club de Servicios del Hogar",
+    "title": "Eleva el Cuidado de tu Hogar",
+    "subtitle": "Elige un plan que se adapte a tu estilo de vida. Disfruta de reservas prioritarias, descuentos exclusivos y tranquilidad durante todo el año.",
+    "activeBanner": "Plan activo: {{plan}} habilitado (¡+ ahorros automáticos!)",
+    "cancelBtn": "Cancelar Suscripción",
+    "bestValue": "Mejor Valor",
+    "activePlanBadge": "Plan Activo",
+    "subscribed": "✓ Suscrito",
+    "period": "/mes",
+    "plans": {
+      "essential": {
+        "tagline": "Perfecto para mantenimiento rutinario y tranquilidad.",
+        "features": [
+          "Estado de reserva prioritario",
+          "Inspección anual completa",
+          "5% de descuento en todos los servicios"
+        ],
+        "buttonText": "Elegir Essential"
+      },
+      "preferred": {
+        "tagline": "Nuestro plan más popular para cuidado integral.",
+        "features": [
+          "Reserva de máxima prioridad",
+          "Inspecciones completas dos veces al año",
+          "10% de descuento en todos los servicios",
+          "Línea de emergencia 24/7"
+        ],
+        "buttonText": "Obtener Preferred"
+      },
+      "premium": {
+        "tagline": "Cobertura total y soporte dedicado.",
+        "features": [
+          "Reserva VIP garantizada el mismo día",
+          "Inspecciones profundas trimestrales",
+          "15% de descuento en todos los servicios",
+          "Gerente de cuenta dedicado"
+        ],
+        "buttonText": "Elegir Premium"
+      }
+    },
+    "howTitle": "Cómo Funciona tu Membresía",
+    "howSubtitle": "Bienestar del hogar simple, gestionado desde tu panel",
+    "steps": [
+      { "title": "1. Reserva al Instante",  "desc": "Acceso prioritario a nuestro calendario. Agenda servicios sin complicaciones desde tu panel dedicado." },
+      { "title": "2. Nosotros lo Hacemos",  "desc": "Nuestros profesionales verificados realizan el trabajo con los más altos estándares, mientras tus descuentos se aplican automáticamente." },
+      { "title": "3. Relájate",             "desc": "Disfruta de un hogar perfectamente mantenido, sabiendo que Grenbee siempre está a un toque de distancia." }
+    ],
+    "celebration": {
+      "title": "¡Bienvenido al Club!",
+      "body": "Ahora estás suscrito oficialmente al plan {{plan}}. ¡Tus descuentos prioritarios están activos y se aplicarán automáticamente en cada cotización!",
+      "quote": "\"Tus descuentos están activos y aparecerán automáticamente en cada recibo de presupuesto.\"",
+      "cta": "Empezar a Explorar Beneficios"
+    }
   }
 }

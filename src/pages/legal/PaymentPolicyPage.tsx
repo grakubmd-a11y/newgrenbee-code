@@ -6,10 +6,10 @@ export default function PaymentPolicyPage() {
   return (
     <LegalPage
       title="Payment Policy"
-      pageTitle="Payment Policy | Greenbee"
-      metaDescription="Greenbee uses Stripe for secure payments. Your card is only charged after service completion. Learn about accepted payment methods, refunds, and disputes."
+      pageTitle="Payment Policy | Grenbee"
+      metaDescription="Grenbee uses Stripe for secure payments. Your card is only charged after service completion. Learn about accepted payment methods, refunds, and disputes."
       lastUpdated="May 2026"
-      intro="Greenbee uses Stripe to securely process all transactions. This policy explains how and when charges are applied, and what happens in case of disputes."
+      intro="Grenbee uses Stripe to securely process all transactions. This policy explains how and when charges are applied, and what happens in case of disputes."
       disclaimer="This document is a placeholder and must be reviewed by a licensed attorney and your Stripe account manager before processing real transactions."
       sections={[
         {
@@ -22,7 +22,7 @@ export default function PaymentPolicyPage() {
           content: [
             "Visa, Mastercard, American Express, and Discover credit and debit cards.",
             "Apple Pay and Google Pay (where supported by your browser or device).",
-            "Greenbee does not accept cash, checks, wire transfers, or cryptocurrency.",
+            "Grenbee does not accept cash, checks, wire transfers, or cryptocurrency.",
           ],
         },
         {
@@ -42,7 +42,7 @@ export default function PaymentPolicyPage() {
           title: "Refunds",
           content: [
             "Refunds are processed to the original payment method and typically appear within 3–5 business days.",
-            "Greenbee cannot redirect refunds to a different card or bank account.",
+            "Grenbee cannot redirect refunds to a different card or bank account.",
             "Partial refunds may be issued for incomplete service delivery subject to Guarantee Policy terms.",
             "Authorization holds that are never captured release automatically — no refund action is needed.",
           ],
@@ -58,12 +58,12 @@ export default function PaymentPolicyPage() {
         {
           title: "Chargebacks and Disputes",
           content:
-            `We ask that you contact us at ${email} before initiating a chargeback with your bank. In most cases we can resolve issues faster and more favorably outside the formal dispute process. Frivolous chargebacks may result in account suspension. If a dispute is filed, Greenbee will submit booking records, communications, and service documentation to the card network.`,
+            `We ask that you contact us at ${email} before initiating a chargeback with your bank. In most cases we can resolve issues faster and more favorably outside the formal dispute process. Frivolous chargebacks may result in account suspension. If a dispute is filed, Grenbee will submit booking records, communications, and service documentation to the card network.`,
         },
         {
           title: "Security",
           content:
-            "All payment data is processed by Stripe (PCI DSS Level 1 certified). Greenbee never stores raw card numbers, CVV codes, or full magnetic stripe data on its servers. Your payment information is encrypted end-to-end.",
+            "All payment data is processed by Stripe (PCI DSS Level 1 certified). Grenbee never stores raw card numbers, CVV codes, or full magnetic stripe data on its servers. Your payment information is encrypted end-to-end.",
         },
       ]}
     />

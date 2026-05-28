@@ -107,7 +107,7 @@ export default function AdminPanel({
   const [photoLightboxIdx,  setPhotoLightboxIdx]  = useState<number | null>(null);
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings>({
     id: "business",
-    name: "Greenbee Home Services Hub",
+    name: "Grenbee Home Services Hub",
     phone: "(800) 555-GREE",
     email: "hola@greenbee.com",
     timezone: "Central Standard Time (CST)",
@@ -792,7 +792,7 @@ export default function AdminPanel({
         detail: "Se guardo la configuracion general de negocio.",
         severity: "success"
       });
-      triggerSuccess("Configuración de Greenbee actualizada correctamente en Firestore.");
+      triggerSuccess("Configuración de Grenbee actualizada correctamente en Firestore.");
     } catch (err: any) {
       setErrorMessage("Error al guardar la configuración: " + err.message);
     } finally {
@@ -1077,7 +1077,7 @@ export default function AdminPanel({
                 Workspace
               </span>
               <span className="text-sm font-black text-white block tracking-tight mt-0.5">
-                GreenServe Console
+                Grenbee Console
               </span>
             </div>
           </div>
@@ -1298,7 +1298,7 @@ export default function AdminPanel({
                   { id: "payroll", val: "Resumen de Payouts y Nómina Operativa" },
                   { id: "growth", val: "Funnel, Conversión y Rendimiento Comercial" },
                   { id: "activity", val: "Auditoría de Cambios y Eventos del Sistema" },
-                  { id: "staff", val: "Roster de Técnicos de GreenServe" },
+                  { id: "staff", val: "Roster de Técnicos de Grenbee" },
                   { id: "coverage", val: "Zonas de Cobertura y Códigos Postales" },
                   { id: "customers", val: "Registro Centralizado de Clientes" },
                   { id: "reviews", val: "Control Moderno de Reseñas / Feedbacks" },
@@ -1975,7 +1975,7 @@ export default function AdminPanel({
             </div>
 
             <div className="space-y-4 border border-gray-150 p-5 rounded-2xl bg-gray-50/50">
-              <span className="text-xs font-black text-stone-900 border-b pb-1.5 block">2. Membresías & Club Greenbee VIP</span>
+              <span className="text-xs font-black text-stone-900 border-b pb-1.5 block">2. Membresías & Club Grenbee VIP</span>
               <p className="text-[11px] text-gray-500 leading-normal">
                 Disminución directa basada en el club de membresía del perfil del cliente (puede modificarse en el perfil del usuario):
               </p>
@@ -3531,7 +3531,7 @@ export default function AdminPanel({
           <div className="lg:col-span-7 bg-white border border-gray-100 rounded-2xl p-6 text-left space-y-4 shadow-xs">
             <div>
               <h3 className="font-extrabold text-sm text-gray-900">Listado Público de Reseñas</h3>
-              <p className="text-[10px] text-gray-550">Historial de satisfacción general de usuarios en Springfield de Greenbee.</p>
+              <p className="text-[10px] text-gray-550">Historial de satisfacción general de usuarios en Springfield de Grenbee.</p>
             </div>
 
             <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-2">

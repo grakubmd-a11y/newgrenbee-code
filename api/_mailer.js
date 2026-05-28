@@ -5,7 +5,7 @@
  *
  * Env vars:
  *   RESEND_API_KEY   — re_... from Resend dashboard (required to send)
- *   NOTIFY_FROM      — "Greenbee <noreply@yourdomain.com>"  (optional override)
+ *   NOTIFY_FROM      — "Grenbee <noreply@yourdomain.com>"  (optional override)
  *
  * All functions resolve silently — a missing API key or network error never
  * throws to the caller so it never blocks the main request path.
@@ -21,7 +21,7 @@
 import { Resend } from "resend";
 
 const apiKey       = process.env.RESEND_API_KEY    || "";
-const FROM         = process.env.NOTIFY_FROM       || "Greenbee <noreply@grenbee.app>";
+const FROM         = process.env.NOTIFY_FROM       || "Grenbee <noreply@grenbee.app>";
 /** Business owner alert address — set NOTIFY_ADMIN_EMAIL in Vercel env vars */
 export const ADMIN_EMAIL = process.env.NOTIFY_ADMIN_EMAIL || "";
 const resend  = apiKey && !apiKey.includes("REPLACE_ME") ? new Resend(apiKey) : null;
@@ -45,7 +45,7 @@ function wrap(title, bodyHtml) {
         <tr>
           <td style="background:${DARK};padding:24px 32px;">
             <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;">
-              🌿 Greenbee
+              🌿 Grenbee
             </span>
           </td>
         </tr>
@@ -55,7 +55,7 @@ function wrap(title, bodyHtml) {
         <tr>
           <td style="background:#f8f8f8;padding:16px 32px;border-top:1px solid #eee;">
             <p style="margin:0;font-size:11px;color:#999;text-align:center;">
-              Greenbee Home Services · This is an automated message, please do not reply.
+              Grenbee Home Services · This is an automated message, please do not reply.
             </p>
           </td>
         </tr>
@@ -243,7 +243,7 @@ export function buildRecurringReceiptEmail(plan, booking) {
     ])}
     ${p("You can pause, skip, or cancel your recurring plan at any time from <strong>Mi Cuenta → Mis Planes</strong>.")}
     ${divider()}
-    ${p("Thank you for choosing Greenbee! 🌿", "color:#888;font-size:12px;")}
+    ${p("Thank you for choosing Grenbee! 🌿", "color:#888;font-size:12px;")}
   `;
 
   return {
@@ -309,7 +309,7 @@ export function buildAbandonedCheckoutEmail(lead, opts = {}) {
     </div>
     ${p("If you have any questions or need a custom quote, just reply to this email.", "color:#888;font-size:13px;")}
     ${divider()}
-    ${p("You received this because you started a booking on Greenbee. If this wasn't you, please ignore it.", "color:#aaa;font-size:11px;")}
+    ${p("You received this because you started a booking on Grenbee. If this wasn't you, please ignore it.", "color:#aaa;font-size:11px;")}
   `;
 
   return {
@@ -325,11 +325,11 @@ export function buildAbandonedCheckoutEmail(lead, opts = {}) {
  */
 export function buildStaffInviteEmail(staff, opts = {}) {
   const portalUrl = opts.portalUrl || "https://grenbee.com/staff";
-  const adminName = opts.adminName || "Greenbee Admin";
+  const adminName = opts.adminName || "Grenbee Admin";
 
   const body = `
-    ${h1("You've been added to the Greenbee team! 🌿")}
-    ${p(`Hi ${staff.name || "there"}, <strong>${adminName}</strong> has added you as a technician on the Greenbee platform. You can now access your assignments, job details, and schedule through the Staff Portal.`)}
+    ${h1("You've been added to the Grenbee team! 🌿")}
+    ${p(`Hi ${staff.name || "there"}, <strong>${adminName}</strong> has added you as a technician on the Grenbee platform. You can now access your assignments, job details, and schedule through the Staff Portal.`)}
     ${detailTable([
       detailRow("Your name",  staff.name  || "—"),
       detailRow("Your email", staff.email || "—"),
@@ -344,12 +344,12 @@ export function buildStaffInviteEmail(staff, opts = {}) {
     ${p(`<strong>How to sign in:</strong> Click the button above and sign in with your Google account using <strong>${staff.email}</strong>. No password needed — just your Google account.`, "background:#f0fdf4;padding:12px 16px;border-radius:10px;border-left:3px solid ${GREEN};")}
     ${divider()}
     ${p("If you have any questions, contact your manager directly.", "color:#888;font-size:12px;")}
-    ${p("You received this because you were added as a Greenbee technician. If this was a mistake, please ignore this email.", "color:#aaa;font-size:11px;")}
+    ${p("You received this because you were added as a Grenbee technician. If this was a mistake, please ignore this email.", "color:#aaa;font-size:11px;")}
   `;
 
   return {
-    subject: `Welcome to Greenbee — access your Staff Portal`,
-    html:    wrap("Welcome to Greenbee Staff", body),
+    subject: `Welcome to Grenbee — access your Staff Portal`,
+    html:    wrap("Welcome to Grenbee Staff", body),
   };
 }
 

@@ -69,7 +69,7 @@ export default function PageShell({ children, seo }: PageShellProps) {
                 {phone}
               </a>
               <p className="text-xs text-gray-600">
-                © {new Date().getFullYear()} Greenbee. {t("home.footer.rights")}
+                © {new Date().getFullYear()} Grenbee. {t("home.footer.rights")}
               </p>
             </div>
 

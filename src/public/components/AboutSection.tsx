@@ -22,7 +22,7 @@ export default function AboutSection({ onSelectTab }: AboutSectionProps) {
   return (
     <div className="max-w-5xl mx-auto space-y-16 py-6 text-left animate-in fade-in duration-300">
       
-      {/* Hero Banner SEO optimized for GreenBee Standards */}
+      {/* Hero Banner SEO optimized for Grenbee Standards */}
       <section className="bg-gradient-to-br from-emerald-950 to-slate-900 text-white rounded-3xl p-8 md:p-14 relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 bg-grid-pattern opacity-10 w-full h-full pointer-events-none" />
         <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-brand/20 filter blur-[100px] pointer-events-none" />

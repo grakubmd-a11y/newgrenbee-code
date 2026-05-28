@@ -9,7 +9,7 @@
  *   3. Stats       — 4 trust metrics
  *   4. Services    — cards with photo slots + descriptions
  *   5. Coverage    — Miami-Dade / Broward region cards
- *   6. Greenbee Standard — 4 guarantee pillars
+ *   6. Grenbee Standard — 4 guarantee pillars
  *   7. Plans preview — 3 tiers → /plans
  *   8. Testimonials
  *   9. CTA Banner
@@ -628,7 +628,7 @@ export default function HomePage() {
                 <Icons.Phone className="w-3.5 h-3.5" />
                 {phone}
               </a>
-              <p className="text-xs text-gray-600">© {new Date().getFullYear()} Greenbee. {t("home.footer.rights")}</p>
+              <p className="text-xs text-gray-600">© {new Date().getFullYear()} Grenbee. {t("home.footer.rights")}</p>
             </div>
 
             {/* Services */}

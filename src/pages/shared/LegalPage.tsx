@@ -26,8 +26,8 @@ export default function LegalPage({
   disclaimer,
 }: LegalPageProps) {
   const { t } = useTranslation();
-  const seoTitle = pageTitle ?? `${title} | Greenbee`;
-  const seoDesc = metaDescription ?? `${title} — Greenbee home services. Last updated ${lastUpdated}.`;
+  const seoTitle = pageTitle ?? `${title} | Grenbee`;
+  const seoDesc = metaDescription ?? `${title} — Grenbee home services. Last updated ${lastUpdated}.`;
 
   return (
     <PageShell seo={{ title: seoTitle, description: seoDesc }}>

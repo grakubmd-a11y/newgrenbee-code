@@ -6,8 +6,8 @@ export default function CancellationPage() {
   return (
     <LegalPage
       title="Cancellation & Rescheduling Policy"
-      pageTitle="Cancellation Policy | Greenbee"
-      metaDescription="Greenbee's cancellation and rescheduling policy. Free cancellation up to 24 hours before your appointment. Learn about refunds and rebooking fees."
+      pageTitle="Cancellation Policy | Grenbee"
+      metaDescription="Grenbee's cancellation and rescheduling policy. Free cancellation up to 24 hours before your appointment. Learn about refunds and rebooking fees."
       lastUpdated="May 2026"
       intro="We understand that life happens. Our cancellation policy is designed to be fair to both customers and the service professionals who block time for your appointment."
       disclaimer="This document is a placeholder and must be reviewed by a licensed attorney before going live with real payment processing."
@@ -42,9 +42,9 @@ export default function CancellationPage() {
           ],
         },
         {
-          title: "Greenbee-Initiated Cancellations",
+          title: "Grenbee-Initiated Cancellations",
           content:
-            "In rare cases — such as Provider unavailability due to emergencies or severe weather — Greenbee may cancel your booking. In these situations, you will receive a full refund and priority rebooking at no extra charge. We will notify you as early as possible.",
+            "In rare cases — such as Provider unavailability due to emergencies or severe weather — Grenbee may cancel your booking. In these situations, you will receive a full refund and priority rebooking at no extra charge. We will notify you as early as possible.",
         },
         {
           title: "Subscription / Recurring Plans",

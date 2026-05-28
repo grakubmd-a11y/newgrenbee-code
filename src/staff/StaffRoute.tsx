@@ -139,7 +139,7 @@ export default function StaffRoute() {
   // ── Not signed in ──────────────────────────────────────────────────────────
   if (!authEmail) {
     return (
-      <Shell title="Staff Portal" subtitle="Inicia sesión con tu cuenta de Greenbee para ver tus trabajos asignados.">
+      <Shell title="Staff Portal" subtitle="Inicia sesión con tu cuenta de Grenbee para ver tus trabajos asignados.">
         {authError && (
           <p className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">{authError}</p>
         )}

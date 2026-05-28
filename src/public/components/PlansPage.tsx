@@ -344,7 +344,7 @@ export default function PlansPage() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 font-black text-[#0a2e1e] text-lg">
-            🌿 <span>Greenbee</span>
+            🌿 <span>Grenbee</span>
           </a>
           <a
             href="/#booking"
