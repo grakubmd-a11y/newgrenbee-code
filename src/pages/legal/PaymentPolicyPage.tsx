@@ -1,6 +1,8 @@
 import LegalPage from "../shared/LegalPage";
+import { useSiteSettings } from "../../shared/contexts/SiteSettingsContext";
 
 export default function PaymentPolicyPage() {
+  const { email } = useSiteSettings();
   return (
     <LegalPage
       title="Payment Policy"
@@ -34,7 +36,7 @@ export default function PaymentPolicyPage() {
         {
           title: "Receipts and Invoices",
           content:
-            "A payment receipt is automatically sent to your email address after each charge is captured. You can also access all receipts through My Account → My Bookings. For business expense invoices, contact support@grenbee.com with your booking ID.",
+            `A payment receipt is automatically sent to your email address after each charge is captured. You can also access all receipts through My Account → My Bookings. For business expense invoices, contact ${email} with your booking ID.`,
         },
         {
           title: "Refunds",
@@ -56,7 +58,7 @@ export default function PaymentPolicyPage() {
         {
           title: "Chargebacks and Disputes",
           content:
-            "We ask that you contact us at support@grenbee.com before initiating a chargeback with your bank. In most cases we can resolve issues faster and more favorably outside the formal dispute process. Frivolous chargebacks may result in account suspension. If a dispute is filed, Greenbee will submit booking records, communications, and service documentation to the card network.",
+            `We ask that you contact us at ${email} before initiating a chargeback with your bank. In most cases we can resolve issues faster and more favorably outside the formal dispute process. Frivolous chargebacks may result in account suspension. If a dispute is filed, Greenbee will submit booking records, communications, and service documentation to the card network.`,
         },
         {
           title: "Security",

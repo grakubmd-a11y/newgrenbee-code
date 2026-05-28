@@ -8,9 +8,11 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useSiteSettings } from "../../shared/contexts/SiteSettingsContext";
 
 export default function SiteNavbar() {
   const { t } = useTranslation();
+  const { phone } = useSiteSettings();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
   const location = useLocation();
@@ -88,11 +90,11 @@ export default function SiteNavbar() {
           {/* Right: phone + CTA */}
           <div className="hidden md:flex items-center gap-3">
             <a
-              href="tel:+13055550000"
+              href={`tel:${phone.replace(/\D/g, "")}`}
               className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
             >
               <Phone className="w-4 h-4" />
-              (305) 555-0000
+              {phone}
             </a>
             <Link
               to="/#estimate"
@@ -137,9 +139,9 @@ export default function SiteNavbar() {
             )
           )}
           <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
-            <a href="tel:+13055550000" className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700">
+            <a href={`tel:${phone.replace(/\D/g, "")}`} className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700">
               <Phone className="w-4 h-4 text-emerald-500" />
-              (305) 555-0000
+              {phone}
             </a>
             <Link
               to="/#estimate"

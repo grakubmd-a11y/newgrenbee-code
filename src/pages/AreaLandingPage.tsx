@@ -24,6 +24,7 @@ import { useParams, Link } from "react-router-dom";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
+import { useSiteSettings } from "../shared/contexts/SiteSettingsContext";
 import { fetchAreaContent } from "../shared/services/firebaseService";
 import { AreaContent } from "../shared/types";
 
@@ -75,6 +76,7 @@ const DIFFERENCE_ICONS = [Icons.BadgeCheck, Icons.UserCheck, Icons.ShieldCheck, 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function AreaLandingPage() {
   const { t } = useTranslation();
+  const { phone } = useSiteSettings();
   const { areaSlug } = useParams<{ areaSlug: string }>();
   const [content, setContent] = useState<AreaContent | null>(null);
   const [loading, setLoading]  = useState(true);
@@ -206,7 +208,7 @@ export default function AreaLandingPage() {
                 {t("areaPage.bookService")}
               </Link>
               <a
-                href="tel:+13055550000"
+                href={`tel:${phone.replace(/\D/g, "")}`}
                 className="inline-flex items-center gap-2 bg-white/15 backdrop-blur border border-white/25 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-white/25 transition-colors"
               >
                 <Icons.Phone size={16} />

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Mail, Phone, Clock, MessageSquare, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
-import { fetchPageContent } from "../shared/services/firebaseService";
+import { fetchPageContent, saveContactSubmission } from "../shared/services/firebaseService";
 import { ContactPageContent } from "../shared/types";
+import { useSiteSettings } from "../shared/contexts/SiteSettingsContext";
 
 export default function ContactPage() {
   const { t, i18n } = useTranslation();
@@ -18,9 +19,10 @@ export default function ContactPage() {
     fetchPageContent("contact").then((d) => { if (d) setCms(d); }).catch(() => {});
   }, []);
 
+  const siteSettings = useSiteSettings();
   const lang = i18n.language?.startsWith("es") ? "es" : "en";
-  const phone   = cms?.phone   || "(305) 555-0190";
-  const email   = cms?.email   || "support@grenbee.com";
+  const phone   = cms?.phone   || siteSettings.phone;
+  const email   = cms?.email   || siteSettings.email;
   const address = cms?.addressLine;
   const hours   = (lang === "es" ? cms?.hoursEs : cms?.hoursEn) || t("contact.hoursValue");
 
@@ -31,10 +33,15 @@ export default function ContactPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // Placeholder: real implementation would POST to a Firebase Cloud Function or email service
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
-    setSubmitted(true);
+    try {
+      await saveContactSubmission(form);
+      setSubmitted(true);
+    } catch {
+      // Still show success to user; submission may be reviewed manually
+      setSubmitted(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

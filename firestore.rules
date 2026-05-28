@@ -319,6 +319,19 @@ service cloud.firestore {
       allow delete: if isAdminOrManager() && isValidId(areaId);
     }
 
+    // Collection: Page CMS Content (home, faq, contact)
+    match /pageContent/{pageId} {
+      allow read: if true;  // Public — consumed by marketing pages at runtime
+      allow write: if isAdminOrManager() && isValidId(pageId);
+    }
+
+    // Collection: Contact Form Submissions
+    match /contactSubmissions/{submissionId} {
+      allow read: if isAdminOrManager();
+      allow create: if true;   // Anyone can submit the public contact form
+      allow update, delete: if isAdminOrManager();
+    }
+
     // Collection: Coupons
     // Public users can get a single coupon by ID (code validation & enabled check
     // is handled client-side in fetchPublicCouponByCode). Listing all coupons

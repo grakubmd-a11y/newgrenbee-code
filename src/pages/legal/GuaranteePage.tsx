@@ -1,6 +1,8 @@
 import LegalPage from "../shared/LegalPage";
+import { useSiteSettings } from "../../shared/contexts/SiteSettingsContext";
 
 export default function GuaranteePage() {
+  const { email } = useSiteSettings();
   return (
     <LegalPage
       title="Greenbee Satisfaction Guarantee"
@@ -38,7 +40,7 @@ export default function GuaranteePage() {
           title: "How to File a Claim",
           content: [
             "Contact us within 48 hours of service completion — claims submitted after this window may not be eligible.",
-            "Email support@grenbee.com with your booking ID, a written description of the issue, and photos where applicable.",
+            `Email ${email} with your booking ID, a written description of the issue, and photos where applicable.`,
             "Our team will review and respond within 2 business days with next steps.",
             "For damage claims exceeding $500, we may engage a third-party inspector before authorizing remediation.",
           ],

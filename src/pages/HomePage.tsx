@@ -28,6 +28,7 @@ import CostEstimator from "../public/components/CostEstimator";
 import { fetchServicesFromFirestore, fetchReviewsFromFirestore, fetchPageContent } from "../shared/services/firebaseService";
 import { SERVICES_DATA } from "../shared/data";
 import { Service, Review, HomePageContent } from "../shared/types";
+import { useSiteSettings } from "../shared/contexts/SiteSettingsContext";
 
 // ─── PhotoSlot ────────────────────────────────────────────────────────────────
 function PhotoSlot({
@@ -105,6 +106,7 @@ const SERVICE_DESCRIPTION_KEYS: Record<string, string> = {
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function HomePage() {
   const { t, i18n } = useTranslation();
+  const { phone } = useSiteSettings();
   const [services, setServices]   = useState<Service[]>(SERVICES_DATA);
   const [reviews,  setReviews]    = useState<Review[]>([]);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -203,11 +205,11 @@ export default function HomePage() {
                   <Icons.ArrowRight className="w-4 h-4" />
                 </button>
                 <a
-                  href="tel:+13055550000"
+                  href={`tel:${phone.replace(/\D/g, "")}`}
                   className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-white/20"
                 >
                   <Icons.Phone className="w-4 h-4" />
-                  {t("home.hero.ctaPhone")}
+                  {phone}
                 </a>
               </div>
 
@@ -625,11 +627,11 @@ export default function HomePage() {
                 {t("home.footer.tagline")}
               </p>
               <a
-                href="tel:+13055550000"
+                href={`tel:${phone.replace(/\D/g, "")}`}
                 className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
               >
                 <Icons.Phone className="w-3.5 h-3.5" />
-                (305) 555-0000
+                {phone}
               </a>
               <p className="text-xs text-gray-600">© {new Date().getFullYear()} Greenbee. {t("home.footer.rights")}</p>
             </div>

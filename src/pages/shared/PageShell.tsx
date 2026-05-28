@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SiteNavbar from "../../public/components/SiteNavbar";
+import { useSiteSettings } from "../../shared/contexts/SiteSettingsContext";
 
 interface SEOMeta {
   title: string;
@@ -21,6 +22,7 @@ function toSlug(city: string) {
 
 export default function PageShell({ children, seo }: PageShellProps) {
   const { t } = useTranslation();
+  const { phone, email } = useSiteSettings();
   const canonicalUrl =
     seo.canonical ??
     `https://grenbee.com${typeof window !== "undefined" ? window.location.pathname : ""}`;
@@ -60,11 +62,11 @@ export default function PageShell({ children, seo }: PageShellProps) {
                 {t("home.footer.tagline")}
               </p>
               <a
-                href="tel:+13055550000"
+                href={`tel:${phone.replace(/\D/g, "")}`}
                 className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
               >
                 <Phone className="w-3.5 h-3.5" />
-                (305) 555-0000
+                {phone}
               </a>
               <p className="text-xs text-gray-600">
                 © {new Date().getFullYear()} Greenbee. {t("home.footer.rights")}

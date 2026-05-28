@@ -331,6 +331,18 @@ export interface MediaItem {
   uploadedBy: string;     // admin email
 }
 
+// ── Contact Submissions ────────────────────────────────────────────────────────
+
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+}
+
 // ── Page CMS ──────────────────────────────────────────────────────────────────
 
 /** Hero section of the Home page (admin-editable overrides) */

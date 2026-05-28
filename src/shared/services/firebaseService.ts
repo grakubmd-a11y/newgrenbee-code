@@ -936,3 +936,35 @@ export async function savePageContent(
     updatedAt: new Date().toISOString(),
   });
 }
+
+// ── Contact Submissions ────────────────────────────────────────────────────────
+
+/** Save a contact form submission to Firestore. */
+export async function saveContactSubmission(
+  data: { name: string; email: string; subject: string; message: string }
+): Promise<void> {
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  await setDoc(doc(db, "contactSubmissions", id), {
+    id,
+    ...data,
+    createdAt: new Date().toISOString(),
+    read: false,
+  });
+}
+
+/** Fetch all contact submissions (admin only). */
+export async function fetchContactSubmissions(): Promise<import("../types").ContactSubmission[]> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, "contactSubmissions"), orderBy("createdAt", "desc"))
+    );
+    return snap.docs.map((d) => d.data() as import("../types").ContactSubmission);
+  } catch {
+    return [];
+  }
+}
+
+/** Mark a contact submission as read. */
+export async function markContactSubmissionRead(id: string): Promise<void> {
+  await updateDoc(doc(db, "contactSubmissions", id), { read: true });
+}

@@ -1,6 +1,8 @@
 import LegalPage from "../shared/LegalPage";
+import { useSiteSettings } from "../../shared/contexts/SiteSettingsContext";
 
 export default function CancellationPage() {
+  const { email } = useSiteSettings();
   return (
     <LegalPage
       title="Cancellation & Rescheduling Policy"
@@ -56,7 +58,7 @@ export default function CancellationPage() {
           content: [
             "Log in to your account and navigate to My Account → My Bookings.",
             "Select the booking and click 'Cancel Appointment'.",
-            "Alternatively, email support@grenbee.com with your booking ID.",
+            `Alternatively, email ${email} with your booking ID.`,
           ],
         },
       ]}

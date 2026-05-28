@@ -6,6 +6,7 @@ import PlansAdminTab from "./PlansAdminTab";
 import MediaLibraryTab from "./MediaLibraryTab";
 import AreaContentTab from "./AreaContentTab";
 import PageContentTab from "./PageContentTab";
+import ContactSubmissionsTab from "./ContactSubmissionsTab";
 import {
   Booking,
   BookingStatus,
@@ -63,7 +64,7 @@ interface AdminPanelProps {
   onExit?: () => void;
 }
 
-type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews' | 'plans' | 'media' | 'areas' | 'pages';
+type SubTabType = 'overview' | 'bookings' | 'services' | 'pricing' | 'payroll' | 'growth' | 'leads' | 'activity' | 'staff' | 'coverage' | 'customers' | 'integrations' | 'settings' | 'reviews' | 'plans' | 'media' | 'areas' | 'pages' | 'messages';
 
 export default function AdminPanel({
   bookings,
@@ -1110,6 +1111,7 @@ export default function AdminPanel({
             { id: "media", label: "Media", icon: Icons.Images },
             { id: "areas", label: "Áreas / SEO", icon: Icons.MapPin },
             { id: "pages", label: "Páginas CMS", icon: Icons.LayoutTemplate },
+            { id: "messages", label: "Mensajes", icon: Icons.Mail },
             { id: "staff", label: "Personal / Staff", icon: Icons.Wrench, badge: staffList.length },
             { id: "coverage", label: "Zonas / ZIP", icon: Icons.Map, badge: coverageList.length },
             { id: "customers", label: "Clientes", icon: Icons.Users, badge: customersList.length },
@@ -1268,7 +1270,9 @@ export default function AdminPanel({
                     { id: "customers", label: "Clientes" },
                     { id: "reviews", label: "Reseñas" },
                     { id: "integrations", label: "Integraciones" },
-                    { id: "settings", label: "Ajustes de Negocio" }
+                    { id: "settings", label: "Ajustes de Negocio" },
+                    { id: "pages", label: "Páginas CMS" },
+                    { id: "messages", label: "Mensajes" }
                   ].find(t => t.id === activeSubTab)?.label || "Workspace"}
                 </span>
               </div>
@@ -1286,7 +1290,9 @@ export default function AdminPanel({
                   { id: "customers", val: "Registro Centralizado de Clientes" },
                   { id: "reviews", val: "Control Moderno de Reseñas / Feedbacks" },
                   { id: "integrations", val: "APIs, Pagos, Mapas y Conectores Externos" },
-                  { id: "settings", val: "Ajustes del Sistema y Variables de Negocio" }
+                  { id: "settings", val: "Ajustes del Sistema y Variables de Negocio" },
+                  { id: "pages", val: "Editor de Contenido por Página" },
+                  { id: "messages", val: "Mensajes del Formulario de Contacto" }
                 ].find(t => t.id === activeSubTab)?.val || ""}
               </h2>
             </div>
@@ -3149,6 +3155,11 @@ export default function AdminPanel({
       {/* PAGES CMS TAB */}
       {!isLoading && activeSubTab === 'pages' && (
         <PageContentTab />
+      )}
+
+      {/* MESSAGES / CONTACT SUBMISSIONS TAB */}
+      {!isLoading && activeSubTab === 'messages' && (
+        <ContactSubmissionsTab />
       )}
 
       {/* 6. COVERAGE CRUD TAB */}
