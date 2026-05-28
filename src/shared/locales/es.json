@@ -126,13 +126,13 @@
     "toggleMenu": "Abrir menú"
   },
   "home": {
-    "pageTitle": "Greenbee — Cuidado de Césped y Limpieza del Hogar en Miami, FL",
-    "metaDescription": "Reserva cuidado de césped y limpieza del hogar en Miami, Fort Lauderdale y el sur de Florida. Cotizaciones en línea instantáneas, disponibilidad en la misma semana, productos ecológicos.",
+    "pageTitle": "Greenbee — Cuidado de Césped y Limpieza del Hogar en Utah County, UT",
+    "metaDescription": "Reserva cuidado de césped y limpieza del hogar en Mapleton, Spanish Fork, Springville y Utah County. Cotizaciones en línea instantáneas, disponibilidad en la misma semana, productos ecológicos.",
     "hero": {
-      "badge": "Más de 200 Reseñas de Cinco Estrellas en el Sur de Florida",
-      "title": "Cuidado de Césped y Limpieza del Hogar en Miami, FL",
+      "badge": "Más de 200 Reseñas de Cinco Estrellas en Utah County",
+      "title": "Cuidado de Césped y Limpieza del Hogar en Utah County, UT",
       "titleHighlight": "Limpieza del Hogar",
-      "subtitle": "Greenbee ofrece servicios del hogar confiables y ecológicos en Miami-Dade y Broward. Reserva en línea en minutos — disponibilidad garantizada en la misma semana.",
+      "subtitle": "Greenbee ofrece servicios del hogar confiables y ecológicos en Utah County. Reserva en línea en minutos — disponibilidad garantizada en la misma semana.",
       "ctaPrimary": "Obtener Cotización Gratis",
       "ctaPhone": "(305) 555-0000",
       "trustNote": "Habla con una persona real — generalmente respondemos en menos de una hora."
@@ -159,16 +159,16 @@
     "coverage": {
       "eyebrow": "Dónde Operamos",
       "title": "Regiones de Servicio",
-      "subtitle": "Cubrimos dos condados principales en el sur de Florida y seguimos creciendo.",
+      "subtitle": "Actualmente cubrimos Utah County — próximamente en Salt Lake County.",
       "miamidade": {
-        "title": "Condado Miami-Dade",
-        "description": "Miami, Miami Beach, Coral Gables, Brickell, Coconut Grove, Doral, Hialeah y más.",
-        "link": "Ver áreas de Miami-Dade"
+        "title": "Utah County",
+        "description": "Mapleton, Spanish Fork, Springville, Payson, Salem y comunidades cercanas.",
+        "link": "Ver áreas de Utah County"
       },
       "broward": {
-        "title": "Condado Broward",
-        "description": "Fort Lauderdale, Pembroke Pines, Hollywood, Miramar, Weston, Sunrise y más.",
-        "link": "Ver áreas de Broward"
+        "title": "Salt Lake County",
+        "description": "Salt Lake City, Draper, Sandy — únete a la lista de espera para ser el primero cuando lleguemos.",
+        "link": "Unirse a la lista de espera"
       }
     },
     "standard": {
@@ -241,18 +241,18 @@
       "verifiedCustomer": "Cliente verificado",
       "defaultItems": [
         {
-          "name": "María G.",
-          "location": "Coral Gables, FL",
+          "name": "Maria G.",
+          "location": "Mapleton, UT",
           "text": "Greenbee ha estado manteniendo nuestro césped por 6 meses. Siempre puntual, siempre perfecto. ¡Mis vecinos no paran de preguntar quién nos corta el jardín!"
         },
         {
-          "name": "Carlos R.",
-          "location": "Brickell, Miami",
-          "text": "Reservé una limpieza profunda para mi apartamento en menos de 5 minutos. El equipo fue muy profesional y el lugar quedó como nuevo. Muy recomendado."
+          "name": "Jason T.",
+          "location": "Spanish Fork, UT",
+          "text": "Reservé una limpieza profunda en menos de 5 minutos. El equipo fue muy profesional y el lugar quedó como nuevo. Muy recomendado."
         },
         {
-          "name": "Jennifer M.",
-          "location": "Fort Lauderdale, FL",
+          "name": "Ashley M.",
+          "location": "Springville, UT",
           "text": "El lavado a presión de mi entrada fue increíble. Parece concreto nuevo. Excelente precio, excelente equipo, proceso de reserva muy fácil."
         }
       ]
@@ -264,9 +264,9 @@
       "reviewsBadge": "Más de 200 Reseñas de Cinco Estrellas"
     },
     "directory": {
-      "title": "Áreas de Servicio — Sur de Florida",
-      "miamidadeTitle": "Condado Miami-Dade",
-      "browardTitle": "Condado Broward",
+      "title": "Áreas de Servicio — Utah County, UT",
+      "miamidadeTitle": "Utah County",
+      "browardTitle": "Salt Lake County",
       "viewFullMap": "Ver mapa completo de cobertura y páginas de área"
     },
     "estimator": {
@@ -281,7 +281,7 @@
       "items": [
         {
           "q": "¿Qué áreas atienden?",
-          "a": "Atendemos Miami-Dade y el Condado de Broward, incluyendo Miami, Miami Beach, Coral Gables, Brickell, Doral, Fort Lauderdale, Pembroke Pines y más. Consulta nuestra página de Áreas para ver la lista completa."
+          "a": "Actualmente atendemos Utah County, incluyendo Mapleton, Spanish Fork, Springville, Payson y Salem. Consulta nuestra página de Áreas para ver la lista completa y nuestro plan de expansión."
         },
         {
           "q": "¿Con qué rapidez puedo obtener una cita?",
@@ -306,7 +306,7 @@
       ]
     },
     "footer": {
-      "tagline": "Servicios profesionales de cuidado del césped y limpieza del hogar en todo el sur de Florida.",
+      "tagline": "Servicios profesionales de cuidado del césped y limpieza del hogar en Utah County, UT.",
       "rights": "Todos los derechos reservados.",
       "servicesTitle": "Servicios",
       "serviceLinks": [
@@ -316,8 +316,8 @@
         "Instalación de TV",
         "Ensamblaje de Muebles"
       ],
-      "miamidadeTitle": "Miami-Dade",
-      "browardTitle": "Broward",
+      "miamidadeTitle": "Utah County",
+      "browardTitle": "Salt Lake County",
       "companyTitle": "Empresa",
       "membershipPlans": "Planes de Membresía",
       "allServiceAreas": "Todas las Áreas de Servicio",
@@ -334,7 +334,7 @@
   },
   "areas": {
     "pageTitle": "Áreas de Cobertura | Greenbee",
-    "metaDescription": "Verifica si Greenbee atiende tu ciudad. Cubrimos Miami-Dade, Broward y más. Únete a la lista de espera si tu área no está disponible aún.",
+    "metaDescription": "Verifica si Greenbee atiende tu ciudad. Cubrimos Utah County — Mapleton, Spanish Fork, Springville, Payson, Salem. Lista de espera para Salt Lake County.",
     "heading": "Áreas de Cobertura",
     "subheading": "Greenbee está creciendo rápidamente. Verifica si actualmente atendemos tu ciudad o únete a la lista de espera para ser notificado cuando nos expandamos a tu área.",
     "availableNow": "Disponible Ahora",

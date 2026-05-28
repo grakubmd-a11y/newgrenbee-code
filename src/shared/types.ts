@@ -129,10 +129,22 @@ export interface Staff {
 }
 
 export interface Coverage {
-  zipCode: string;
+  /** City slug — Firestore document ID (e.g. "mapleton") */
+  id: string;
   city: string;
   state: string;
+  /** County or region label shown on marketing pages (e.g. "Utah County") */
+  county?: string;
+  /** ZIP codes served in this city */
+  zipCodes: string[];
+  /** Bookable now */
   active: boolean;
+  /** Show on marketing pages as "Coming Soon" — not yet bookable */
+  comingSoon: boolean;
+  /** Controls display order in AreasPage / footer */
+  sortOrder?: number;
+  /** @deprecated Legacy field — kept for backward compat during migration */
+  zipCode?: string;
 }
 
 export interface BusinessSettings {
@@ -358,9 +370,9 @@ export interface HomePageContent {
   heroCtaEs?: string;
   // Service card photos (serviceId → photoUrl)
   servicePhotos: Record<string, string>;
-  // Coverage region photos
-  coverageMiamiPhotoUrl?: string;
-  coverageBrowardPhotoUrl?: string;
+  // Coverage region photos (area1 = active region, area2 = coming-soon region)
+  coverageArea1PhotoUrl?: string;
+  coverageArea2PhotoUrl?: string;
   // CTA banner background
   ctaBannerPhotoUrl?: string;
   updatedAt: string;

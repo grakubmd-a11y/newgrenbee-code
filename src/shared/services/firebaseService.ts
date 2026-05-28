@@ -387,33 +387,49 @@ export async function fetchCoverageFromFirestore(): Promise<Coverage[]> {
     const querySnapshot = await getDocs(collection(db, "coverage"));
     const coverageList: Coverage[] = [];
     querySnapshot.forEach((docSnap) => {
-      coverageList.push(docSnap.data() as Coverage);
+      const data = docSnap.data();
+      // Normalize legacy docs that used zipCode as the doc ID
+      coverageList.push({
+        id: docSnap.id,
+        city: data.city ?? "",
+        state: data.state ?? "",
+        county: data.county ?? "",
+        zipCodes: data.zipCodes ?? (data.zipCode ? [data.zipCode] : []),
+        active: data.active ?? true,
+        comingSoon: data.comingSoon ?? false,
+        sortOrder: data.sortOrder ?? 0,
+        zipCode: data.zipCode, // keep legacy field
+      });
     });
-
-    return coverageList;
+    return coverageList.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
   }
 }
 
 export async function saveCoverageInFirestore(coverage: Coverage): Promise<void> {
-  const path = `coverage/${coverage.zipCode}`;
+  const docId = coverage.id || coverage.zipCode || coverage.city.toLowerCase().replace(/\s+/g, "-");
+  const path = `coverage/${docId}`;
   try {
-    await setDoc(doc(db, "coverage", coverage.zipCode), {
-      zipCode: coverage.zipCode,
+    await setDoc(doc(db, "coverage", docId), {
+      id: docId,
       city: coverage.city,
       state: coverage.state,
-      active: coverage.active
+      county: coverage.county ?? "",
+      zipCodes: coverage.zipCodes ?? [],
+      active: coverage.active,
+      comingSoon: coverage.comingSoon ?? false,
+      sortOrder: coverage.sortOrder ?? 0,
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
 }
 
-export async function deleteCoverageFromFirestore(zipCode: string): Promise<void> {
-  const path = `coverage/${zipCode}`;
+export async function deleteCoverageFromFirestore(id: string): Promise<void> {
+  const path = `coverage/${id}`;
   try {
-    await deleteDoc(doc(db, "coverage", zipCode));
+    await deleteDoc(doc(db, "coverage", id));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, path);
   }

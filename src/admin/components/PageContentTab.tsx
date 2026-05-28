@@ -346,14 +346,14 @@ function HomeEditor({
       <SectionCard title="Fotos de regiones" icon={<Icons.MapPin className="w-4 h-4 text-amber-500" />}>
         <div className="grid grid-cols-2 gap-4">
           <PhotoField
-            label="Miami-Dade County"
-            url={data.coverageMiamiPhotoUrl}
-            onChange={(url) => set({ coverageMiamiPhotoUrl: url })}
+            label="Utah County (región activa)"
+            url={data.coverageArea1PhotoUrl}
+            onChange={(url) => set({ coverageArea1PhotoUrl: url })}
           />
           <PhotoField
-            label="Broward County"
-            url={data.coverageBrowardPhotoUrl}
-            onChange={(url) => set({ coverageBrowardPhotoUrl: url })}
+            label="Salt Lake County (coming soon)"
+            url={data.coverageArea2PhotoUrl}
+            onChange={(url) => set({ coverageArea2PhotoUrl: url })}
           />
         </div>
       </SectionCard>

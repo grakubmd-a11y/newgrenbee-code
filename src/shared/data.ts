@@ -495,7 +495,7 @@ export const INITIAL_BOOKINGS: Booking[] = [
     customerName: "Alex Mercer",
     email: "alex.mercer@gmail.com",
     phone: "(555) 321-4122",
-    address: "742 Evergreen Terrace, Springfield",
+    address: "100 N Main St, Mapleton, UT 84664",
     units: 3,
     selectedFactors: {
       "bedroomCount": { label: "3 Bedrooms", modifier: 55 },

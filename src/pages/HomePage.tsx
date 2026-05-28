@@ -77,16 +77,12 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-// Miami-Dade and Broward city lists for the directory
-const MIAMI_DADE = [
-  "Miami", "Miami Beach", "Coral Gables", "Brickell", "Coconut Grove",
-  "Doral", "Hialeah", "Kendall", "Homestead", "Aventura", "Bal Harbour",
-  "Key Biscayne", "Little Havana", "Wynwood", "Edgewater",
+// Utah County city lists for the directory and footer
+const UTAH_COUNTY = [
+  "Mapleton", "Spanish Fork", "Springville", "Payson", "Salem",
 ];
-const BROWARD = [
-  "Fort Lauderdale", "Pembroke Pines", "Hollywood", "Miramar",
-  "Weston", "Davie", "Sunrise", "Plantation", "Deerfield Beach",
-  "Pompano Beach", "Hallandale Beach", "Coral Springs",
+const SALT_LAKE = [
+  "Salt Lake City", "Draper", "Sandy",
 ];
 
 // City → slug map (simple kebab-case)
@@ -287,9 +283,9 @@ export default function HomePage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Miami-Dade */}
+              {/* Utah County */}
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <PhotoSlot className="h-52 w-full" url={cms?.coverageMiamiPhotoUrl} alt="Miami-Dade County" placeholderText={photoPlaceholder} />
+                <PhotoSlot className="h-52 w-full" url={cms?.coverageArea1PhotoUrl} alt="Utah County" placeholderText={photoPlaceholder} />
                 <div className="p-6">
                   <h3 className="text-xl font-black text-gray-950 mb-1">{t("home.coverage.miamidade.title")}</h3>
                   <p className="text-sm text-gray-500 mb-4">
@@ -304,9 +300,9 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Broward */}
+              {/* Salt Lake County — coming soon */}
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <PhotoSlot className="h-52 w-full" url={cms?.coverageBrowardPhotoUrl} alt="Broward County" placeholderText={photoPlaceholder} />
+                <PhotoSlot className="h-52 w-full" url={cms?.coverageArea2PhotoUrl} alt="Salt Lake County" placeholderText={photoPlaceholder} />
                 <div className="p-6">
                   <h3 className="text-xl font-black text-gray-950 mb-1">{t("home.coverage.broward.title")}</h3>
                   <p className="text-sm text-gray-500 mb-4">
@@ -494,13 +490,13 @@ export default function HomePage() {
               {t("home.directory.title")}
             </h2>
             <div className="grid md:grid-cols-2 gap-10">
-              {/* Miami-Dade */}
+              {/* Utah County */}
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">
                   {t("home.directory.miamidadeTitle")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {MIAMI_DADE.map((city) => (
+                  {UTAH_COUNTY.map((city) => (
                     <Link
                       key={city}
                       to={`/areas/${toSlug(city)}`}
@@ -512,21 +508,20 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Broward */}
+              {/* Salt Lake County — coming soon */}
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">
                   {t("home.directory.browardTitle")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {BROWARD.map((city) => (
-                    <Link
-                      key={city}
-                      to={`/areas/${toSlug(city)}`}
-                      className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors"
-                    >
+                  {SALT_LAKE.map((city) => (
+                    <span key={city} className="text-sm text-gray-400 cursor-default">
                       {city}
-                    </Link>
+                    </span>
                   ))}
+                  <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">
+                    Coming soon
+                  </span>
                 </div>
               </div>
             </div>
@@ -659,7 +654,7 @@ export default function HomePage() {
                 {t("home.footer.miamidadeTitle")}
               </h4>
               <ul className="space-y-2 text-sm">
-                {["Miami", "Miami Beach", "Coral Gables", "Brickell", "Doral", "Hialeah"].map((c) => (
+                {UTAH_COUNTY.map((c) => (
                   <li key={c}>
                     <Link to={`/areas/${toSlug(c)}`} className="hover:text-emerald-400 transition-colors">
                       {c}
@@ -669,11 +664,9 @@ export default function HomePage() {
               </ul>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">{t("home.footer.browardTitle")}</h4>
               <ul className="space-y-2 text-sm">
-                {["Fort Lauderdale", "Hollywood", "Pembroke Pines", "Miramar"].map((c) => (
-                  <li key={c}>
-                    <Link to={`/areas/${toSlug(c)}`} className="hover:text-emerald-400 transition-colors">
-                      {c}
-                    </Link>
+                {SALT_LAKE.map((c) => (
+                  <li key={c} className="text-gray-500">
+                    {c} <span className="text-[10px] text-amber-500 font-semibold">soon</span>
                   </li>
                 ))}
               </ul>

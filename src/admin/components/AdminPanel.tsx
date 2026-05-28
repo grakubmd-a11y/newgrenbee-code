@@ -710,27 +710,39 @@ export default function AdminPanel({
   // COVERAGES ACTIONS
   const handleSaveCoverage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCoverage?.zipCode || !editingCoverage?.city || !editingCoverage?.state) return;
+    if (!editingCoverage?.city || !editingCoverage?.state) return;
 
     const actionId = "save-coverage";
     beginAction(actionId, "Guardando cobertura...");
     try {
+      const citySlug = (editingCoverage.id || editingCoverage.city)
+        .toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      // Parse zipCodes from comma-separated string stored in zipCode field (temp)
+      const rawZips = (editingCoverage as any)._zipCodesRaw || "";
+      const parsedZips = rawZips
+        ? rawZips.split(",").map((z: string) => z.trim()).filter(Boolean)
+        : editingCoverage.zipCodes ?? [];
+
       const cov: Coverage = {
-        zipCode: editingCoverage.zipCode,
+        id: citySlug,
         city: editingCoverage.city,
         state: editingCoverage.state,
-        active: editingCoverage.active !== undefined ? editingCoverage.active : true
+        county: editingCoverage.county ?? "",
+        zipCodes: parsedZips,
+        active: editingCoverage.active !== undefined ? editingCoverage.active : true,
+        comingSoon: editingCoverage.comingSoon ?? false,
+        sortOrder: editingCoverage.sortOrder ?? 0,
       };
       await saveCoverageInFirestore(cov);
       await recordActivity({
         type: "coverage_saved",
         entityType: "coverage",
-        entityId: cov.zipCode,
-        title: "ZIP actualizado",
-        detail: `Se guardo la zona ${cov.zipCode} (${cov.city}, ${cov.state}).`,
+        entityId: cov.id,
+        title: "Ciudad de cobertura actualizada",
+        detail: `Se guardó la ciudad ${cov.city}, ${cov.state} (${cov.zipCodes.join(", ") || "sin ZIPs"}).`,
         severity: "success"
       });
-      triggerSuccess(`Código ZIP ${cov.zipCode} configurado correctamente.`);
+      triggerSuccess(`Ciudad "${cov.city}" configurada correctamente.`);
       setCoverageFormOpen(false);
       setEditingCoverage(null);
       await loadDatabaseData();
@@ -741,21 +753,21 @@ export default function AdminPanel({
     }
   };
 
-  const handleDeleteCoverage = async (zip: string) => {
-    if (!confirm(`¿Estás seguro de deseas remover el ZIP ${zip}?`)) return;
-    const actionId = `delete-coverage-${zip}`;
+  const handleDeleteCoverage = async (id: string, city: string) => {
+    if (!confirm(`¿Estás seguro de que deseas remover "${city}" de las zonas de cobertura?`)) return;
+    const actionId = `delete-coverage-${id}`;
     beginAction(actionId, "Eliminando cobertura...");
     try {
-      await deleteCoverageFromFirestore(zip);
+      await deleteCoverageFromFirestore(id);
       await recordActivity({
         type: "coverage_deleted",
         entityType: "coverage",
-        entityId: zip,
-        title: "ZIP eliminado",
-        detail: `Se elimino la zona ${zip}.`,
+        entityId: id,
+        title: "Ciudad eliminada",
+        detail: `Se eliminó la ciudad ${city}.`,
         severity: "warning"
       });
-      triggerSuccess(`Código ZIP ${zip} eliminado del catálogo.`);
+      triggerSuccess(`Ciudad "${city}" eliminada del catálogo.`);
       await loadDatabaseData();
     } catch (err: any) {
       setErrorMessage("Error al eliminar cobertura: " + err.message);
@@ -3167,23 +3179,27 @@ export default function AdminPanel({
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="flex justify-between items-center text-left">
             <div>
-              <h3 className="font-extrabold text-sm text-gray-950">Zonas de Cobertura de Springfield</h3>
-              <p className="text-[10px] text-gray-400 font-medium">Configura qué distritos y códigos ZIP de Illinois están habilitados para cotizar y recibir operarios.</p>
+              <h3 className="font-extrabold text-sm text-gray-950">Zonas de Cobertura</h3>
+              <p className="text-[10px] text-gray-400 font-medium">Configura qué ciudades y códigos ZIP están habilitados. Las ciudades "Coming Soon" aparecen en el sitio pero no aceptan reservas.</p>
             </div>
             <button
               onClick={() => {
                 setEditingCoverage({
-                  zipCode: "",
+                  id: "",
                   city: "",
-                  state: "IL",
-                  active: true
+                  state: "UT",
+                  county: "Utah County",
+                  zipCodes: [],
+                  active: true,
+                  comingSoon: false,
+                  sortOrder: 0,
                 });
                 setCoverageFormOpen(true);
               }}
               className="px-3.5 py-1.5 text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-none"
             >
               <Icons.Plus size={13} />
-              <span>Añadir Código ZIP</span>
+              <span>Añadir Ciudad</span>
             </button>
           </div>
 
@@ -3191,64 +3207,96 @@ export default function AdminPanel({
             <form onSubmit={handleSaveCoverage} className="bg-amber-50/40 border border-amber-200 rounded-2xl p-5 text-left space-y-4 animate-in slide-in-from-top-3 duration-200">
               <div className="flex justify-between items-center border-b border-amber-200 pb-2">
                 <span className="font-black text-xs uppercase tracking-wider text-amber-900">
-                  Configurar Regla de Localidad (SPRINGFIELD REGION)
+                  {editingCoverage.city ? `Editando: ${editingCoverage.city}` : "Nueva Ciudad"}
                 </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setCoverageFormOpen(false);
-                    setEditingCoverage(null);
-                  }}
+                  onClick={() => { setCoverageFormOpen(false); setEditingCoverage(null); }}
                   className="text-amber-800 hover:text-amber-950 bg-transparent border-none text-xs font-bold cursor-pointer font-mono"
                 >
                   cancelar
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">Código Postal (ZIP Code)</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingCoverage.zipCode || ""}
-                    onChange={(e) => setEditingCoverage({ ...editingCoverage, zipCode: e.target.value })}
-                    placeholder="ej: 62706"
-                    className="w-full text-xs p-2.5 rounded-xl border border-gray-250 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">Ciudad / Distrito</label>
+                  <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">Ciudad *</label>
                   <input
                     type="text"
                     required
                     value={editingCoverage.city || ""}
                     onChange={(e) => setEditingCoverage({ ...editingCoverage, city: e.target.value })}
-                    placeholder="ej: Springfield West"
+                    placeholder="ej: Mapleton"
                     className="w-full text-xs p-2.5 rounded-xl border border-gray-250 bg-white"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">Estado</label>
+                  <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">Estado *</label>
                   <input
                     type="text"
                     required
-                    value={editingCoverage.state ?? "IL"}
-                    onChange={(e) => setEditingCoverage({ ...editingCoverage, state: e.target.value })}
+                    maxLength={2}
+                    value={editingCoverage.state ?? "UT"}
+                    onChange={(e) => setEditingCoverage({ ...editingCoverage, state: e.target.value.toUpperCase() })}
+                    placeholder="UT"
                     className="w-full text-xs p-2.5 rounded-xl border border-gray-250 bg-white"
                   />
                 </div>
                 <div>
-                  <label className="inline-flex items-center gap-2 mb-3 cursor-pointer text-xs font-bold text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={editingCoverage.active !== undefined ? editingCoverage.active : true}
-                      onChange={(e) => setEditingCoverage({ ...editingCoverage, active: e.target.checked })}
-                      className="rounded border-gray-300 text-brand focus:ring-brand"
-                    />
-                    <span>Estatus Habilitado</span>
-                  </label>
+                  <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">Condado / Región</label>
+                  <input
+                    type="text"
+                    value={editingCoverage.county ?? ""}
+                    onChange={(e) => setEditingCoverage({ ...editingCoverage, county: e.target.value })}
+                    placeholder="ej: Utah County"
+                    className="w-full text-xs p-2.5 rounded-xl border border-gray-250 bg-white"
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">
+                  Códigos ZIP (separados por coma)
+                </label>
+                <input
+                  type="text"
+                  value={(editingCoverage as any)._zipCodesRaw ?? editingCoverage.zipCodes?.join(", ") ?? ""}
+                  onChange={(e) => setEditingCoverage({ ...editingCoverage, _zipCodesRaw: e.target.value } as any)}
+                  placeholder="ej: 84664, 84655"
+                  className="w-full text-xs p-2.5 rounded-xl border border-gray-250 bg-white"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Ingresa uno o varios ZIPs separados por coma. Se usan para validar cobertura al momento de cotizar.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">Orden de aparición</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editingCoverage.sortOrder ?? 0}
+                    onChange={(e) => setEditingCoverage({ ...editingCoverage, sortOrder: Number(e.target.value) })}
+                    className="w-full text-xs p-2.5 rounded-xl border border-gray-250 bg-white"
+                  />
+                </div>
+                <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 pt-4">
+                  <input
+                    type="checkbox"
+                    checked={editingCoverage.active !== undefined ? editingCoverage.active : true}
+                    onChange={(e) => setEditingCoverage({ ...editingCoverage, active: e.target.checked })}
+                    className="rounded border-gray-300 text-brand focus:ring-brand"
+                  />
+                  <span>Activo (acepta reservas)</span>
+                </label>
+                <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 pt-4">
+                  <input
+                    type="checkbox"
+                    checked={editingCoverage.comingSoon ?? false}
+                    onChange={(e) => setEditingCoverage({ ...editingCoverage, comingSoon: e.target.checked })}
+                    className="rounded border-gray-300 text-amber-500 focus:ring-amber-400"
+                  />
+                  <span>Coming Soon (visible en el sitio)</span>
+                </label>
               </div>
 
               <button
@@ -3258,56 +3306,79 @@ export default function AdminPanel({
               >
                 <ActionButtonContent
                   actionId="save-coverage"
-                  idleLabel="Grabar Cobertura Geográfica en Firestore"
-                  pendingLabel="Guardando cobertura..."
+                  idleLabel="Guardar Ciudad en Firestore"
+                  pendingLabel="Guardando..."
                   icon={Icons.Save}
                 />
               </button>
             </form>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {coverageList.length === 0 ? (
-              <div className="col-span-2 md:col-span-4">
+              <div className="col-span-3">
                 <EmptyState
                   icon={Icons.Map}
-                  title="No hay ZIPs de cobertura"
-                  description="La zona puede quedar completamente vacia. Agrega codigos ZIP solo cuando quieras abrir cotizaciones en esa localidad."
+                  title="No hay ciudades de cobertura"
+                  description="Agrega ciudades para habilitar cotizaciones en esas localidades."
                 />
               </div>
             ) : coverageList.map((cov) => (
-              <div key={cov.zipCode} className="bg-white border text-left p-4.5 rounded-2xl flex justify-between items-center shadow-3xs hover:border-brand transition-colors">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-stone-900 font-mono tracking-tight">{cov.zipCode}</span>
-                    <Icons.Navigation2 size={12} className="text-gray-400 rotate-45" />
-                  </div>
-                  <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase truncate max-w-[120px]">{cov.city}, {cov.state}</p>
-                  <span className={`text-[8px] font-extrabold px-1.5 rounded-full uppercase inline-block mt-2 ${cov.active ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-750"}`}>
-                    {cov.active ? "Activo" : "Suspendido"}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => {
-                      setEditingCoverage(cov);
-                      setCoverageFormOpen(true);
-                    }}
-                    className="p-1 hover:text-brand bg-transparent border-none text-gray-405 cursor-pointer"
-                  >
-                    <Icons.Edit3 size={12} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCoverage(cov.zipCode)}
-                    disabled={isActionPending(`delete-coverage-${cov.zipCode}`)}
-                    className="p-1 hover:text-red-650 disabled:opacity-50 disabled:cursor-wait bg-transparent border-none text-gray-405 cursor-pointer"
-                  >
-                    {isActionPending(`delete-coverage-${cov.zipCode}`) ? (
-                      <Icons.RotateCw size={12} className="animate-spin" />
-                    ) : (
-                      <Icons.Trash2 size={12} />
+              <div key={cov.id} className="bg-white border text-left p-4 rounded-2xl shadow-xs hover:border-brand transition-colors">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-black text-stone-900">{cov.city}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">{cov.state}</span>
+                    </div>
+                    {cov.county && (
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5">{cov.county}</p>
                     )}
-                  </button>
+                    {cov.zipCodes?.length > 0 && (
+                      <p className="text-[10px] text-gray-400 font-mono mt-1 truncate">
+                        {cov.zipCodes.join(" · ")}
+                      </p>
+                    )}
+                    <div className="flex gap-1.5 mt-2 flex-wrap">
+                      {cov.active && (
+                        <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-full uppercase bg-emerald-50 text-emerald-800">
+                          Activo
+                        </span>
+                      )}
+                      {cov.comingSoon && (
+                        <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-full uppercase bg-amber-50 text-amber-700">
+                          Coming Soon
+                        </span>
+                      )}
+                      {!cov.active && !cov.comingSoon && (
+                        <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-full uppercase bg-red-50 text-red-700">
+                          Suspendido
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5 shrink-0">
+                    <button
+                      onClick={() => {
+                        setEditingCoverage({ ...cov, _zipCodesRaw: cov.zipCodes?.join(", ") } as any);
+                        setCoverageFormOpen(true);
+                      }}
+                      className="p-1 hover:text-brand bg-transparent border-none text-gray-400 cursor-pointer"
+                    >
+                      <Icons.Edit3 size={12} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCoverage(cov.id, cov.city)}
+                      disabled={isActionPending(`delete-coverage-${cov.id}`)}
+                      className="p-1 hover:text-red-600 disabled:opacity-50 disabled:cursor-wait bg-transparent border-none text-gray-400 cursor-pointer"
+                    >
+                      {isActionPending(`delete-coverage-${cov.id}`) ? (
+                        <Icons.RotateCw size={12} className="animate-spin" />
+                      ) : (
+                        <Icons.Trash2 size={12} />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

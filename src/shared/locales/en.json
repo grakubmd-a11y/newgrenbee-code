@@ -126,13 +126,13 @@
     "toggleMenu": "Toggle menu"
   },
   "home": {
-    "pageTitle": "Greenbee — Professional Lawn Care & Home Cleaning in Miami, FL",
-    "metaDescription": "Book professional lawn care and house cleaning in Miami, Fort Lauderdale, and South Florida. Instant online quotes, same-week availability, eco-friendly products.",
+    "pageTitle": "Greenbee — Professional Lawn Care & Home Cleaning in Utah County, UT",
+    "metaDescription": "Book professional lawn care and house cleaning in Mapleton, Spanish Fork, Springville, and Utah County. Instant online quotes, same-week availability, eco-friendly products.",
     "hero": {
-      "badge": "200+ Five-Star Reviews in South Florida",
-      "title": "Professional Lawn Care & Home Cleaning in Miami, FL",
+      "badge": "200+ Five-Star Reviews in Utah County",
+      "title": "Professional Lawn Care & Home Cleaning in Utah County, UT",
       "titleHighlight": "Home Cleaning",
-      "subtitle": "Greenbee delivers reliable, eco-friendly home services across Miami-Dade and Broward. Book online in minutes — same-week availability guaranteed.",
+      "subtitle": "Greenbee delivers reliable, eco-friendly home services across Utah County. Book online in minutes — same-week availability guaranteed.",
       "ctaPrimary": "Get a Free Quote",
       "ctaPhone": "(305) 555-0000",
       "trustNote": "Talk to a real person — we typically respond within the hour."
@@ -159,16 +159,16 @@
     "coverage": {
       "eyebrow": "Where We Operate",
       "title": "Service Regions",
-      "subtitle": "We cover two major counties in South Florida and are growing fast.",
+      "subtitle": "Currently serving Utah County — expanding to Salt Lake County soon.",
       "miamidade": {
-        "title": "Miami-Dade County",
-        "description": "Miami, Miami Beach, Coral Gables, Brickell, Coconut Grove, Doral, Hialeah, and more.",
-        "link": "View Miami-Dade areas"
+        "title": "Utah County",
+        "description": "Mapleton, Spanish Fork, Springville, Payson, Salem, and surrounding communities.",
+        "link": "View Utah County areas"
       },
       "broward": {
-        "title": "Broward County",
-        "description": "Fort Lauderdale, Pembroke Pines, Hollywood, Miramar, Weston, Sunrise, and more.",
-        "link": "View Broward areas"
+        "title": "Salt Lake County",
+        "description": "Salt Lake City, Draper, Sandy — join the waitlist to be first when we launch.",
+        "link": "Join the waitlist"
       }
     },
     "standard": {
@@ -241,18 +241,18 @@
       "verifiedCustomer": "Verified customer",
       "defaultItems": [
         {
-          "name": "María G.",
-          "location": "Coral Gables, FL",
+          "name": "Maria G.",
+          "location": "Mapleton, UT",
           "text": "Greenbee has been maintaining our lawn for 6 months. Always on time, always perfect. My neighbors keep asking who does our yard!"
         },
         {
-          "name": "Carlos R.",
-          "location": "Brickell, Miami",
-          "text": "Booked a deep clean for my condo online in under 5 minutes. The team was professional and the place looked brand new. Highly recommend."
+          "name": "Jason T.",
+          "location": "Spanish Fork, UT",
+          "text": "Booked a deep clean online in under 5 minutes. The team was professional and the place looked brand new. Highly recommend."
         },
         {
-          "name": "Jennifer M.",
-          "location": "Fort Lauderdale, FL",
+          "name": "Ashley M.",
+          "location": "Springville, UT",
           "text": "The pressure washing on my driveway was incredible. Looks like new concrete. Great price, great team, easy booking process."
         }
       ]
@@ -264,9 +264,9 @@
       "reviewsBadge": "200+ Five-Star Reviews"
     },
     "directory": {
-      "title": "Service Areas — South Florida",
-      "miamidadeTitle": "Miami-Dade County",
-      "browardTitle": "Broward County",
+      "title": "Service Areas — Utah County, UT",
+      "miamidadeTitle": "Utah County",
+      "browardTitle": "Salt Lake County",
       "viewFullMap": "View full coverage map & area landing pages"
     },
     "estimator": {
@@ -281,7 +281,7 @@
       "items": [
         {
           "q": "What areas do you serve?",
-          "a": "We serve Miami-Dade and Broward County, including Miami, Miami Beach, Coral Gables, Brickell, Doral, Fort Lauderdale, Pembroke Pines, and more. Check our Areas page for the full list."
+          "a": "We currently serve Utah County, including Mapleton, Spanish Fork, Springville, Payson, and Salem. Check our Areas page for the full list and our expansion timeline."
         },
         {
           "q": "How quickly can I get an appointment?",
@@ -306,7 +306,7 @@
       ]
     },
     "footer": {
-      "tagline": "Professional lawn care and home cleaning services across South Florida.",
+      "tagline": "Professional lawn care and home cleaning services across Utah County, UT.",
       "rights": "All rights reserved.",
       "servicesTitle": "Services",
       "serviceLinks": [
@@ -316,8 +316,8 @@
         "TV Installation",
         "Furniture Assembly"
       ],
-      "miamidadeTitle": "Miami-Dade",
-      "browardTitle": "Broward",
+      "miamidadeTitle": "Utah County",
+      "browardTitle": "Salt Lake County",
       "companyTitle": "Company",
       "membershipPlans": "Membership Plans",
       "allServiceAreas": "All Service Areas",
@@ -334,7 +334,7 @@
   },
   "areas": {
     "pageTitle": "Coverage Areas | Greenbee",
-    "metaDescription": "Check if Greenbee serves your city. We cover Miami-Dade, Broward, and more. Join the waitlist if your area isn't listed yet.",
+    "metaDescription": "Check if Greenbee serves your city. We cover Utah County — Mapleton, Spanish Fork, Springville, Payson, Salem. Join the waitlist for Salt Lake County.",
     "heading": "Coverage Areas",
     "subheading": "Greenbee is growing fast. Check if we currently serve your city or join the waitlist to be notified when we expand to your area.",
     "availableNow": "Available Now",
@@ -576,7 +576,7 @@
         "items": [
           {
             "q": "What areas do you currently serve?",
-            "a": "We currently operate across Miami-Dade and Broward counties. Check the Coverage Areas page for a full list of supported zip codes and cities."
+            "a": "We currently serve Utah County — Mapleton, Spanish Fork, Springville, Payson, and Salem. Salt Lake County is coming soon. Check the Coverage Areas page for the full list."
           },
           {
             "q": "My zip code isn't listed — what can I do?",

@@ -16,21 +16,14 @@ interface CoverageArea {
 }
 
 const FALLBACK_AREAS: CoverageArea[] = [
-  { id: "miami", city: "Miami", state: "FL", active: true },
-  { id: "miami-beach", city: "Miami Beach", state: "FL", active: true },
-  { id: "coral-gables", city: "Coral Gables", state: "FL", active: true },
-  { id: "coconut-grove", city: "Coconut Grove", state: "FL", active: true },
-  { id: "brickell", city: "Brickell", state: "FL", active: true },
-  { id: "doral", city: "Doral", state: "FL", active: true },
-  { id: "hialeah", city: "Hialeah", state: "FL", active: true },
-  { id: "homestead", city: "Homestead", state: "FL", active: true },
-  { id: "fort-lauderdale", city: "Fort Lauderdale", state: "FL", active: true },
-  { id: "pembroke-pines", city: "Pembroke Pines", state: "FL", active: true },
-  { id: "hollywood", city: "Hollywood", state: "FL", active: true },
-  { id: "miramar", city: "Miramar", state: "FL", active: true },
-  { id: "west-palm-beach", city: "West Palm Beach", state: "FL", active: false, comingSoon: true },
-  { id: "boca-raton", city: "Boca Raton", state: "FL", active: false, comingSoon: true },
-  { id: "orlando", city: "Orlando", state: "FL", active: false, comingSoon: true },
+  { id: "mapleton", city: "Mapleton", state: "UT", active: true },
+  { id: "spanish-fork", city: "Spanish Fork", state: "UT", active: true },
+  { id: "springville", city: "Springville", state: "UT", active: true },
+  { id: "payson", city: "Payson", state: "UT", active: true },
+  { id: "salem", city: "Salem", state: "UT", active: true },
+  { id: "salt-lake-city", city: "Salt Lake City", state: "UT", active: false, comingSoon: true },
+  { id: "draper", city: "Draper", state: "UT", active: false, comingSoon: true },
+  { id: "sandy", city: "Sandy", state: "UT", active: false, comingSoon: true },
 ];
 
 export default function AreasPage() {
