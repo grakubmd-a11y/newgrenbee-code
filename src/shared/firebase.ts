@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
@@ -6,33 +6,41 @@ import localConfig from "../../firebase-applet-config.json";
 
 /**
  * Dynamic Firebase config:
- * - In AI Studio / local dev: uses firebase-applet-config.json (auto-managed)
- * - In Vercel staging/production: uses VITE_FIREBASE_* env vars
+ * - Local dev: uses firebase-applet-config.json (auto-managed by AI Studio)
+ * - Vercel staging/production: uses NEXT_PUBLIC_FIREBASE_* env vars
  *
  * CRITICAL: the named Firestore database ID must be passed to getFirestore()
  * or all Firestore reads/writes will silently target the wrong (default) database.
+ *
+ * Vercel env vars to set (rename from VITE_FIREBASE_* → NEXT_PUBLIC_FIREBASE_*):
+ *   NEXT_PUBLIC_FIREBASE_API_KEY
+ *   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ *   NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ *   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+ *   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+ *   NEXT_PUBLIC_FIREBASE_APP_ID
+ *   NEXT_PUBLIC_FIREBASE_DATABASE_ID
  */
-const useEnvConfig = Boolean(import.meta.env.VITE_FIREBASE_API_KEY);
+const useEnvConfig = Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 
 const firebaseConfig = useEnvConfig
   ? {
-      apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+      apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     }
   : localConfig;
 
-// Named database ID: VITE_FIREBASE_DATABASE_ID for staging/prod,
-// firestoreDatabaseId from the local config file for AI Studio.
 const databaseId: string | undefined = useEnvConfig
-  ? (import.meta.env.VITE_FIREBASE_DATABASE_ID || undefined)
+  ? (process.env.NEXT_PUBLIC_FIREBASE_DATABASE_ID || undefined)
   : (localConfig as any).firestoreDatabaseId;
 
-const app = initializeApp(firebaseConfig);
+// Guard against re-initialization in Next.js (hot reload)
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
-export const db      = getFirestore(app, databaseId); /* CRITICAL: pass databaseId or Firestore targets the wrong database */
+export const db      = getFirestore(app, databaseId); /* CRITICAL: named database */
 export const auth    = getAuth(app);
 export const storage = getStorage(app);

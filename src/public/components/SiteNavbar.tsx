@@ -1,3 +1,4 @@
+"use client";
 /**
  * SiteNavbar.tsx
  * Marketing-site navigation bar (home, areas, plans, faq, contact pages).
@@ -5,7 +6,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSiteSettings } from "../../shared/contexts/SiteSettingsContext";
@@ -15,7 +17,7 @@ export default function SiteNavbar() {
   const { phone } = useSiteSettings();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
-  const location = useLocation();
+  const pathname = usePathname();
 
   const NAV_LINKS = [
     { label: t("siteNav.services"), href: "/#services" },
@@ -32,12 +34,12 @@ export default function SiteNavbar() {
   }, []);
 
   // Close mobile menu on route change
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   function handleHashLink(href: string) {
     if (!href.startsWith("/#")) return;
     const id = href.slice(2);
-    if (location.pathname === "/") {
+    if (pathname === "/") {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     } else {
       window.location.href = href;
@@ -54,7 +56,7 @@ export default function SiteNavbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center shrink-0">
+          <Link href="/" className="flex items-center shrink-0">
             <span className="text-xl font-extrabold text-gray-950 tracking-tight leading-none">
               Gren<span className="text-emerald-500">bee</span>
             </span>
@@ -74,9 +76,9 @@ export default function SiteNavbar() {
               ) : (
                 <Link
                   key={link.label}
-                  to={link.href}
+                  href={link.href}
                   className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    location.pathname === link.href
+                    pathname === link.href
                       ? "text-emerald-600 bg-emerald-50"
                       : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
                   }`}
@@ -96,8 +98,7 @@ export default function SiteNavbar() {
               <Phone className="w-4 h-4" />
               {phone}
             </a>
-            <Link
-              to="/#estimate"
+            <Link href="/#estimate"
               onClick={() => handleHashLink("/#estimate")}
               className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors shadow-sm"
             >
@@ -131,7 +132,7 @@ export default function SiteNavbar() {
             ) : (
               <Link
                 key={link.label}
-                to={link.href}
+                href={link.href}
                 className="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-colors"
               >
                 {link.label}
@@ -143,8 +144,7 @@ export default function SiteNavbar() {
               <Phone className="w-4 h-4 text-emerald-500" />
               {phone}
             </a>
-            <Link
-              to="/#estimate"
+            <Link href="/#estimate"
               onClick={() => { handleHashLink("/#estimate"); setMobileOpen(false); }}
               className="mx-4 text-center bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
             >

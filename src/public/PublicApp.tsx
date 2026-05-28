@@ -1,5 +1,6 @@
+"use client";
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import * as Icons from "lucide-react";
 import Navbar from "./components/Navbar";
 import ServiceCard from "./components/ServiceCard";
@@ -19,7 +20,7 @@ import AboutSection from "./components/AboutSection";
 import BlogSection from "./components/BlogSection";
 import MyAccount from "./components/MyAccount";
 
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 import { Service, Booking, Review, BookingStatus } from "../shared/types";
 import { createRecurringPlanFromBooking, autoAssignStaff } from "../shared/services/recurringPlanService";
 import { SERVICES_DATA, INITIAL_BOOKINGS, INITIAL_REVIEWS } from "../shared/data";
@@ -138,11 +139,11 @@ const FAQ_DATA = [
 ];
 
 export default function App() {
-  const location = useLocation();
+  const pathname = usePathname();
 
   // Detect path-based tab: /book → estimator, /bookings → bookings, /account → account
   function getInitialTab(): string {
-    const path = location.pathname;
+    const path = pathname;
     if (path === "/book" || path === "/estimate") return "estimator";
     if (path === "/bookings") return "bookings";
     if (path === "/account") return "account";
@@ -1045,17 +1046,17 @@ export default function App() {
           <div className="space-y-3">
             <h4 className="font-semibold text-gray-700 uppercase tracking-widest text-[10px]">Company</h4>
             <ul className="space-y-1.5">
-              <li><Link to="/areas" className="hover:text-emerald-600 transition-colors">Coverage Areas</Link></li>
-              <li><Link to="/faq" className="hover:text-emerald-600 transition-colors">FAQ</Link></li>
-              <li><Link to="/contact" className="hover:text-emerald-600 transition-colors">Contact Us</Link></li>
+              <li><Link href="/areas" className="hover:text-emerald-600 transition-colors">Coverage Areas</Link></li>
+              <li><Link href="/faq" className="hover:text-emerald-600 transition-colors">FAQ</Link></li>
+              <li><Link href="/contact" className="hover:text-emerald-600 transition-colors">Contact Us</Link></li>
             </ul>
             <h4 className="font-semibold text-gray-700 uppercase tracking-widest text-[10px] pt-2">Legal</h4>
             <ul className="space-y-1.5">
-              <li><Link to="/terms" className="hover:text-emerald-600 transition-colors">Terms of Service</Link></li>
-              <li><Link to="/privacy" className="hover:text-emerald-600 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/cancellation" className="hover:text-emerald-600 transition-colors">Cancellation Policy</Link></li>
-              <li><Link to="/guarantee" className="hover:text-emerald-600 transition-colors">Satisfaction Guarantee</Link></li>
-              <li><Link to="/payment-policy" className="hover:text-emerald-600 transition-colors">Payment Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-emerald-600 transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="hover:text-emerald-600 transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/cancellation" className="hover:text-emerald-600 transition-colors">Cancellation Policy</Link></li>
+              <li><Link href="/guarantee" className="hover:text-emerald-600 transition-colors">Satisfaction Guarantee</Link></li>
+              <li><Link href="/payment-policy" className="hover:text-emerald-600 transition-colors">Payment Policy</Link></li>
             </ul>
           </div>
         </div>

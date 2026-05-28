@@ -1,5 +1,6 @@
+"use client";
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { MapPin, CheckCircle2, Clock, Bell, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
@@ -100,7 +101,7 @@ export default function AreasPage() {
                 {active.map((area) => (
                   <Link
                     key={area.id}
-                    to={`/areas/${area.id}`}
+                    href={`/areas/${area.id}`}
                     className="flex items-center justify-between gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group"
                   >
                     <div className="flex items-center gap-3">

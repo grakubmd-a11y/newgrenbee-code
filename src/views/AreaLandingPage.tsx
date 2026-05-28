@@ -1,3 +1,4 @@
+"use client";
 /**
  * AreaLandingPage.tsx
  * ─────────────────────────────────────────────────────────────────────────────
@@ -20,7 +21,8 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
@@ -77,7 +79,8 @@ const DIFFERENCE_ICONS = [Icons.BadgeCheck, Icons.UserCheck, Icons.ShieldCheck, 
 export default function AreaLandingPage() {
   const { t } = useTranslation();
   const { phone } = useSiteSettings();
-  const { areaSlug } = useParams<{ areaSlug: string }>();
+  const params = useParams();
+  const areaSlug = (params?.areaSlug ?? "") as string;
   const [content, setContent] = useState<AreaContent | null>(null);
   const [loading, setLoading]  = useState(true);
 
@@ -150,7 +153,7 @@ export default function AreaLandingPage() {
           <Icons.MapPin size={40} className="text-gray-300 mx-auto" />
           <h1 className="text-2xl font-black text-gray-800">{t("areaPage.notAvailable.heading")}</h1>
           <p className="text-gray-500">{t("areaPage.notAvailable.body")}</p>
-          <Link to="/areas" className="text-brand font-bold hover:underline">{t("areaPage.notAvailable.backLink")}</Link>
+          <Link href="/areas" className="text-brand font-bold hover:underline">{t("areaPage.notAvailable.backLink")}</Link>
         </div>
       </PageShell>
     );
@@ -186,9 +189,9 @@ export default function AreaLandingPage() {
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Breadcrumb */}
             <nav className="text-xs text-white/60 flex items-center gap-1.5">
-              <Link to="/" className="hover:text-white">{t("areaPage.home")}</Link>
+              <Link href="/" className="hover:text-white">{t("areaPage.home")}</Link>
               <Icons.ChevronRight size={12} />
-              <Link to="/areas" className="hover:text-white">{t("areaPage.serviceAreas")}</Link>
+              <Link href="/areas" className="hover:text-white">{t("areaPage.serviceAreas")}</Link>
               <Icons.ChevronRight size={12} />
               <span className="text-white/80">{c.city}, {c.state}</span>
             </nav>
@@ -200,8 +203,7 @@ export default function AreaLandingPage() {
               {c.heroSubtitle}
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                to="/#estimate"
+              <Link href="/#estimate"
                 className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
               >
                 <Icons.CalendarCheck size={16} />
@@ -272,8 +274,7 @@ export default function AreaLandingPage() {
                     <p className="text-sm text-gray-600 leading-relaxed">
                       {svc.localDescription}
                     </p>
-                    <Link
-                      to="/#estimate"
+                    <Link href="/#estimate"
                       className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline mt-1"
                     >
                       {t("areaPage.bookNow")} <Icons.ArrowRight size={12} />
@@ -317,8 +318,7 @@ export default function AreaLandingPage() {
             <h2 className="text-xl font-black text-white">{t("areaPage.plansCta.title")}</h2>
             <p className="text-white/50 text-sm">{t("areaPage.plansCta.subtitle")}</p>
           </div>
-          <Link
-            to="/plans"
+          <Link href="/plans"
             className="shrink-0 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors whitespace-nowrap"
           >
             {t("areaPage.plansCta.button")}
@@ -417,8 +417,7 @@ export default function AreaLandingPage() {
           <p className="text-white/50 text-sm">
             {t("areaPage.bottomCta.subtitle")}
           </p>
-          <Link
-            to="/#estimate"
+          <Link href="/#estimate"
             className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
           >
             <Icons.CalendarCheck size={16} />

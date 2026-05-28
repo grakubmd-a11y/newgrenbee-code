@@ -108,7 +108,7 @@ export default function BookingForm({
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [googleMapsKey, setGoogleMapsKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "");
+  const [googleMapsKey, setGoogleMapsKey] = useState(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "");
   const [isAddressAutocompleteEnabled, setIsAddressAutocompleteEnabled] = useState(false);
   const [isAddressAutocompleteReady, setIsAddressAutocompleteReady] = useState(false);
 
@@ -788,7 +788,7 @@ export default function BookingForm({
 // npm i @stripe/stripe-js @stripe/react-stripe-js
 
 // 2. Integration hook inside BookingForm.tsx
-const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 const response = await fetch('/api/create-payment-intent', {
   method: 'POST',

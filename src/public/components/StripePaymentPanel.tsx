@@ -221,7 +221,7 @@ export default function StripePaymentPanel({
   const [serverTotalCents, setServerTotalCents] = useState(0);
   const [setupError, setSetupError] = useState("");
   const [isLoadingIntent, setIsLoadingIntent] = useState(false);
-  const [publishableKey, setPublishableKey] = useState(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
+  const [publishableKey, setPublishableKey] = useState(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
   const stripePromise = useMemo(() => isUsableStripePublishableKey(publishableKey) ? loadStripe(publishableKey) : null, [publishableKey]);
 

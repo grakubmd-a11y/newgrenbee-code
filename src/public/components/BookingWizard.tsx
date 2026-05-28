@@ -434,7 +434,7 @@ export default function BookingWizard({
   // ── Google Maps autocomplete ──
   const addressInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
-  const [mapsKey,     setMapsKey]     = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "");
+  const [mapsKey,     setMapsKey]     = useState(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "");
   const [mapsEnabled, setMapsEnabled] = useState(false);
   const [mapsReady,   setMapsReady]   = useState(false);
 

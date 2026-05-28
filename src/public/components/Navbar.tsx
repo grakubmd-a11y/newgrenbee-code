@@ -1,5 +1,7 @@
+"use client";
 import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
   ShieldCheck,
@@ -53,19 +55,20 @@ export default function Navbar({
   getAuthErrorMessage
 }: NavbarProps) {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const { country } = useParams<{ country: string }>();
-  const location = useLocation();
+  const router = useRouter();
+  const _params = useParams();
+  const country = _params.country as string | undefined;
+  const pathname = usePathname();
 
   const switchLanguage = () => {
     const countryPrefix = `/${country ?? "us"}`;
     if (i18n.language === "en") {
-      const pathAfterCountry = location.pathname.slice(countryPrefix.length);
-      navigate(`${countryPrefix}/es${pathAfterCountry || "/"}`);
+      const pathAfterCountry = pathname.slice(countryPrefix.length);
+      router.push(`${countryPrefix}/es${pathAfterCountry || "/"}`);
     } else {
-      const pathAfterCountry = location.pathname.slice(countryPrefix.length);
+      const pathAfterCountry = pathname.slice(countryPrefix.length);
       const withoutEs = pathAfterCountry.replace(/^\/es/, "") || "/";
-      navigate(`${countryPrefix}${withoutEs}`);
+      router.push(`${countryPrefix}${withoutEs}`);
     }
   };
   // Navigation tabs for SEO structure
@@ -197,14 +200,12 @@ export default function Navbar({
               >
                 {t("nav.getQuote")}
               </button>
-              <Link
-                to="/areas"
+              <Link href="/areas"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
                 {t("nav.coverage")}
               </Link>
-              <Link
-                to="/faq"
+              <Link href="/faq"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
                 FAQ
@@ -216,8 +217,7 @@ export default function Navbar({
                 <Award size={15} className="text-amber-500 shrink-0" />
                 {t("nav.membership", "Membership")}
               </button>
-              <Link
-                to="/contact"
+              <Link href="/contact"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
               >
                 {t("nav.contact")}
@@ -464,8 +464,7 @@ export default function Navbar({
                     { to: "/contact", label: t("nav.contactUs"), icon: MessageSquare },
                   ].map(({ to, label, icon: Icon }) => (
                     <li key={to}>
-                      <Link
-                        to={to}
+                      <Link href={to}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all"
                       >

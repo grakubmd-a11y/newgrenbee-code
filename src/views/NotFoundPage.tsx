@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+"use client";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import PageShell from "./shared/PageShell";
 import { Home, Search } from "lucide-react";
@@ -19,8 +20,7 @@ export default function NotFoundPage() {
         <h1 className="text-6xl font-bold text-gray-200 mb-2">404</h1>
         <h2 className="text-2xl font-semibold text-gray-800 mb-3">{t("notFound.title")}</h2>
         <p className="text-gray-500 mb-8 max-w-md">{t("notFound.body")}</p>
-        <Link
-          to="/"
+        <Link href="/"
           className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
         >
           <Home className="w-4 h-4" />
