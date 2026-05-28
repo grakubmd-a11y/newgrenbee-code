@@ -32,15 +32,31 @@ const nextConfig: NextConfig = {
       { source: "/checkout/:path*",   destination: `${APP_URL}/checkout/:path*` },
       { source: "/bookings",          destination: `${APP_URL}/bookings` },
       { source: "/bookings/:path*",   destination: `${APP_URL}/bookings/:path*` },
-      // API routes — proxied to grenbee-app because all booking/payment/staff
-      // components use relative fetch("/api/...") calls and apps/web has NO
-      // API routes of its own (verified at time of writing: no app/api/ dir).
+      // ── grenbee-app API routes ──────────────────────────────────────────────
+      // These are explicit rewrites instead of a blanket /api/:path* so that
+      // apps/web can safely add its own API routes in the future without
+      // accidentally proxying them to grenbee-app.
       //
-      // ⚠️  IMPORTANT: If apps/web ever adds its own API routes (e.g. /api/contact),
-      // replace this blanket rewrite with specific routes for each grenbee-app
-      // endpoint to avoid accidentally proxying the new web-side routes.
-      // See: https://nextjs.org/docs/app/api-reference/config/next-config-js/rewrites
-      { source: "/api/:path*",        destination: `${APP_URL}/api/:path*` },
+      // When adding a new endpoint to api/ in grenbee-app that the booking
+      // flow calls from the browser, add it here too.
+      { source: "/api/availability",            destination: `${APP_URL}/api/availability` },
+      { source: "/api/capture-lead",            destination: `${APP_URL}/api/capture-lead` },
+      { source: "/api/check-coverage",          destination: `${APP_URL}/api/check-coverage` },
+      { source: "/api/confirm-payment",         destination: `${APP_URL}/api/confirm-payment` },
+      { source: "/api/create-payment-intent",   destination: `${APP_URL}/api/create-payment-intent` },
+      { source: "/api/create-recurring-plan",   destination: `${APP_URL}/api/create-recurring-plan` },
+      { source: "/api/manage-recurring-plan",   destination: `${APP_URL}/api/manage-recurring-plan` },
+      { source: "/api/notify",                  destination: `${APP_URL}/api/notify` },
+      { source: "/api/staff-jobs",              destination: `${APP_URL}/api/staff-jobs` },
+      { source: "/api/stripe-webhook",          destination: `${APP_URL}/api/stripe-webhook` },
+      { source: "/api/update-job-status",       destination: `${APP_URL}/api/update-job-status` },
+      { source: "/api/update-lead",             destination: `${APP_URL}/api/update-lead` },
+      { source: "/api/save-job-photo",          destination: `${APP_URL}/api/save-job-photo` },
+      { source: "/api/delete-job-photo",        destination: `${APP_URL}/api/delete-job-photo` },
+      { source: "/api/set-job-payout",          destination: `${APP_URL}/api/set-job-payout` },
+      { source: "/api/invite-staff",            destination: `${APP_URL}/api/invite-staff` },
+      { source: "/api/auto-assign-staff",       destination: `${APP_URL}/api/auto-assign-staff` },
+      { source: "/api/integrations/status",     destination: `${APP_URL}/api/integrations/status` },
     ];
   },
 };
