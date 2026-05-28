@@ -112,12 +112,11 @@ export default async function handler(req, res) {
     // ── Bulk response — all known slots ────────────────────────────────────
     // Return status for every slot that had at least one booking PLUS any
     // slot the caller might not know about (so the UI can show all statuses).
-    // We also include the standard 3 time-window keys so the UI always gets
+    // We also include all 10 hourly slots so the UI always gets
     // a full picture even if no bookings exist yet.
     const KNOWN_SLOTS = [
-      "09:00 AM – 12:00 PM",
-      "12:00 PM – 03:00 PM",
-      "03:00 PM – 06:00 PM",
+      "08:00", "09:00", "10:00", "11:00", "12:00",
+      "13:00", "14:00", "15:00", "16:00", "17:00",
     ];
 
     const allSlotKeys = new Set([...KNOWN_SLOTS, ...Object.keys(counts)]);

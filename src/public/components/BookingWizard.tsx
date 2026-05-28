@@ -2,19 +2,19 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Calendar, Clock, User, MapPin, CreditCard, ArrowLeft, ArrowRight,
   CheckCircle2, AlertTriangle, Loader, ShieldCheck, MapPinOff, HelpCircle,
-  Users, CalendarClock, ExternalLink, Check, Sun, Sunrise, Sunset,
+  Users, CalendarClock, ExternalLink, Check,
 } from "lucide-react";
 import { Booking, Service } from "../../shared/types";
 import { db } from "../../shared/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { fetchPublicSettingsFromFirestore } from "../../shared/services/firebaseService";
 import StripePaymentPanel from "./StripePaymentPanel";
+import SchedulePicker, { HOUR_SLOTS, SlotInfo } from "./SchedulePicker";
 
 type BookingDraft = Omit<Booking, "id" | "status" | "createdAt">;
 type WizardStep = 1 | 2 | 3 | 4;
 type CoverageStatus = "idle" | "checking" | "covered" | "not-covered" | "unknown";
 type AvailabilityStatus = "idle" | "checking" | "available" | "full";
-type SlotInfo = { available: boolean; slotsRemaining: number };
 type SlotsMap = Record<string, SlotInfo>;
 
 export interface WizardBookingParams {
@@ -44,32 +44,14 @@ interface BookingWizardProps {
 const SAME_DAY_FEE = 35;
 const TWO_TECH_FEE = 50;
 
-const TIME_SLOTS = [
-  { label: "Morning",   hours: "09:00 AM – 12:00 PM", desc: "Early start",      Icon: Sunrise  },
-  { label: "Midday",    hours: "12:00 PM – 03:00 PM", desc: "Standard window",  Icon: Sun      },
-  { label: "Afternoon", hours: "03:00 PM – 06:00 PM", desc: "Evening finish",   Icon: Sunset   },
-];
-
 const STEP_LABELS = ["Schedule", "Details", "Pay"];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function generateBookingDays() {
-  const days = [];
-  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const months   = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  for (let i = 1; i <= 10; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    days.push({
-      rawDate:  d.toISOString().split("T")[0],
-      weekday:  weekdays[d.getDay()],
-      day:      d.getDate(),
-      month:    months[d.getMonth()],
-    });
-  }
-  return days;
+/** Convert "09:00" → "9:00 AM" using the HOUR_SLOTS lookup */
+function formatTimeSlot(slot: string): string {
+  return HOUR_SLOTS.find((s) => s.value === slot)?.label ?? slot;
 }
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function clientRequiresTwoTechs(serviceId: string, factors: WizardBookingParams["selectedFactors"]): boolean {
   if (serviceId === "furniture-assembly") return Number(factors?.furnitureComplexity?.modifier) === 50;
@@ -193,7 +175,7 @@ function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, 
           <p className="text-base font-bold truncate">{service.name}</p>
           {selectedDate && (
             <p className="text-xs text-gray-400 mt-0.5 font-medium">
-              {formatDate(selectedDate)}{selectedSlot ? ` · ${selectedSlot.split("–")[0].trim()}` : ""}
+              {formatDate(selectedDate)}{selectedSlot ? ` · ${formatTimeSlot(selectedSlot)}` : ""}
             </p>
           )}
         </div>
@@ -336,7 +318,7 @@ function ConfirmationScreen({
         <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-3">Booking Details</p>
         <DetailRow icon={<Calendar size={14} />} label="Service" value={draft.serviceName} />
         <DetailRow icon={<Calendar size={14} />} label="Date" value={formatDate(draft.bookingDate)} />
-        <DetailRow icon={<Clock size={14} />} label="Window" value={draft.timeSlot} />
+        <DetailRow icon={<Clock size={14} />} label="Time" value={formatTimeSlot(draft.timeSlot)} />
         <DetailRow icon={<MapPin size={14} />} label="Address" value={draft.address} />
         <DetailRow icon={<User size={14} />} label="Contact" value={`${draft.customerName} · ${draft.email}`} />
         {bookingId && (
@@ -410,14 +392,18 @@ export default function BookingWizard({
     () => services.find((s) => s.id === bookingParams.serviceId) || services[0],
     [services, bookingParams.serviceId]
   );
-  const bookingDays = useMemo(() => generateBookingDays(), []);
 
   // ── Step ──
   const [step, setStep] = useState<WizardStep>(1);
 
   // ── Step 1: Schedule ──
-  const [selectedDate, setSelectedDate] = useState(bookingDays[0].rawDate);
-  const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0].hours);
+  // Default to tomorrow (skip today to avoid same-day fee surprises)
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  });
+  const [selectedSlot, setSelectedSlot] = useState("09:00");
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>("idle");
   const [slotsMap, setSlotsMap] = useState<SlotsMap>({});
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -537,8 +523,8 @@ export default function BookingWizard({
         setSlotsMap(map);
         const current = map[selectedSlot];
         if (current && !current.available) {
-          const firstOk = TIME_SLOTS.find((s) => map[s.hours]?.available !== false);
-          if (firstOk) setSelectedSlot(firstOk.hours);
+          const firstOk = HOUR_SLOTS.find((s) => map[s.value]?.available !== false);
+          if (firstOk) setSelectedSlot(firstOk.value);
         }
       })
       .catch(() => {})
@@ -681,97 +667,31 @@ export default function BookingWizard({
               {/* ── STEP 1: SCHEDULE ── */}
               {step === 1 && (
                 <>
-                  {/* Date picker */}
-                  <div className="space-y-3">
-                    <p className="text-xs font-bold text-gray-700 uppercase tracking-widest">Appointment Date</p>
-                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
-                      {bookingDays.map((day) => {
-                        const isSelected = selectedDate === day.rawDate;
-                        return (
-                          <button
-                            key={day.rawDate}
-                            type="button"
-                            onClick={() => { setSelectedDate(day.rawDate); setAvailabilityStatus("idle"); }}
-                            className={`flex flex-col items-center gap-0.5 min-w-[60px] py-3.5 px-2 rounded-xl border transition-all snap-start cursor-pointer ${
-                              isSelected
-                                ? "border-brand bg-brand text-white shadow-md shadow-brand/25"
-                                : "border-gray-100 hover:border-brand/40 hover:bg-brand/5 text-gray-700"
-                            }`}
-                          >
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? "text-white/80" : "text-gray-400"}`}>
-                              {day.weekday}
-                            </span>
-                            <span className="text-base font-black leading-none">{day.day}</span>
-                            <span className={`text-[10px] ${isSelected ? "text-white/70" : "text-gray-400"}`}>{day.month}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <SchedulePicker
+                    selectedDate={selectedDate}
+                    selectedTime={selectedSlot}
+                    onDateChange={(d) => { setSelectedDate(d); setAvailabilityStatus("idle"); }}
+                    onTimeChange={(t) => { setSelectedSlot(t); setAvailabilityStatus("idle"); }}
+                    slotsMap={slotsMap}
+                    slotsLoading={slotsLoading}
+                  />
 
-                  {/* Time slot picker */}
-                  <div className="space-y-3">
-                    <p className="text-xs font-bold text-gray-700 uppercase tracking-widest flex items-center gap-2">
-                      Arrival Window
-                      {slotsLoading && <Loader size={11} className="animate-spin text-gray-400" />}
-                    </p>
-                    <div className="grid grid-cols-3 gap-3">
-                      {TIME_SLOTS.map(({ label, hours, desc, Icon }) => {
-                        const info       = slotsMap[hours];
-                        const isFull     = info ? !info.available : false;
-                        const isAlmost   = info?.available && info.slotsRemaining === 1;
-                        const isSelected = selectedSlot === hours;
-                        return (
-                          <button
-                            key={hours}
-                            type="button"
-                            disabled={isFull}
-                            onClick={() => { setSelectedSlot(hours); setAvailabilityStatus("idle"); }}
-                            className={`relative flex flex-col items-center gap-2 py-4 px-3 rounded-xl border transition-all text-center ${
-                              isFull
-                                ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
-                                : isSelected
-                                  ? "border-brand bg-brand text-white shadow-md shadow-brand/25 cursor-pointer"
-                                  : "border-gray-100 hover:border-brand/40 hover:bg-brand/5 cursor-pointer"
-                            }`}
-                          >
-                            <Icon size={22} className={isSelected ? "text-white" : isFull ? "text-gray-300" : "text-brand/70"} />
-                            <div>
-                              <p className={`text-xs font-bold leading-tight ${isSelected ? "text-white" : isFull ? "text-gray-300" : "text-gray-800"}`}>{label}</p>
-                              <p className={`text-[10px] mt-0.5 leading-tight ${isSelected ? "text-white/75" : "text-gray-400"}`}>{hours.split("–")[0].trim()}</p>
-                              <p className={`text-[9px] mt-0.5 ${isSelected ? "text-white/60" : "text-gray-400"}`}>{desc}</p>
-                            </div>
-                            {isFull && (
-                              <span className="absolute top-1.5 right-1.5 text-[8px] font-black bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full uppercase tracking-wide">Full</span>
-                            )}
-                            {isAlmost && !isFull && (
-                              <span className="absolute top-1.5 right-1.5 text-[8px] font-black bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full uppercase tracking-wide">1 left</span>
-                            )}
-                            {info?.available && !isAlmost && (
-                              <span className={`absolute top-1.5 right-1.5 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide ${isSelected ? "bg-white/20 text-white" : "bg-emerald-50 text-emerald-600"}`}>Open</span>
-                            )}
-                          </button>
-                        );
-                      })}
+                  {availabilityStatus === "checking" && (
+                    <div className="flex items-center gap-2 text-xs text-gray-500 pt-1">
+                      <Loader size={12} className="animate-spin" /> Confirming availability…
                     </div>
-
-                    {availabilityStatus === "checking" && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Loader size={12} className="animate-spin" /> Confirming availability…
-                      </div>
-                    )}
-                    {availabilityStatus === "full" && (
-                      <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 font-semibold">
-                        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                        This slot is fully booked. Please choose a different date or time.
-                      </div>
-                    )}
-                    {availabilityStatus === "available" && (
-                      <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold">
-                        <CheckCircle2 size={12} /> Slot available — proceed to your details.
-                      </div>
-                    )}
-                  </div>
+                  )}
+                  {availabilityStatus === "full" && (
+                    <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 font-semibold">
+                      <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                      This slot is fully booked. Please choose a different date or time.
+                    </div>
+                  )}
+                  {availabilityStatus === "available" && (
+                    <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold pt-1">
+                      <CheckCircle2 size={12} /> Slot available — proceed to your details.
+                    </div>
+                  )}
                 </>
               )}
 
@@ -790,7 +710,7 @@ export default function BookingWizard({
                     </FormField>
                     <FormField label="Phone" error={errors.phone}>
                       <TextInput icon={<Clock size={14} />} type="tel" value={phone} onChange={setPhone}
-                        placeholder="(305) 555-0100" hasError={!!errors.phone} />
+                        placeholder="(801) 555-0100" hasError={!!errors.phone} />
                     </FormField>
                   </div>
 
@@ -805,7 +725,7 @@ export default function BookingWizard({
                           setAddress(e.target.value);
                           setErrors((prev) => { const { address: _a, ...rest } = prev; return rest; });
                         }}
-                        placeholder="123 Ocean Drive, Miami, FL 33139"
+                        placeholder="123 Main St, Mapleton, UT 84664"
                         className={`pl-9 w-full rounded-xl border py-3 px-3.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none transition-all ${
                           errors.address ? "border-rose-400 bg-rose-50/20" : "border-gray-200"
                         }`}
@@ -880,7 +800,7 @@ export default function BookingWizard({
                     {[
                       { l: "Service",  v: service.name },
                       { l: "Date",     v: formatDate(selectedDate) },
-                      { l: "Window",   v: selectedSlot },
+                      { l: "Window",   v: formatTimeSlot(selectedSlot) },
                       { l: "Address",  v: address },
                       { l: "Contact",  v: `${fullName} · ${email}` },
                     ].map(({ l, v }) => (
