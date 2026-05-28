@@ -678,37 +678,37 @@
   "plans": {
     "bookOneTime": "Reservar visita única →",
     "hero": {
-      "badge": "Membresías para Cuidado del Césped",
-      "title": "Tu césped, en piloto automático.",
-      "subtitle": "Elige un plan que se adapte al tamaño de tu jardín. Llegamos puntualmente — tú solo disfruta de un césped impecable."
+      "badge": "Membresías de Limpieza del Hogar",
+      "title": "Un hogar limpio, en cada visita.",
+      "subtitle": "Elige un plan que se adapte al tamaño de tu hogar. Llegamos puntualmente — tú solo disfruta de un espacio impecable."
     },
     "yardSize": {
-      "label": "Selecciona el tamaño de tu jardín",
-      "xlWarning": "Las propiedades XL se cotizan individualmente. Selecciona cualquier plan a continuación para solicitar una cotización personalizada.",
+      "label": "Selecciona el tamaño de tu hogar",
+      "xlWarning": "Casas grandes y residencias se cotizan individualmente. Selecciona cualquier plan a continuación para solicitar una cotización personalizada.",
       "tiers": [
         {
           "tier": "small",
           "label": "Pequeño",
-          "description": "Casa adosada, jardín delantero o lote compacto",
-          "examples": "Hasta ~3,500 pies²"
+          "description": "Estudio o casa de 1 dormitorio",
+          "examples": "Hasta ~1,000 pies²"
         },
         {
           "tier": "medium",
           "label": "Mediano",
-          "description": "Jardín estándar de casa unifamiliar",
-          "examples": "~3,500–8,000 pies²"
+          "description": "Casa de 2–3 dormitorios",
+          "examples": "~1,000–2,000 pies²"
         },
         {
           "tier": "large",
           "label": "Grande",
-          "description": "Lote residencial más amplio",
-          "examples": "~8,000–15,000 pies²"
+          "description": "Casa de 3–4 dormitorios",
+          "examples": "~2,000–3,500 pies²"
         },
         {
           "tier": "xl",
           "label": "XL",
-          "description": "Lotes grandes, pendientes o terreno complejo",
-          "examples": "15,000+ pies²"
+          "description": "4+ dormitorios o residencia amplia",
+          "examples": "3,500+ pies²"
         }
       ]
     },
@@ -719,15 +719,17 @@
       "perMonth": "/mes",
       "letsTalk": "Hablemos",
       "notIncluded": "No incluido",
-      "firstCutReset": "Puede aplicar tarifa de Primer Corte",
-      "firstCutCustom": "La cotización personalizada incluye evaluación inicial.",
+      "firstCutReset": "Limpieza Inicial de Arranque requerida",
+      "firstCutCustom": "La cotización personalizada incluye evaluación de limpieza profunda inicial.",
       "contactForQuote": "Contáctanos para Cotización",
       "requestCustomQuote": "Solicitar Cotización Personalizada",
-      "getStarted": "Comenzar"
+      "getStarted": "Comenzar",
+      "creditsLabel": "Créditos de Servicio",
+      "creditsNote": "${{amount}}/mes · máx ${{max}} · vence a los 60 días"
     },
     "customCard": {
-      "title": "Lotes grandes y propiedades personalizadas",
-      "subtitle": "Grandes extensiones, pendientes, terreno complejo o propiedades comerciales. Evaluaremos tu jardín y te daremos una cotización personalizada.",
+      "title": "Casas grandes y propiedades personalizadas",
+      "subtitle": "4+ dormitorios, residencias amplias o necesidades especiales. Evaluaremos tu hogar y te daremos una cotización a medida.",
       "button": "Solicitar Cotización"
     },
     "included": {
@@ -735,57 +737,59 @@
       "alwaysTitle": "Siempre incluido",
       "notTitle": "No incluido por defecto",
       "alwaysItems": [
-        "Corte de césped por visita programada",
-        "Perfilado a lo largo de aceras y entrada",
-        "Soplado de residuos de superficies duras",
-        "Asignación consistente de técnico (cuando disponible)",
-        "Reprogramación por clima sin costo"
+        "Limpieza completa del hogar por visita programada",
+        "Cocina (encimeras, fregadero, exterior de electrodomésticos)",
+        "Baños (inodoro, ducha/tina, lavabo, espejos)",
+        "Aspirado y fregado de todos los pisos",
+        "Desempolvado de muebles, repisas y superficies",
+        "Asignación consistente de equipo (cuando disponible)",
+        "Reprogramación por clima o enfermedad sin costo"
       ],
       "notItems": [
-        "Eliminación de maleza o tratamiento con herbicida",
-        "Poda de arbustos y matorrales",
-        "Retiro o ensacado de residuos",
-        "Fertilización o tratamiento del suelo",
-        "Limpieza inicial o de jardín descuidado",
-        "Reparación de sistema de riego"
+        "Ropa o platos",
+        "Limpieza profunda interior de horno o refrigerador",
+        "Lavado exterior de ventanas",
+        "Limpiezas de mudanza o post-construcción",
+        "Lavado de alfombras",
+        "Organización o desordenamiento"
       ],
-      "addOnsNote": "Servicios adicionales disponibles como reservas únicas o créditos en planes Home y Premium."
+      "addOnsNote": "Servicios adicionales disponibles como reservas únicas o mediante créditos en planes Home Care y Premium Care."
     },
     "policies": {
       "title": "Políticas del plan",
       "items": [
         {
-          "q": "¿Hay una tarifa de Primer Corte?",
-          "a": "Si tu césped no ha sido mantenido recientemente o está muy crecido, se aplica una tarifa única de Primer Corte. Esta cubre el tiempo y trabajo adicional para llevarlo a un estado base. Los precios regulares de membresía comienzan después de la primera visita."
+          "q": "¿Hay una tarifa de Limpieza Inicial de Arranque?",
+          "a": "Si tu hogar no ha sido limpiado profesionalmente recientemente o requiere atención extra, se aplica una tarifa única de Limpieza Inicial de Arranque. Esta cubre el tiempo y esfuerzo adicional para llevarlo a un estado base consistente. Los precios regulares de membresía comienzan después de la primera visita."
         },
         {
           "q": "¿Puedo pausar mi membresía?",
-          "a": "Sí — los miembros pueden pausar hasta 4 semanas por año con al menos 7 días de aviso. La facturación se reanuda automáticamente cuando termina la pausa. Los créditos y visitas programadas no se acumulan durante una pausa. Tu horario preferido no está garantizado después de una pausa."
+          "a": "Sí — los miembros pueden pausar hasta 4 semanas por año con al menos 7 días de aviso. La facturación se reanuda automáticamente cuando termina la pausa. Los créditos de servicio no se acumulan durante la pausa. Tu horario preferido no está garantizado después de una pausa."
         },
         {
           "q": "¿Puedo cancelar en cualquier momento?",
-          "a": "Puedes cancelar con al menos 7 días de aviso antes de tu próxima fecha de facturación. Las cancelaciones realizadas dentro de las 48 horas de una visita programada pueden estar sujetas a una tarifa de cancelación de último momento."
+          "a": "Puedes cancelar con al menos 7 días de aviso antes de tu próxima fecha de facturación. Las cancelaciones dentro de las 48 horas de una visita programada pueden estar sujetas a una tarifa de cancelación de último momento."
         },
         {
-          "q": "¿Qué pasa si llueve el día de mi visita?",
-          "a": "Reprogramamos sin costo por cancelaciones climáticas. Te contactaremos el día anterior si el clima parece ser un problema."
+          "q": "¿Cómo funcionan los créditos de servicio?",
+          "a": "Los miembros de Home Care acumulan $50/mes y los de Premium Care $100/mes en créditos de servicio. Los créditos pueden aplicarse a cualquier servicio adicional. El saldo máximo es $100 (Home Care) o $200 (Premium Care), y los créditos vencen 60 días después de su emisión."
         },
         {
-          "q": "¿Obtengo el mismo técnico cada vez?",
-          "a": "Hacemos lo posible por asignar el mismo técnico, pero no está garantizado — especialmente después de pausas o cambios de horario."
+          "q": "¿Obtengo el mismo equipo de limpieza cada vez?",
+          "a": "Asignamos el mismo equipo de manera tan consistente como sea posible. Esto no puede garantizarse después de pausas, cambios de horario o disponibilidad del personal."
         }
       ]
     },
     "bottomCta": {
-      "title": "¿Listo para comenzar?",
-      "subtitle": "Selecciona un plan arriba o reserva una visita única primero para ver cómo trabajamos.",
-      "button": "Reservar visita única →"
+      "title": "¿Listo para un hogar más limpio?",
+      "subtitle": "Selecciona un plan arriba o reserva una limpieza profunda única primero para conocer cómo trabajamos.",
+      "button": "Reservar limpieza única →"
     },
     "modal": {
-      "sizeYard": "jardín",
+      "sizeYard": "hogar",
       "customQuoteLabel": "Cotización personalizada",
       "successTitle": "¡Nos pondremos en contacto!",
-      "successBody": "¡Gracias! Recibimos tu interés en el plan <strong>{{planName}}</strong> para un jardín de tamaño <strong>{{sizeLabel}}</strong>. Alguien del equipo Grenbee te contactará dentro de 24 horas.",
+      "successBody": "¡Gracias! Recibimos tu interés en el plan <strong>{{planName}}</strong> para un hogar de tamaño <strong>{{sizeLabel}}</strong>. Alguien del equipo Grenbee te contactará dentro de 24 horas.",
       "close": "Cerrar",
       "fullName": "Nombre Completo *",
       "namePlaceholder": "Jane Smith",
@@ -855,9 +859,18 @@
     "howTitle": "Cómo Funciona tu Membresía",
     "howSubtitle": "Bienestar del hogar simple, gestionado desde tu panel",
     "steps": [
-      { "title": "1. Reserva al Instante",  "desc": "Acceso prioritario a nuestro calendario. Agenda servicios sin complicaciones desde tu panel dedicado." },
-      { "title": "2. Nosotros lo Hacemos",  "desc": "Nuestros profesionales verificados realizan el trabajo con los más altos estándares, mientras tus descuentos se aplican automáticamente." },
-      { "title": "3. Relájate",             "desc": "Disfruta de un hogar perfectamente mantenido, sabiendo que Grenbee siempre está a un toque de distancia." }
+      {
+        "title": "1. Reserva al Instante",
+        "desc": "Acceso prioritario a nuestro calendario. Agenda servicios sin complicaciones desde tu panel dedicado."
+      },
+      {
+        "title": "2. Nosotros lo Hacemos",
+        "desc": "Nuestros profesionales verificados realizan el trabajo con los más altos estándares, mientras tus descuentos se aplican automáticamente."
+      },
+      {
+        "title": "3. Relájate",
+        "desc": "Disfruta de un hogar perfectamente mantenido, sabiendo que Grenbee siempre está a un toque de distancia."
+      }
     ],
     "celebration": {
       "title": "¡Bienvenido al Club!",
@@ -872,26 +885,26 @@
     "subtitle": "Ajusta el tamaño, agrega complementos premium y selecciona la frecuencia para generar una cotización instantánea.",
     "currentSelection": "Selección Actual",
     "serviceNotes": {
-      "house-cleaning":     "* Habitaciones y baños se configuran en las opciones de abajo",
-      "tv-installation":    "* El primer soporte de TV está incluido en la tarifa base",
-      "lawn-mowing":        "* La tarifa se calcula por bloque de 1,000 pies cuadrados",
+      "house-cleaning": "* Habitaciones y baños se configuran en las opciones de abajo",
+      "tv-installation": "* El primer soporte de TV está incluido en la tarifa base",
+      "lawn-mowing": "* La tarifa se calcula por bloque de 1,000 pies cuadrados",
       "furniture-assembly": "* Selecciona el número de cajas de muebles por armar",
-      "pressure-washing":   "* Tarifa calculada por unidades de 500 pies cuadrados",
-      "wall-mounting":      ""
+      "pressure-washing": "* Tarifa calculada por unidades de 500 pies cuadrados",
+      "wall-mounting": ""
     },
     "frequency": {
       "label": "Frecuencia del Servicio",
       "saveBadge": "Ahorra en Contratos Repetidos",
-      "once":       "Una Vez",
-      "onceSub":    "Estándar",
-      "weekly":     "Semanal",
-      "biWeekly":   "Quincenal",
-      "monthly":    "Mensual",
-      "save":       "Ahorra {{pct}}%",
-      "receiptOnce":     "Servicio Único",
-      "receiptWeekly":   "Suscripción Semanal (-{{pct}}%)",
+      "once": "Una Vez",
+      "onceSub": "Estándar",
+      "weekly": "Semanal",
+      "biWeekly": "Quincenal",
+      "monthly": "Mensual",
+      "save": "Ahorra {{pct}}%",
+      "receiptOnce": "Servicio Único",
+      "receiptWeekly": "Suscripción Semanal (-{{pct}}%)",
       "receiptBiWeekly": "Suscripción Quincenal (-{{pct}}%)",
-      "receiptMonthly":  "Suscripción Mensual (-{{pct}}%)"
+      "receiptMonthly": "Suscripción Mensual (-{{pct}}%)"
     },
     "receipt": {
       "title": "Presupuesto Dinámico",

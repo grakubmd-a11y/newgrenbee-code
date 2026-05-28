@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { MembershipPlan, MembershipPriceTier, YardSizeTier } from "../../shared/types";
+import { MembershipPlan, MembershipPriceTier, MembershipCredits, YardSizeTier } from "../../shared/types";
 import { fetchMembershipPlans } from "../../shared/services/firebaseService";
 
 interface SizeGuideEntry {
@@ -69,7 +69,7 @@ function WaitlistModal({
           email,
           phone,
           address,
-          serviceName: `${plan.name} — ${sizeLabel} Yard`,
+          serviceName: `${plan.name} — ${sizeLabel} ${t("plans.modal.sizeYard")}`,
           serviceId: plan.id,
           estimatedValue: priceTier.customQuote ? 0 : priceTier.price,
           source: "membership_waitlist",
@@ -248,6 +248,19 @@ function PlanCard({
           {plan.frequencyLabel}
         </span>
 
+        {/* Credits badge */}
+        {plan.credits && (
+          <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+            <Icons.Coins size={13} className="text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <span className="text-[11px] font-bold text-amber-800 block">{t("plans.card.creditsLabel")}</span>
+              <span className="text-[11px] text-amber-700">
+                {t("plans.card.creditsNote", { amount: plan.credits.monthlyAmount, max: plan.credits.maxBalance })}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Features */}
         <ul className="space-y-2">
           {plan.features.map((f, i) => (
@@ -329,7 +342,7 @@ export default function PlansPage() {
   const policyItems = t("plans.policies.items", { returnObjects: true }) as { q: string; a: string }[];
 
   useEffect(() => {
-    fetchMembershipPlans("lawn").then((data) => {
+    fetchMembershipPlans("cleaning").then((data) => {
       setPlans(data);
       setLoading(false);
     });

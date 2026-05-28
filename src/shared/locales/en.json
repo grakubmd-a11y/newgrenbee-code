@@ -678,37 +678,37 @@
   "plans": {
     "bookOneTime": "Book a one-time visit →",
     "hero": {
-      "badge": "Lawn Care Memberships",
-      "title": "Your lawn, on autopilot.",
-      "subtitle": "Choose a plan that fits your yard size. We show up on schedule — you just enjoy a great-looking lawn."
+      "badge": "Home Cleaning Memberships",
+      "title": "A clean home, every visit.",
+      "subtitle": "Choose a plan that fits your home size. We show up on schedule — you just enjoy a consistently clean space."
     },
     "yardSize": {
-      "label": "Select your yard size",
-      "xlWarning": "XL properties are priced individually. Select any plan below to request a custom quote.",
+      "label": "Select your home size",
+      "xlWarning": "Large homes and estates are priced individually. Select any plan below to request a custom quote.",
       "tiers": [
         {
           "tier": "small",
           "label": "Small",
-          "description": "Townhome, front yard or compact lot",
-          "examples": "Up to ~3,500 sqft"
+          "description": "Studio or 1-bedroom home",
+          "examples": "Up to ~1,000 sqft"
         },
         {
           "tier": "medium",
           "label": "Medium",
-          "description": "Standard single-family home yard",
-          "examples": "~3,500–8,000 sqft"
+          "description": "2–3 bedroom home",
+          "examples": "~1,000–2,000 sqft"
         },
         {
           "tier": "large",
           "label": "Large",
-          "description": "Larger residential lot",
-          "examples": "~8,000–15,000 sqft"
+          "description": "3–4 bedroom home",
+          "examples": "~2,000–3,500 sqft"
         },
         {
           "tier": "xl",
           "label": "XL",
-          "description": "Large lots, slopes or complex terrain",
-          "examples": "15,000+ sqft"
+          "description": "4+ bedrooms or large estate",
+          "examples": "3,500+ sqft"
         }
       ]
     },
@@ -719,15 +719,17 @@
       "perMonth": "/mo",
       "letsTalk": "Let's talk",
       "notIncluded": "Not included",
-      "firstCutReset": "First Cut Reset may apply",
-      "firstCutCustom": "Custom quote includes initial evaluation.",
+      "firstCutReset": "First Clean Reset required",
+      "firstCutCustom": "Custom quote includes initial deep-clean evaluation.",
       "contactForQuote": "Contact Us for a Quote",
       "requestCustomQuote": "Request a Custom Quote",
-      "getStarted": "Get Started"
+      "getStarted": "Get Started",
+      "creditsLabel": "Service Credits",
+      "creditsNote": "${{amount}}/mo · max ${{max}} · 60-day expiry"
     },
     "customCard": {
-      "title": "Large lots & custom properties",
-      "subtitle": "Large acreage, slopes, complex terrain or commercial properties. We'll assess your yard and give you a tailored quote.",
+      "title": "Large homes & custom properties",
+      "subtitle": "4+ bedrooms, large estates, or unique needs. We'll evaluate your home and give you a tailored quote.",
       "button": "Request a Quote"
     },
     "included": {
@@ -735,57 +737,59 @@
       "alwaysTitle": "Always included",
       "notTitle": "Not included by default",
       "alwaysItems": [
-        "Lawn mowing per scheduled visit",
-        "Edging along walkways & driveway",
-        "Blowing clippings off hard surfaces",
-        "Consistent technician assignment (when available)",
-        "Weather reschedule at no charge"
+        "Full home cleaning per scheduled visit",
+        "Kitchen (countertops, sink, exterior of appliances)",
+        "Bathrooms (toilet, shower/tub, vanity, mirrors)",
+        "Vacuuming & mopping all floors",
+        "Dusting furniture, shelves & surfaces",
+        "Consistent team assignment (when available)",
+        "Weather / illness reschedule at no charge"
       ],
       "notItems": [
-        "Weed removal or herbicide treatment",
-        "Bush & shrub trimming",
-        "Debris hauling or bagging removal",
-        "Fertilizer or soil treatments",
-        "Overgrown or first-time cleanup",
-        "Sprinkler repair"
+        "Laundry or dishes",
+        "Interior oven or fridge deep-cleaning",
+        "Exterior window washing",
+        "Move-in / move-out or post-construction cleans",
+        "Carpet shampooing",
+        "Organization or decluttering"
       ],
-      "addOnsNote": "Add-ons available as one-time bookings or service credits on Home & Premium plans."
+      "addOnsNote": "Add-ons available as one-time bookings or via service credits on Home Care & Premium Care plans."
     },
     "policies": {
       "title": "Plan policies",
       "items": [
         {
-          "q": "Is there a First Cut Reset fee?",
-          "a": "If your lawn hasn't been maintained recently or is overgrown, a one-time First Cut Reset fee applies. This covers the extra time and work to bring it to a baseline. Regular membership pricing begins after the first visit."
+          "q": "Is there a First Clean Reset fee?",
+          "a": "If your home hasn't been professionally cleaned recently or requires extra attention, a one-time First Clean Reset fee applies. This covers the additional time and effort to bring it to a consistent baseline. Regular membership pricing begins after the first visit."
         },
         {
           "q": "Can I pause my membership?",
-          "a": "Yes — members can pause up to 4 weeks per year with at least 7 days' notice. Billing resumes automatically when the pause ends. Credits and scheduled visits do not accrue during a pause. Your preferred schedule is not guaranteed after a pause."
+          "a": "Yes — members can pause up to 4 weeks per year with at least 7 days' notice. Billing resumes automatically when the pause ends. Service credits do not accrue during a pause. Your preferred schedule is not guaranteed to be available after a pause."
         },
         {
           "q": "Can I cancel at any time?",
           "a": "You can cancel with at least 7 days' notice before your next billing date. Cancellations made within 48 hours of a scheduled visit may be subject to a last-minute cancellation fee."
         },
         {
-          "q": "What if it rains on my visit day?",
-          "a": "We reschedule at no charge for weather cancellations. You'll be contacted the day before if weather looks like an issue."
+          "q": "How do service credits work?",
+          "a": "Home Care members earn $50/month and Premium Care members earn $100/month in service credits. Credits can be applied to any add-on service. Maximum balance is $100 (Home Care) or $200 (Premium Care), and credits expire 60 days after issuance."
         },
         {
-          "q": "Do I get the same technician every time?",
-          "a": "We do our best to assign the same technician, but it's not guaranteed — especially after pauses or schedule changes."
+          "q": "Do I get the same cleaning team every time?",
+          "a": "We assign the same team as consistently as possible. This cannot be guaranteed after pauses, schedule changes, or staff availability shifts."
         }
       ]
     },
     "bottomCta": {
-      "title": "Ready to get started?",
-      "subtitle": "Select a plan above or book a one-time visit first to see how we work.",
-      "button": "Book a one-time visit →"
+      "title": "Ready for a cleaner home?",
+      "subtitle": "Select a plan above or book a one-time deep clean first to see how we work.",
+      "button": "Book a one-time clean →"
     },
     "modal": {
-      "sizeYard": "yard",
+      "sizeYard": "home",
       "customQuoteLabel": "Custom quote",
       "successTitle": "We'll be in touch!",
-      "successBody": "Thanks! We received your interest in the <strong>{{planName}}</strong> plan for a <strong>{{sizeLabel}}</strong> yard. Someone from the Grenbee team will contact you within 24 hours.",
+      "successBody": "Thanks! We received your interest in the <strong>{{planName}}</strong> plan for a <strong>{{sizeLabel}}</strong> home. Someone from the Grenbee team will contact you within 24 hours.",
       "close": "Close",
       "fullName": "Full Name *",
       "namePlaceholder": "Jane Smith",
@@ -855,9 +859,18 @@
     "howTitle": "How Your Membership Works",
     "howSubtitle": "Simple home wellness managed directly via your dashboard",
     "steps": [
-      { "title": "1. Book Instantly",  "desc": "Enjoy priority access to our calendar. Schedule services with zero hassle through your dedicated dashboard." },
-      { "title": "2. We Manage It",    "desc": "Our vetted professionals handle the work to the highest standards, while your discounts apply automatically." },
-      { "title": "3. Relax",           "desc": "Sit back and enjoy a perfectly maintained home, knowing Grenbee is always just a tap away." }
+      {
+        "title": "1. Book Instantly",
+        "desc": "Enjoy priority access to our calendar. Schedule services with zero hassle through your dedicated dashboard."
+      },
+      {
+        "title": "2. We Manage It",
+        "desc": "Our vetted professionals handle the work to the highest standards, while your discounts apply automatically."
+      },
+      {
+        "title": "3. Relax",
+        "desc": "Sit back and enjoy a perfectly maintained home, knowing Grenbee is always just a tap away."
+      }
     ],
     "celebration": {
       "title": "Welcome to the Club!",
@@ -872,26 +885,26 @@
     "subtitle": "Adjust size, add premium add-ons, and select frequency to generate an instant quote.",
     "currentSelection": "Current Selection",
     "serviceNotes": {
-      "house-cleaning":     "* Bedrooms & bathrooms are set via the options below",
-      "tv-installation":    "* First TV bracket install covered in basic rate",
-      "lawn-mowing":        "* Rate is calculated per 1,000 sq ft block",
+      "house-cleaning": "* Bedrooms & bathrooms are set via the options below",
+      "tv-installation": "* First TV bracket install covered in basic rate",
+      "lawn-mowing": "* Rate is calculated per 1,000 sq ft block",
       "furniture-assembly": "* Select number of retail flat-pack boxes",
-      "pressure-washing":   "* Rate calculated per 500 sq ft area units",
-      "wall-mounting":      ""
+      "pressure-washing": "* Rate calculated per 500 sq ft area units",
+      "wall-mounting": ""
     },
     "frequency": {
       "label": "Service Frequency",
       "saveBadge": "Save on Repeat Contracts",
-      "once":       "One-Time",
-      "onceSub":    "Standard",
-      "weekly":     "Weekly",
-      "biWeekly":   "Bi-Weekly",
-      "monthly":    "Monthly",
-      "save":       "Save {{pct}}%",
-      "receiptOnce":     "One-Time Service",
-      "receiptWeekly":   "Weekly Subscription (-{{pct}}%)",
+      "once": "One-Time",
+      "onceSub": "Standard",
+      "weekly": "Weekly",
+      "biWeekly": "Bi-Weekly",
+      "monthly": "Monthly",
+      "save": "Save {{pct}}%",
+      "receiptOnce": "One-Time Service",
+      "receiptWeekly": "Weekly Subscription (-{{pct}}%)",
       "receiptBiWeekly": "Bi-Weekly Subscription (-{{pct}}%)",
-      "receiptMonthly":  "Monthly Subscription (-{{pct}}%)"
+      "receiptMonthly": "Monthly Subscription (-{{pct}}%)"
     },
     "receipt": {
       "title": "Dynamic Estimate",

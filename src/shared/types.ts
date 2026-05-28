@@ -296,6 +296,15 @@ export interface MembershipFirstVisit {
   };
 }
 
+export interface MembershipCredits {
+  /** Dollars earned per billing month */
+  monthlyAmount: number;
+  /** Maximum balance the member can accumulate */
+  maxBalance: number;
+  /** Days after issuance before credits expire */
+  expiryDays: number;
+}
+
 export interface MembershipPlan {
   id: string;
   type: MembershipPlanType;
@@ -313,6 +322,8 @@ export interface MembershipPlan {
     xl:     MembershipPriceTier;
   };
   firstVisit?: MembershipFirstVisit;
+  /** Service credits earned monthly (Home Care and above) */
+  credits?: MembershipCredits;
   /** Lower = shown first */
   order: number;
   active: boolean;
