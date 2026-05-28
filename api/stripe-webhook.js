@@ -34,6 +34,7 @@
 
 import Stripe from "stripe";
 import { getFirestore } from "./_recurring.js";
+import { sendEmail, buildStatusUpdateEmail } from "./_mailer.js";
 
 // ── Stripe init ───────────────────────────────────────────────────────────────
 
@@ -120,43 +121,59 @@ export default async function handler(req, res) {
   try {
     switch (event.type) {
 
-      // ── PI confirmed (manual capture) — save Stripe Customer + PM on plan ──
+      // ── PI authorized (manual capture) ───────────────────────────────────
+      // Fires when the customer confirms a capture_method=manual PI.
+      // 1. Mark the booking as "confirmed" (payment hold placed).
+      // 2. For recurring plans: save Stripe Customer + PM so the cron can
+      //    charge off-session later.
       case "payment_intent.amount_capturable_updated": {
-        const pi = event.data.object;
-        const frequency = pi.metadata?.frequency;
+        const pi  = event.data.object;
+        const now = new Date().toISOString();
 
-        // Only process recurring-plan PIs
-        if (!frequency || frequency === "once") break;
-
-        const customerId = typeof pi.customer === "string" ? pi.customer : pi.customer?.id;
-        const paymentMethodId = pmId(pi.payment_method);
-        if (!customerId || !paymentMethodId) break;
-
-        // Find the plan by the original stripePaymentIntentId
-        const planSnap = await db
-          .collection("recurringPlans")
+        // ── Mark booking as confirmed ──────────────────────────────────────
+        const bookingSnap = await db
+          .collection("bookings")
           .where("stripePaymentIntentId", "==", pi.id)
           .limit(1)
           .get();
 
-        if (planSnap.empty) break;
+        if (!bookingSnap.empty) {
+          const bookingDoc  = bookingSnap.docs[0];
+          const bookingData = { id: bookingDoc.id, ...bookingDoc.data() };
+          // Only advance forward (don't overwrite "dispatched" etc.)
+          if (bookingData.status === "scheduled") {
+            await bookingDoc.ref.update({ status: "confirmed", updatedAt: now });
+          }
+        }
 
-        const planDoc  = planSnap.docs[0];
-        const planData = planDoc.data();
-        const now      = new Date().toISOString();
+        // ── Recurring plan: persist Customer + PM for off-session charges ──
+        const frequency = pi.metadata?.frequency;
+        if (frequency && frequency !== "once") {
+          const customerId      = typeof pi.customer === "string" ? pi.customer : pi.customer?.id;
+          const paymentMethodId = pmId(pi.payment_method);
+          if (customerId && paymentMethodId) {
+            const planSnap = await db
+              .collection("recurringPlans")
+              .where("stripePaymentIntentId", "==", pi.id)
+              .limit(1)
+              .get();
 
-        await planDoc.ref.update({
-          stripeCustomerId:      customerId,
-          stripePaymentMethodId: paymentMethodId,
-          updatedAt:             now,
-        });
-
-        // Persist customer ID on user doc so future PIs reuse it
-        if (planData.userId) {
-          await db.collection("users").doc(planData.userId).set(
-            { stripeCustomerId: customerId, updatedAt: now },
-            { merge: true }
-          );
+            if (!planSnap.empty) {
+              const planDoc  = planSnap.docs[0];
+              const planData = planDoc.data();
+              await planDoc.ref.update({
+                stripeCustomerId:      customerId,
+                stripePaymentMethodId: paymentMethodId,
+                updatedAt:             now,
+              });
+              if (planData.userId) {
+                await db.collection("users").doc(planData.userId).set(
+                  { stripeCustomerId: customerId, updatedAt: now },
+                  { merge: true }
+                );
+              }
+            }
+          }
         }
         break;
       }
@@ -196,15 +213,29 @@ export default async function handler(req, res) {
         break;
       }
 
-      // ── PI failed — mark plan past_due ────────────────────────────────────
+      // ── PI failed ─────────────────────────────────────────────────────────
       case "payment_intent.payment_failed": {
         const pi        = event.data.object;
         const frequency = pi.metadata?.frequency;
         const now       = new Date().toISOString();
         const errorCode = pi.last_payment_error?.code || "payment_failed";
 
-        // Only act on recurring plan PIs
-        if (!frequency || frequency === "once") break;
+        // ── One-time booking failure: mark booking as payment_failed ───────
+        if (!frequency || frequency === "once") {
+          const failedSnap = await db
+            .collection("bookings")
+            .where("stripePaymentIntentId", "==", pi.id)
+            .limit(1)
+            .get();
+          if (!failedSnap.empty) {
+            await failedSnap.docs[0].ref.update({
+              status:              "payment_failed",
+              stripePaymentStatus: String(errorCode).slice(0, 100),
+              updatedAt:           now,
+            });
+          }
+          break;
+        }
 
         // Determine which collection / query to use
         const source = pi.metadata?.source || "";

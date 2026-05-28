@@ -15,8 +15,14 @@
  *   { ok, bookingId, status, booking }
  */
 
+import Stripe from "stripe";
 import { getFirestore, verifyIdToken, sendJson, parseBody } from "./_recurring.js";
 import { sendEmail, buildStatusUpdateEmail } from "./_mailer.js";
+
+const stripe = (() => {
+  const key = process.env.STRIPE_SECRET_KEY;
+  return key && !key.includes("REPLACE_ME") ? new Stripe(key) : null;
+})();
 
 const ALLOWED_TRANSITIONS = {
   "in-progress": ["scheduled", "dispatched"],
@@ -101,6 +107,24 @@ export default async function handler(req, res) {
   await bookingRef.update(update);
 
   const updated = { ...booking, ...update };
+
+  // ── Capture Stripe PaymentIntent when job is completed ───────────────────
+  // capture_method is "manual" — the hold must be captured now or the
+  // authorization expires (Stripe default: 7 days).
+  if (status === "completed" && booking.stripePaymentIntentId && stripe) {
+    try {
+      const pi = await stripe.paymentIntents.retrieve(booking.stripePaymentIntentId);
+      if (pi.status === "requires_capture") {
+        await stripe.paymentIntents.capture(booking.stripePaymentIntentId);
+        // The stripe-webhook will handle payment_intent.succeeded →
+        // updates booking.paymentStatus = "paid" asynchronously.
+      }
+    } catch (captureErr) {
+      // Non-fatal: log the error but don't fail the status update.
+      // The payment may already be captured or the intent may have expired.
+      console.error("[update-job-status] Stripe capture failed:", captureErr?.message);
+    }
+  }
 
   // ── Notify customer on completion ─────────────────────────────────────────
   if (status === "completed" && booking.email) {

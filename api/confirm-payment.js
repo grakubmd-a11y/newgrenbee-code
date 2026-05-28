@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import { getFirestore as _adminGetFs } from "firebase-admin/firestore";
 import Stripe from "stripe";
+import { sendEmail, buildBookingConfirmationEmail } from "./_mailer.js";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const hasStripeSecretKey = typeof stripeSecretKey === "string" &&
@@ -170,6 +171,12 @@ export default async function handler(req, res) {
     const bookingResult = body.booking
       ? await saveBookingToFirestore(body.booking, paymentIntent.id)
       : { saved: false, reason: "No booking data supplied." };
+
+    // ── Confirmation email (fire-and-forget — never blocks the response) ──
+    if (bookingResult.saved && body.booking?.email) {
+      const { subject, html } = buildBookingConfirmationEmail(body.booking);
+      sendEmail(body.booking.email, subject, html).catch(() => {/* non-fatal */});
+    }
 
     return sendJson(res, 200, {
       ok: true,
