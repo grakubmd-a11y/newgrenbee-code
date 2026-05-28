@@ -133,21 +133,22 @@ export default function AdminRoute() {
     setAuthError("");
     setLoginBusy(true);
     try {
-      // Popup is more reliable for admin portals — no authDomain redirect dependency.
-      // Falls back to redirect if popup is blocked by the browser.
-      await signInWithGooglePopup();
+      // Use redirect as primary method on custom domains (control-room.grenbee.com).
+      // When popups are blocked by the browser, Chrome navigates the main tab to the
+      // Firebase auth handler URL (/__/auth/handler?authType=signInViaPopup) which
+      // then shows "The requested action is invalid" because it expects window.opener.
+      // signInWithRedirect avoids this entirely: it navigates directly to Google OAuth
+      // and returns via getGoogleRedirectResult() in the useEffect below.
+      await signInWithGoogleRedirect();
+      // Page will navigate away — no code after this runs on success.
     } catch (error: any) {
-      if (error?.code === "auth/popup-blocked" || error?.code === "auth/popup-closed-by-user") {
-        try {
-          await signInWithGoogleRedirect();
-          return; // page will navigate away
-        } catch (redirectError) {
-          setAuthError(getFirebaseAuthErrorMessage(redirectError));
-        }
-      } else {
-        setAuthError(getFirebaseAuthErrorMessage(error));
+      // Redirect failed (rare) — fall back to popup.
+      try {
+        await signInWithGooglePopup();
+      } catch (popupError: any) {
+        setAuthError(getFirebaseAuthErrorMessage(popupError));
+        setLoginBusy(false);
       }
-      setLoginBusy(false);
     }
   };
 

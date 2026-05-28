@@ -149,15 +149,17 @@ export default function StaffRoute() {
             setAuthError("");
             setLoginBusy(true);
             try {
-              await signInWithGooglePopup();
+              // Use redirect as primary — avoids popup-blocker issues on custom domains.
+              // See AdminRoute for full explanation.
+              await signInWithGoogleRedirect();
+              // Page navigates away on success.
             } catch (e: any) {
-              if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
-                try { await signInWithGoogleRedirect(); return; }
-                catch (re) { setAuthError(getFirebaseAuthErrorMessage(re)); }
-              } else {
-                setAuthError(getFirebaseAuthErrorMessage(e));
+              // Redirect failed — fall back to popup.
+              try { await signInWithGooglePopup(); }
+              catch (pe: any) {
+                setAuthError(getFirebaseAuthErrorMessage(pe));
+                setLoginBusy(false);
               }
-              setLoginBusy(false);
             }
           }}
           disabled={loginBusy}
