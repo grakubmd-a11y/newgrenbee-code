@@ -84,7 +84,9 @@ function EmbeddedStripeForm({
         elements,
         redirect: "if_required",
         confirmParams: {
-          return_url: `${window.location.origin}/?payment=complete`
+          // Use pathname so the 3DS redirect returns to the correct route
+          // whether the app is served directly or via multi-zone proxy from grenbee.com
+          return_url: `${window.location.origin}${window.location.pathname}?payment=complete`
         }
       });
 

@@ -98,8 +98,9 @@ export default function AdminRoute() {
         const role = profile?.role;
         const hasAdminAccess =
           tokenResult.claims.admin === true ||
+          role === "owner" ||   // highest privilege tier
           role === "admin" ||
-          role === "manager";
+          role === "manager";   // legacy role — kept for backward compatibility
 
         if (!hasAdminAccess) {
           setCurrentUser(null);
