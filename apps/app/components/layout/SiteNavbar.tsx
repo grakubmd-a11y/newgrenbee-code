@@ -244,7 +244,7 @@ export default function SiteNavbar() {
         }`}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
 
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0">
@@ -281,12 +281,11 @@ export default function SiteNavbar() {
             </nav>
 
             {/* Right section */}
-            <div className="hidden md:flex items-center gap-2">
-
+            <div className="hidden md:flex items-center gap-4">
               {/* Membresía — siempre visible, botón destacado amber */}
               <Link
                 href={`${base}/plans`}
-                className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-bold rounded-xl transition-all shadow-sm ${
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold rounded-xl transition-all shadow-sm ${
                   pathname === `${base}/plans`
                     ? "bg-amber-500 text-white shadow-amber-200"
                     : "bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white hover:shadow-amber-200"
@@ -300,7 +299,7 @@ export default function SiteNavbar() {
               {currentUser && (
                 <Link
                   href="/bookings"
-                  className={`relative flex items-center gap-1.5 px-3.5 py-2 text-sm font-bold rounded-xl transition-all ${
+                  className={`relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold rounded-xl transition-all ${
                     pathname === "/bookings"
                       ? "bg-emerald-500 text-white"
                       : "bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white"
@@ -323,7 +322,7 @@ export default function SiteNavbar() {
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen((v) => !v)}
-                    className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-xl hover:bg-emerald-100 transition-colors cursor-pointer select-none"
+                    className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl hover:bg-emerald-100 transition-colors cursor-pointer select-none"
                   >
                     <div className="h-7 w-7 bg-emerald-500 text-white rounded-lg flex items-center justify-center font-black text-xs shrink-0">
                       {(currentUser.name || "U").charAt(0).toUpperCase()}
