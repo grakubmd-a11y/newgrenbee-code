@@ -168,10 +168,18 @@ export default function HomePage() {
 
         {/* ── 1. HERO ───────────────────────────────────────────���──────────── */}
         <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[580px] flex items-center">
+          {/* Background photo - full width */}
+          <PhotoSlot
+            url={cms?.heroPhotoUrl}
+            className="absolute inset-0 w-full h-full"
+            placeholderText={photoPlaceholder}
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gray-950/60" />
+
+          {/* Text content overlay - left side */}
           <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-24 md:py-36 w-full">
-            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-              {/* Left: Text content */}
-              <div className="max-w-2xl">
+            <div className="max-w-2xl">
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
                   <Icons.Star className="w-4 h-4 fill-emerald-400 text-emerald-400" />
@@ -209,18 +217,6 @@ export default function HomePage() {
                   <Icons.CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   {t("home.hero.trustNote")}
                 </p>
-              </div>
-
-              {/* Right: Hero image */}
-              <div className="relative h-full min-h-96 md:min-h-[450px] rounded-2xl overflow-hidden">
-                <PhotoSlot
-                  url={cms?.heroPhotoUrl}
-                  className="h-full w-full"
-                  placeholderText={photoPlaceholder}
-                />
-                {/* Subtle overlay for depth */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/50 via-transparent to-transparent" />
-              </div>
             </div>
           </div>
         </section>
@@ -602,7 +598,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── 11. FAQ ──────────────────────────────────────────────────────── */}
+        {/* ── 11. FAQ ─────────────────────��────────────────────────────────── */}
         <section className="py-20 md:py-28 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
