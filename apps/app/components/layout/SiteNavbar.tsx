@@ -28,7 +28,6 @@ import {
   CheckCircle2,
   ArrowLeft,
   KeyRound,
-  Phone,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSiteSettings } from "@grenbee/firebase/contexts";
@@ -283,18 +282,6 @@ export default function SiteNavbar() {
 
             {/* Right section */}
             <div className="hidden md:flex items-center gap-4">
-              {/* Phone */}
-              <a
-                href={`tel:${phone.replace(/\D/g, "")}`}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-emerald-600 transition-colors"
-              >
-                <Phone className="w-4 h-4" />
-                {phone}
-              </a>
-
-              {/* Separador */}
-              <span className="w-px h-5 bg-gray-200" />
-
               {/* Membresía — siempre visible, botón destacado amber */}
               <Link
                 href={`${base}/plans`}
