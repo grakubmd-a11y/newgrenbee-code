@@ -9,6 +9,7 @@ import {
   signInWithGoogleRedirect,
   getGoogleRedirectResult,
   getFirebaseAuthErrorMessage,
+  signInWithEmail,
   signOutUser,
   getUserProfile,
   fetchAllBookingsForAdmin,
@@ -57,6 +58,9 @@ export default function AdminRoute() {
   const [authUserUid, setAuthUserUid] = useState<string>("");
   const [authError, setAuthError] = useState<string>("");
   const [loginBusy, setLoginBusy] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [services, setServices] = useState<Service[]>(SERVICES_DATA);
@@ -159,6 +163,18 @@ export default function AdminRoute() {
     }
   };
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setLoginBusy(true);
+    try {
+      await signInWithEmail(emailInput.trim(), passwordInput);
+    } catch (error: any) {
+      setAuthError(getFirebaseAuthErrorMessage(error));
+      setLoginBusy(false);
+    }
+  };
+
   const handleLogout = async () => {
     await signOutUser();
     setCurrentUser(null);
@@ -205,15 +221,69 @@ export default function AdminRoute() {
     return (
       <AdminShell title="Admin Grenbee" subtitle="Inicia sesion con una cuenta autorizada para administrar el sitio.">
         {authError && <p className="text-sm text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">{authError}</p>}
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loginBusy}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2"
-        >
-          {loginBusy ? <Icons.Loader2 className="animate-spin" size={16} /> : <Icons.LogIn size={16} />}
-          <span>Entrar con Google</span>
-        </button>
+
+        {/* ── Email / Password form ── */}
+        {showEmailForm ? (
+          <form onSubmit={handleEmailLogin} className="space-y-3">
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              required
+              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-500"
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              required
+              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-500"
+            />
+            <button
+              type="submit"
+              disabled={loginBusy}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2"
+            >
+              {loginBusy ? <Icons.Loader2 className="animate-spin" size={16} /> : <Icons.LogIn size={16} />}
+              <span>Entrar</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowEmailForm(false); setAuthError(""); }}
+              className="w-full text-xs text-slate-400 hover:text-white py-1 bg-transparent border-none cursor-pointer"
+            >
+              ← Volver a opciones de login
+            </button>
+          </form>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loginBusy}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-xl py-3 text-sm font-bold border-none cursor-pointer flex items-center justify-center gap-2"
+            >
+              {loginBusy ? <Icons.Loader2 className="animate-spin" size={16} /> : <Icons.LogIn size={16} />}
+              <span>Entrar con Google</span>
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-slate-700" />
+              <span className="text-xs text-slate-500">o</span>
+              <div className="flex-1 h-px bg-slate-700" />
+            </div>
+            <button
+              type="button"
+              onClick={() => { setShowEmailForm(true); setAuthError(""); }}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-3 text-sm font-bold border border-slate-700 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Icons.Mail size={16} />
+              <span>Entrar con correo y contraseña</span>
+            </button>
+          </>
+        )}
+
         <a href="/" className="block text-center text-xs text-slate-400 hover:text-white">
           Volver al sitio publico
         </a>
