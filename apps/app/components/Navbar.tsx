@@ -76,7 +76,7 @@ export default function Navbar({
     { id: "services", label: t("nav.services", "Services"), icon: Sparkles },
     { id: "estimator", label: t("nav.getQuote"), icon: Calculator },
     { id: "membership", label: t("nav.membership", "Membership"), icon: Award, isPremium: !!activeMembership },
-    { id: "bookings", label: t("nav.bookings", "My Bookings"), icon: Truck, badge: bookingsCount > 0 ? bookingsCount : undefined },
+    { id: "bookings", label: t("nav.inProgress", "En Progreso"), icon: Truck, badge: bookingsCount > 0 ? bookingsCount : undefined },
     { id: "about", label: t("nav.about", "About"), icon: ShieldCheck },
     { id: "blog", label: t("nav.blog", "Blog"), icon: BookOpen },
   ];
@@ -215,7 +215,19 @@ export default function Navbar({
                 className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
               >
                 <Award size={15} className="text-amber-500 shrink-0" />
-                {t("nav.membership", "Membership")}
+                {t("nav.membership", "Membresía")}
+              </button>
+              <button
+                onClick={() => setActiveTab("bookings")}
+                className="relative flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                <Truck size={15} className="text-gray-500 shrink-0" />
+                {t("nav.inProgress", "En Progreso")}
+                {bookingsCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+                    {bookingsCount}
+                  </span>
+                )}
               </button>
               <Link href="/contact"
                 className="px-3 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
@@ -279,7 +291,7 @@ export default function Navbar({
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors text-left cursor-pointer"
                         >
                           <ClipboardList size={15} className="text-gray-400 shrink-0" />
-                          <span>{t("nav.bookings", "My Bookings")}</span>
+                          <span>{t("nav.inProgress", "En Progreso")}</span>
                           {bookingsCount > 0 && (
                             <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white">
                               {bookingsCount}

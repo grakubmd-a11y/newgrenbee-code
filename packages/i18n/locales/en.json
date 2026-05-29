@@ -14,6 +14,7 @@
     "services": "Services",
     "membership": "Membership",
     "bookings": "My Bookings",
+    "inProgress": "In Progress",
     "about": "About",
     "blog": "Blog"
   },
