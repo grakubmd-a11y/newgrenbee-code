@@ -588,7 +588,6 @@ export default function HomePage() {
 
             <CostEstimator
               services={services}
-              activeMembership={null}
               onProceedToBook={(params) => {
                 // Store params in sessionStorage and navigate to the app booking flow
                 sessionStorage.setItem("gbee_wizard_params", JSON.stringify(params));

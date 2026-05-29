@@ -19,7 +19,7 @@ import CostEstimator from "./CostEstimator";
 import BookingWizard, { type WizardBookingParams } from "./BookingWizard";
 import BookingsTracker from "./BookingsTracker";
 import ReviewsSection from "./ReviewsSection";
-import MembershipPlans from "./MembershipPlans";
+import PlansPage from "./PlansPage";
 import HeroSection from "./HeroSection";
 import FeaturesSection from "./FeaturesSection";
 import TestimonialsSection from "./TestimonialsSection";
@@ -67,7 +67,6 @@ export default function PublicApp() {
 
   // Auth + data from context
   const currentUser     = auth?.currentUser     ?? null;
-  const activeMembership = auth?.activeMembership ?? null;
   const bookings        = auth?.bookings        ?? INITIAL_BOOKINGS;
   const reviews         = auth?.reviews         ?? [];
   const services        = auth?.services        ?? [];
@@ -243,7 +242,6 @@ export default function PublicApp() {
               router.push("/");
             }}
             bookings={bookings}
-            activeMembership={activeMembership}
             onSelectTab={handleTabChange}
             onUpdateProfile={async (updates) => auth?.handleUpdateProfile(updates)}
             onReschedule={async (id, date, slot) =>
@@ -286,7 +284,6 @@ export default function PublicApp() {
             </div>
             <CostEstimator
               initialServiceId={selectedEstimatorId}
-              activeMembership={activeMembership}
               onProceedToBook={(params) => setWizardParams(params)}
               services={services}
             />
@@ -301,7 +298,6 @@ export default function PublicApp() {
             bookingParams={wizardParams}
             services={services}
             currentUser={currentUser}
-            activeMembership={activeMembership}
             onSubmitBooking={async (draft) => auth?.handleWizardSubmit(draft)}
             onBack={() => setWizardParams(null)}
             onComplete={() => {
@@ -315,19 +311,7 @@ export default function PublicApp() {
       {/* ── Membership tab ──────────────────────────────────────────────── */}
       {activeTab === "membership" && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
-          <div className="space-y-8">
-            <div className="text-center space-y-2 mb-12">
-              <h2 className="text-3xl md:text-4xl font-black text-gray-950">
-                Premium Membership Plans
-              </h2>
-              <p className="text-gray-600 text-lg">Save up to 40% with annual membership</p>
-            </div>
-            <MembershipPlans
-              activeMembership={activeMembership || null}
-              onSelectMembership={(plan) => auth?.handleSelectMembership(plan)}
-              onCancelMembership={() => auth?.handleCancelMembership()}
-            />
-          </div>
+          <PlansPage />
         </section>
       )}
 

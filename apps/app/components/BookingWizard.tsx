@@ -32,7 +32,6 @@ interface BookingWizardProps {
   bookingParams: WizardBookingParams;
   services: Service[];
   currentUser?: { name?: string; email?: string; phone?: string; address?: string } | null;
-  activeMembership?: string | null;
   onSubmitBooking: (draft: BookingDraft) => void;
   onBack: () => void;
   /** Called when the user clicks "View my bookings" on the confirmation screen */
@@ -384,7 +383,6 @@ export default function BookingWizard({
   bookingParams,
   services,
   currentUser,
-  activeMembership,
   onSubmitBooking,
   onBack,
   onComplete,
@@ -882,7 +880,6 @@ export default function BookingWizard({
                   <StripePaymentPanel
                     bookingParams={{
                       ...bookingParams,
-                      membership: activeMembership ?? null,
                       sameDayFee: isSameDay,
                       twoTechFee: isTwoTech,
                     }}

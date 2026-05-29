@@ -33,7 +33,6 @@ interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   bookingsCount: number;
-  activeMembership?: string | null;
   currentUser: { email: string; name: string; firstName?: string; lastName?: string } | null;
   onLogout: () => void;
   onGoogleLogin?: () => Promise<void>;
@@ -46,7 +45,6 @@ export default function Navbar({
   activeTab,
   setActiveTab,
   bookingsCount,
-  activeMembership,
   currentUser,
   onLogout,
   onGoogleLogin,
@@ -75,7 +73,7 @@ export default function Navbar({
   const tabs: Array<{ id: string; label: string; icon: any; isPremium?: boolean; badge?: number }> = [
     { id: "services", label: t("nav.services", "Services"), icon: Sparkles },
     { id: "estimator", label: t("nav.getQuote"), icon: Calculator },
-    { id: "membership", label: t("nav.membership", "Membership"), icon: Award, isPremium: !!activeMembership },
+    { id: "membership", label: t("nav.membership", "Membership"), icon: Award },
     { id: "bookings", label: t("nav.inProgress", "En Progreso"), icon: Truck, badge: bookingsCount > 0 ? bookingsCount : undefined },
     { id: "about", label: t("nav.about", "About"), icon: ShieldCheck },
     { id: "blog", label: t("nav.blog", "Blog"), icon: BookOpen },

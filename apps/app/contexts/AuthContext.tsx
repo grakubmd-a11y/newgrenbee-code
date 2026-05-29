@@ -39,7 +39,6 @@ export type AppUser = UserProfile & { isAdmin?: boolean };
 export interface AuthContextValue {
   // State
   currentUser: AppUser | null;
-  activeMembership: string | null;
   isAdmin: boolean;
   bookings: Booking[];
   reviews: Review[];
@@ -51,8 +50,6 @@ export interface AuthContextValue {
   handleGoogleLogin(): Promise<void>;
   handleLogout(): Promise<void>;
   handleUpdateProfile(updates: Partial<UserProfile>): Promise<void>;
-  handleSelectMembership(planId: string): Promise<void>;
-  handleCancelMembership(): Promise<void>;
 
   // Bookings — setBookings exposed so PublicApp can optimistically add new ones
   setBookings: React.Dispatch<React.SetStateAction<Booking[]>>;
@@ -97,14 +94,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const saved = typeof localStorage !== "undefined" ? localStorage.getItem("hsh_user") : null;
       return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [activeMembership, setActiveMembership] = useState<string | null>(() => {
-    try {
-      return typeof localStorage !== "undefined" ? localStorage.getItem("hsh_membership") : null;
     } catch {
       return null;
     }
@@ -156,10 +145,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setCurrentUser(userObj);
             localStorage.setItem("hsh_user", JSON.stringify(userObj));
 
-            if (profile.activeMembership) {
-              setActiveMembership(profile.activeMembership);
-              localStorage.setItem("hsh_membership", profile.activeMembership);
-            }
           } else {
             // New user — create Firestore profile
             const newProfile = {
@@ -169,7 +154,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 firebaseUser.email?.split("@")[0] ||
                 "Cliente Premium",
               email: firebaseUser.email || "",
-              activeMembership: null,
             };
             await saveUserProfile(firebaseUser.uid, newProfile);
             setIsAdmin(hasAdminClaim);
@@ -282,7 +266,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         uid: firebaseUser.uid,
         name,
         email,
-        activeMembership: activeMembership || null,
       };
       await saveUserProfile(firebaseUser.uid, profileData);
 
@@ -318,28 +301,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("hsh_user", JSON.stringify(updated));
     if (currentUser.uid) {
       await saveUserProfile(currentUser.uid, updates);
-    }
-  };
-
-  const handleSelectMembership = async (planId: string) => {
-    setActiveMembership(planId);
-    localStorage.setItem("hsh_membership", planId);
-    if (currentUser?.uid) {
-      await saveUserProfile(currentUser.uid, { activeMembership: planId }).catch(
-        console.error,
-      );
-    }
-  };
-
-  const handleCancelMembership = async () => {
-    setActiveMembership(null);
-    if (typeof localStorage !== "undefined") {
-      localStorage.removeItem("hsh_membership");
-    }
-    if (currentUser?.uid) {
-      await saveUserProfile(currentUser.uid, { activeMembership: null }).catch(
-        console.error,
-      );
     }
   };
 
@@ -544,7 +505,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value: AuthContextValue = {
     currentUser,
-    activeMembership,
     isAdmin,
     bookings,
     reviews,
@@ -554,8 +514,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleGoogleLogin,
     handleLogout,
     handleUpdateProfile,
-    handleSelectMembership,
-    handleCancelMembership,
     setBookings,
     handleWizardSubmit,
     handleUpdateBookingStatus,

@@ -7,13 +7,11 @@ import { fetchPublicCouponByCode } from "@grenbee/firebase/services";
 import {
   calculateQuote,
   RECURRENCE_DISCOUNT_RATES,
-  MEMBERSHIP_DISCOUNT_RATES,
   type RecurrenceKey,
 } from "@grenbee/firebase/services";
 
 interface CostEstimatorProps {
   initialServiceId?: string;
-  activeMembership?: string | null;
   onProceedToBook: (bookingParams: {
     serviceId: string;
     units: number;
@@ -29,7 +27,6 @@ interface CostEstimatorProps {
 
 export default function CostEstimator({
   initialServiceId = "house-cleaning",
-  activeMembership = null,
   onProceedToBook,
   services = SERVICES_DATA
 }: CostEstimatorProps) {
@@ -81,10 +78,9 @@ export default function CostEstimator({
         units,
         selectedFactors,
         recurrence: frequency as RecurrenceKey,
-        membership: activeMembership,
         coupon: appliedCoupon,
       }),
-    [activeService, units, selectedFactors, frequency, activeMembership, appliedCoupon]
+    [activeService, units, selectedFactors, frequency, appliedCoupon]
   );
 
   // 3. Calculation Helpers
@@ -101,7 +97,6 @@ export default function CostEstimator({
   // ── pricingBreakdown shim — maps canonical quote to legacy UI field names ──────
   const pricingBreakdown = useMemo(() => {
     const discountRate    = RECURRENCE_DISCOUNT_RATES[quote.recurrence];
-    const memberDiscountRate = MEMBERSHIP_DISCOUNT_RATES[activeMembership ?? ""] ?? 0;
 
     // couponDiscount is negative in the quote (it's a deduction); bring to positive for display
     const couponDiscountAmount = Math.abs(quote.couponDiscount);
@@ -136,15 +131,13 @@ export default function CostEstimator({
       discountAmount:           Math.abs(quote.recurrenceDiscount),
       discountRate,
       frequencyText:            frequencyLabels[quote.recurrence] ?? "One-Time Service",
-      memberDiscountRate,
-      membershipDiscountAmount: Math.abs(quote.membershipDiscount),
       totalBeforeCoupon,
       couponDiscountAmount,
       couponInvalidReason:      quote.couponError ?? "",
       finalTotal:               quote.total,
       estTimeStr,
     };
-  }, [quote, activeMembership]);
+  }, [quote]);
 
   // Adjust units
   const incrementUnits = () => {
@@ -500,14 +493,6 @@ const handleApplyCoupon = async () => {
                 <div className="flex justify-between text-emerald-600 bg-emerald-50 p-2 rounded text-[11px] font-bold">
                   <span>{pricingBreakdown.frequencyText}:</span>
                   <span>-${pricingBreakdown.discountAmount.toFixed(2)}</span>
-                </div>
-              )}
-
-              {/* Membership Discount */}
-              {pricingBreakdown.membershipDiscountAmount > 0 && (
-                <div className="flex justify-between text-brand bg-brand-light/60 p-2 rounded text-[11px] font-bold border border-brand/15">
-                  <span>{t("estimator.receipt.memberSavings", { plan: activeMembership, pct: (pricingBreakdown.memberDiscountRate * 100).toFixed(0) })}:</span>
-                  <span>-${pricingBreakdown.membershipDiscountAmount.toFixed(2)}</span>
                 </div>
               )}
 

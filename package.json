@@ -8,15 +8,12 @@
   ],
   "scripts": {
     "dev": "turbo dev",
-    "dev:web": "turbo dev --filter=@grenbee/web",
-    "dev:app": "turbo dev --filter=@grenbee/app",
     "build": "turbo build",
-    "build:web": "turbo build --filter=@grenbee/web",
-    "build:app": "turbo build --filter=@grenbee/app",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "admin:grant": "node ./scripts/grant-admin-role.mjs",
-    "rules:deploy": "node ./scripts/deploy-firestore-rules.mjs"
+    "rules:deploy": "node ./scripts/deploy-firestore-rules.mjs",
+    "seed:areas": "node ./scripts/seed-area-content.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.4",

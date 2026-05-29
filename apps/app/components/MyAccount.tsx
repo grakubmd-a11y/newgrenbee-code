@@ -88,7 +88,6 @@ interface MyAccountProps {
   currentUser: AppUser | null;
   onLogout: () => void;
   bookings: Booking[];
-  activeMembership?: string | null;
   onSelectTab: (tabId: string) => void;
   onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   onReschedule?: (bookingId: string, newDate: string, newSlot: string) => void;
@@ -154,7 +153,6 @@ export default function MyAccount({
   currentUser,
   onLogout,
   bookings,
-  activeMembership,
   onSelectTab,
   onUpdateProfile,
   onReschedule,
@@ -1034,8 +1032,8 @@ export default function MyAccount({
           </div>
           <div className="bg-white border border-zinc-200/60 px-4 py-3 rounded-xl">
             <span className="text-[10px] text-zinc-400 uppercase font-extrabold tracking-wider block">Membresía</span>
-            <span className="text-sm font-extrabold text-brand mt-0.5 block truncate">
-              {activeMembership ? `★ ${activeMembership === "premium" ? "Gold VIP" : "Standard"}` : "Sin plan activo"}
+            <span className="text-sm font-extrabold text-brand mt-0.5 block truncate cursor-pointer" onClick={() => onSelectTab("membership")}>
+              Ver planes →
             </span>
           </div>
         </div>
