@@ -8,7 +8,6 @@ export default function TermsPage() {
       metaDescription="Read Grenbee's Terms of Service. Understand your rights and obligations when booking professional home services through our platform."
       lastUpdated="May 2026"
       intro="By using Grenbee's platform, website, or mobile experience, you agree to the following terms. Please read them carefully before booking any service."
-      disclaimer="This document is a placeholder intended to illustrate structure. It must be reviewed and finalized by a licensed attorney before processing real payments or entering legally binding service agreements."
       sections={[
         {
           title: "Acceptance of Terms",

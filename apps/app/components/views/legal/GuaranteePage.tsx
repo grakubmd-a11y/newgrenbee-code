@@ -10,7 +10,6 @@ export default function GuaranteePage() {
       metaDescription="Grenbee backs every service with a 100% satisfaction guarantee. Not happy? We'll return to redo the work or issue a refund — no hassle."
       lastUpdated="May 2026"
       intro="We stand behind every service we deliver. If you're not satisfied with the quality of the work, we'll make it right — no hassle, no runaround."
-      disclaimer="This document is a placeholder and must be reviewed by a licensed attorney before going live."
       sections={[
         {
           title: "Our Promise",

@@ -311,6 +311,18 @@
         {
           "q": "How do recurring plans work?",
           "a": "Choose weekly, bi-weekly, or monthly frequency when booking. You'll get a discount on every visit and can pause, reschedule, or cancel any time — no lock-in contracts."
+        },
+        {
+          "q": "When does my card get charged?",
+          "a": "We authorize your card when you book to hold the slot — but the charge is only captured after your technician completes the job and closes out. If anything goes wrong, nothing is captured."
+        },
+        {
+          "q": "What if my lawn is overgrown?",
+          "a": "If your lawn hasn't been maintained recently or is significantly overgrown, a one-time First Cut Reset fee applies. This covers the extra time and equipment needed to bring it to a manageable baseline. Regular pricing starts from the second visit."
+        },
+        {
+          "q": "Do you bag grass clippings?",
+          "a": "Standard mowing includes blowing clippings off driveways and walkways. Bagging is available as an add-on. Select it in the quote tool when booking."
         }
       ]
     },
@@ -321,9 +333,8 @@
       "serviceLinks": [
         "Lawn Care",
         "House Cleaning",
-        "Pressure Washing",
         "TV Installation",
-        "Furniture Assembly"
+        "Vacation Rental Turnover"
       ],
       "miamidadeTitle": "Utah County",
       "browardTitle": "Salt Lake County",
@@ -481,7 +492,7 @@
     "heading": "Frequently Asked Questions",
     "subheading": "Everything you need to know about booking and using Grenbee.",
     "stillQuestion": "Still have a question?",
-    "teamAvailable": "Our team is available Mon–Sat 8 AM – 7 PM EST.",
+    "teamAvailable": "Our team is available Mon–Sat 8 AM – 6 PM MT.",
     "contactUs": "Contact Us",
     "categories": [
       {
@@ -641,7 +652,7 @@
     "email": "Email",
     "phone": "Phone",
     "hours": "Hours",
-    "hoursValue": "Mon–Sat 8 AM – 7 PM EST",
+    "hoursValue": "Mon–Sat 8 AM – 6 PM MT",
     "commonQuestions": "Common Questions",
     "commonQuestionsList": [
       "I need a custom quote for a large property",

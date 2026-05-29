@@ -10,7 +10,6 @@ export default function PaymentPolicyPage() {
       metaDescription="Grenbee uses Stripe for secure payments. Your card is only charged after service completion. Learn about accepted payment methods, refunds, and disputes."
       lastUpdated="May 2026"
       intro="Grenbee uses Stripe to securely process all transactions. This policy explains how and when charges are applied, and what happens in case of disputes."
-      disclaimer="This document is a placeholder and must be reviewed by a licensed attorney and your Stripe account manager before processing real transactions."
       sections={[
         {
           title: "Authorization and Capture",

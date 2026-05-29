@@ -311,6 +311,18 @@
         {
           "q": "¿Cómo funcionan los planes recurrentes?",
           "a": "Elige frecuencia semanal, quincenal o mensual al reservar. Obtendrás un descuento en cada visita y podrás pausar, reprogramar o cancelar en cualquier momento — sin contratos de permanencia."
+        },
+        {
+          "q": "¿Cuándo se cobra a mi tarjeta?",
+          "a": "Autorizamos tu tarjeta al reservar para asegurar el turno, pero el cobro se realiza solo después de que el técnico complete el trabajo. Si algo sale mal, no se captura ningún cargo."
+        },
+        {
+          "q": "¿Qué pasa si mi césped está muy crecido?",
+          "a": "Si tu jardín no ha tenido mantenimiento reciente o está muy descuidado, se aplica una tarifa única de Primera Corte de Reset. Esto cubre el tiempo y equipo adicional para dejarlo en condición base. El precio regular comienza desde la segunda visita."
+        },
+        {
+          "q": "¿Recogen los recortes de césped?",
+          "a": "El servicio estándar incluye soplar los recortes de caminos y entradas. La recolección en bolsas está disponible como servicio adicional — selecciónalo en la herramienta de cotización al reservar."
         }
       ]
     },
@@ -321,9 +333,8 @@
       "serviceLinks": [
         "Cuidado del Césped",
         "Limpieza del Hogar",
-        "Lavado a Presión",
         "Instalación de TV",
-        "Ensamblaje de Muebles"
+        "Limpieza para Airbnb/VRBO"
       ],
       "miamidadeTitle": "Utah County",
       "browardTitle": "Salt Lake County",
@@ -641,7 +652,7 @@
     "email": "Correo",
     "phone": "Teléfono",
     "hours": "Horario",
-    "hoursValue": "Lun–Sáb 8 AM – 7 PM EST",
+    "hoursValue": "Lun–Sáb 8 AM – 6 PM MT",
     "commonQuestions": "Preguntas Comunes",
     "commonQuestionsList": [
       "Necesito una cotización personalizada para una propiedad grande",

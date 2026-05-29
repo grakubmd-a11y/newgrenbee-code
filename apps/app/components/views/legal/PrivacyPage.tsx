@@ -8,7 +8,6 @@ export default function PrivacyPage() {
       metaDescription="Learn how Grenbee collects, uses, and protects your personal information. We use Stripe for secure payments and Firebase for data storage."
       lastUpdated="May 2026"
       intro="Grenbee is committed to protecting your personal information. This policy explains what data we collect, how we use it, and the choices you have."
-      disclaimer="This document is a placeholder and must be reviewed by a licensed attorney before going live with real payment processing or user data collection."
       sections={[
         {
           title: "Information We Collect",

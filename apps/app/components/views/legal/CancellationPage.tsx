@@ -10,7 +10,6 @@ export default function CancellationPage() {
       metaDescription="Grenbee's cancellation and rescheduling policy. Free cancellation up to 24 hours before your appointment. Learn about refunds and rebooking fees."
       lastUpdated="May 2026"
       intro="We understand that life happens. Our cancellation policy is designed to be fair to both customers and the service professionals who block time for your appointment."
-      disclaimer="This document is a placeholder and must be reviewed by a licensed attorney before going live with real payment processing."
       sections={[
         {
           title: "Free Cancellation Window",
