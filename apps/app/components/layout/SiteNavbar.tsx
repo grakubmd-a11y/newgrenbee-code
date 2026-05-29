@@ -72,7 +72,7 @@ export default function SiteNavbar() {
 
   const base = `/${country ?? "us"}`;
   const NAV_LINKS = [
-    { label: t("siteNav.services"), href: "/#services" },
+    { label: t("siteNav.services"), href: `${base}/services` },
     { label: t("siteNav.plans"), href: `${base}/plans` },
     { label: t("siteNav.areas"), href: `${base}/areas` },
     { label: t("siteNav.forHosts"), href: `${base}/hosts` },
