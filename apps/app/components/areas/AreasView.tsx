@@ -11,6 +11,7 @@ import { MapPin, CheckCircle2, Clock, Bell, ArrowRight } from "lucide-react";
 import { getAllAreas } from "@/lib/areaContent.server";
 import { COMING_SOON_AREAS } from "@/lib/launchAreas";
 import { AREA_COPY, type Lang } from "@/lib/areaCopy";
+import PageShell from "@/components/layout/PageShell";
 import WaitlistForm from "./WaitlistForm";
 
 export default async function AreasView({ lang }: { lang: Lang }) {
@@ -19,6 +20,7 @@ export default async function AreasView({ lang }: { lang: Lang }) {
   const active = await getAllAreas();
 
   return (
+    <PageShell>
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{copy.heading}</h1>
@@ -91,5 +93,6 @@ export default async function AreasView({ lang }: { lang: Lang }) {
         />
       </div>
     </div>
+    </PageShell>
   );
 }

@@ -11,6 +11,7 @@ export const SERVICE_PRICING = {
   "furniture-assembly": { basePrice: 60,  pricePerUnit: 25, unitCalc: "standard" },
   "pressure-washing":   { basePrice: 95,  pricePerUnit: 30, unitCalc: "standard" },
   "wall-mounting":      { basePrice: 55,  pricePerUnit: 20, unitCalc: "standard" },
+  "vacation-rental-turnover": { basePrice: 89, pricePerUnit: 0, unitCalc: "standard" },
 };
 
 /**
@@ -42,6 +43,13 @@ export const ALLOWED_MODIFIERS = {
   "wall-mounting": {
     wallSurface: new Set([0, 20, 30]),
     itemWeight:  new Set([0, 15, 30]),
+  },
+  "vacation-rental-turnover": {
+    bedrooms:        new Set([0, 30, 55, 85, 115]),
+    bathrooms:       new Set([0, 20, 35, 50]),
+    restock:         new Set([0, 20]),
+    laundry:         new Set([0, 30]),
+    expressTurnover: new Set([0, 45]),
   },
 };
 

@@ -75,6 +75,7 @@ export default function SiteNavbar() {
     { label: t("siteNav.services"), href: "/#services" },
     { label: t("siteNav.plans"), href: "/plans" },
     { label: t("siteNav.areas"), href: "/areas" },
+    { label: t("siteNav.forHosts"), href: "/hosts" },
     { label: t("siteNav.faq"), href: "/faq" },
     { label: t("siteNav.contact"), href: "/contact" },
   ];

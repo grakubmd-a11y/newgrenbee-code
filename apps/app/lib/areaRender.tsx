@@ -9,6 +9,7 @@
  */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import PageShell from "@/components/layout/PageShell";
 import AreaLandingView from "@/components/areas/AreaLandingView";
 import { AREA_COPY, type Lang } from "@/lib/areaCopy";
 import { getAllAreaSlugs, getAreaBySlug, getBusinessPhone } from "@/lib/areaContent.server";
@@ -46,7 +47,11 @@ export async function AreaPage(areaSlug: string, lang: Lang) {
   const content = await getAreaBySlug(areaSlug);
   if (!content || !content.active) notFound();
   const phone = await getBusinessPhone();
-  return <AreaLandingView content={content} copy={AREA_COPY[lang]} lang={lang} phone={phone} />;
+  return (
+    <PageShell>
+      <AreaLandingView content={content} copy={AREA_COPY[lang]} lang={lang} phone={phone} />
+    </PageShell>
+  );
 }
 
 // ── City + service route ────────────────────────────────────────────────────
@@ -84,6 +89,8 @@ export async function ServicePage(areaSlug: string, serviceSlug: string, lang: L
   if (!service) notFound();
   const phone = await getBusinessPhone();
   return (
-    <AreaLandingView content={content} copy={AREA_COPY[lang]} lang={lang} phone={phone} service={service} />
+    <PageShell>
+      <AreaLandingView content={content} copy={AREA_COPY[lang]} lang={lang} phone={phone} service={service} />
+    </PageShell>
   );
 }

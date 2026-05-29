@@ -462,6 +462,80 @@ const SERVICES_DATA = [
       },
     ],
   },
+  {
+    id: "vacation-rental-turnover",
+    name: "Vacation Rental Turnover",
+    iconName: "KeyRound",
+    tagline: "Guest-ready turnovers between stays — reliable, documented, on schedule.",
+    description: "Professional Airbnb/VRBO turnover cleaning timed to your check-in/check-out. Every turnover includes before/after photo documentation, guest-ready staging, full sanitizing, trash removal, and a supplies check — so the property is always ready for the next guest.",
+    basePrice: 89,
+    unitName: "turnover",
+    unitLabel: "Turnover",
+    pricePerUnit: 0,
+    minUnits: 1,
+    maxUnits: 1,
+    stepUnits: 1,
+    estimatedMinutesPerUnit: 120,
+    popularUnitValue: 1,
+    includedSpecs: [
+      "Before & after photo documentation for your records",
+      "Guest-ready staging — beds made, towels set, surfaces reset",
+      "Full sanitizing of kitchen and bathrooms",
+      "Vacuum, sweep, and mop all floors",
+      "Trash & recycling removal, fresh liners",
+      "Supplies check (soap, paper, essentials) so you're never caught short",
+    ],
+    factors: [
+      {
+        name: "bedrooms",
+        label: "Bedrooms",
+        displayType: "stepper",
+        options: [
+          { label: "Studio", priceModifier: 0 },
+          { label: "1 Bedroom", priceModifier: 0 },
+          { label: "2 Bedrooms", priceModifier: 30 },
+          { label: "3 Bedrooms", priceModifier: 55 },
+          { label: "4 Bedrooms", priceModifier: 85 },
+          { label: "5+ Bedrooms", priceModifier: 115 },
+        ],
+      },
+      {
+        name: "bathrooms",
+        label: "Bathrooms",
+        displayType: "stepper",
+        options: [
+          { label: "1 Bathroom", priceModifier: 0 },
+          { label: "2 Bathrooms", priceModifier: 20 },
+          { label: "3 Bathrooms", priceModifier: 35 },
+          { label: "4+ Bathrooms", priceModifier: 50 },
+        ],
+      },
+      {
+        name: "restock",
+        label: "Amenity Restocking",
+        options: [
+          { label: "No restocking", priceModifier: 0 },
+          { label: "Restock guest amenities — soap, paper, coffee (+$20)", priceModifier: 20 },
+        ],
+      },
+      {
+        name: "laundry",
+        label: "Linen & Laundry",
+        options: [
+          { label: "No laundry", priceModifier: 0 },
+          { label: "Wash & fold linens and towels on-site (+$30)", priceModifier: 30 },
+        ],
+      },
+      {
+        name: "expressTurnover",
+        label: "Turnaround Speed",
+        options: [
+          { label: "Standard scheduling", priceModifier: 0 },
+          { label: "Express turnover — under 4 hours notice (+$45)", priceModifier: 45 },
+        ],
+      },
+    ],
+  },
 ];
 
 // ── Init Firebase Admin ────────────────────────────────────────────────────

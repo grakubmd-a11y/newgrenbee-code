@@ -121,6 +121,7 @@
     "services": "Servicios",
     "plans": "Planes",
     "areas": "Áreas",
+    "forHosts": "Para Hosts",
     "faq": "FAQ",
     "contact": "Contacto",
     "getFreeQuote": "Cotización Gratis",
@@ -834,7 +835,8 @@
       "lawn-mowing": "* La tarifa se calcula por bloque de 1,000 pies cuadrados",
       "furniture-assembly": "* Selecciona el número de cajas de muebles por armar",
       "pressure-washing": "* Tarifa calculada por unidades de 500 pies cuadrados",
-      "wall-mounting": ""
+      "wall-mounting": "",
+      "vacation-rental-turnover": "* Precio según tamaño de la propiedad y extras — fotos incluidas"
     },
     "frequency": {
       "label": "Frecuencia del Servicio",

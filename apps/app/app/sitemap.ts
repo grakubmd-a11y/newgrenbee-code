@@ -5,7 +5,7 @@ const BASE = "https://grenbee.com";
 const SERVICE_SLUGS = ["house-cleaning", "lawn-mowing"];
 
 // Top-level marketing routes worth indexing.
-const STATIC_PATHS = ["", "/areas", "/plans", "/faq", "/contact"];
+const STATIC_PATHS = ["", "/areas", "/hosts", "/plans", "/faq", "/contact"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

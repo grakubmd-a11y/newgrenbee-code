@@ -14,7 +14,8 @@ interface SEOMeta {
 
 interface PageShellProps {
   children: React.ReactNode;
-  seo: SEOMeta;
+  /** Optional. Omit on routes that emit SEO via Next's generateMetadata (server-rendered pages). */
+  seo?: SEOMeta;
 }
 
 function toSlug(city: string) {
@@ -25,24 +26,28 @@ export default function PageShell({ children, seo }: PageShellProps) {
   const { t } = useTranslation();
   const { phone, email } = useSiteSettings();
   const canonicalUrl =
-    seo.canonical ??
+    seo?.canonical ??
     `https://grenbee.com${typeof window !== "undefined" ? window.location.pathname : ""}`;
 
   const footerServiceLinks = t("home.footer.serviceLinks", { returnObjects: true }) as string[];
 
   return (
     <>
-      {/* React 19 hoists these to <head> */}
-      <title>{seo.title}</title>
-      <meta name="description" content={seo.description} />
-      <link rel="canonical" href={canonicalUrl} />
-      <meta property="og:title" content={seo.title} />
-      <meta property="og:description" content={seo.description} />
-      <meta property="og:type" content="website" />
-      <meta property="og:url" content={canonicalUrl} />
-      <meta name="twitter:card" content="summary" />
-      <meta name="twitter:title" content={seo.title} />
-      <meta name="twitter:description" content={seo.description} />
+      {/* React 19 hoists these to <head>. Skipped when the route uses generateMetadata. */}
+      {seo && (
+        <>
+          <title>{seo.title}</title>
+          <meta name="description" content={seo.description} />
+          <link rel="canonical" href={canonicalUrl} />
+          <meta property="og:title" content={seo.title} />
+          <meta property="og:description" content={seo.description} />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content={canonicalUrl} />
+          <meta name="twitter:card" content="summary" />
+          <meta name="twitter:title" content={seo.title} />
+          <meta name="twitter:description" content={seo.description} />
+        </>
+      )}
 
       <div className="min-h-screen flex flex-col bg-white">
         <SiteNavbar />

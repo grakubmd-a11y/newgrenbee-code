@@ -121,6 +121,7 @@
     "services": "Services",
     "plans": "Plans",
     "areas": "Areas",
+    "forHosts": "For Hosts",
     "faq": "FAQ",
     "contact": "Contact",
     "getFreeQuote": "Get a Free Quote",
@@ -834,7 +835,8 @@
       "lawn-mowing": "* Rate is calculated per 1,000 sq ft block",
       "furniture-assembly": "* Select number of retail flat-pack boxes",
       "pressure-washing": "* Rate calculated per 500 sq ft area units",
-      "wall-mounting": ""
+      "wall-mounting": "",
+      "vacation-rental-turnover": "* Priced by property size & add-ons below — photos included"
     },
     "frequency": {
       "label": "Service Frequency",

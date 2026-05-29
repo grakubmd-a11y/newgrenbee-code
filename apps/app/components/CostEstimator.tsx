@@ -261,7 +261,8 @@ const handleApplyCoupon = async () => {
             </p>
           </div>
 
-          {/* Stepper Input or Slider depending on size */}
+          {/* Stepper Input or Slider depending on size — hidden for fixed-unit services (e.g. turnover) */}
+          {activeService.maxUnits > activeService.minUnits && (
           <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
@@ -312,6 +313,7 @@ const handleApplyCoupon = async () => {
               </button>
             </div>
           </div>
+          )}
 
           {/* Core Custom Factors */}
           <div className="space-y-4">
