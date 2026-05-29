@@ -23,7 +23,13 @@
     "typescript": "~5.8.2"
   },
   "dependencies": {
-    "firebase-admin": "^13.10.0"
+    "@grenbee/config": "^0.0.0",
+    "@grenbee/firebase": "^0.0.0",
+    "@grenbee/types": "^0.0.0",
+    "firebase-admin": "^13.10.0",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.6",
+    "react-i18next": "^17.0.8"
   },
   "packageManager": "npm@10.9.2"
 }
