@@ -343,10 +343,16 @@ export default function PlansPage() {
   const policyItems = t("plans.policies.items", { returnObjects: true }) as { q: string; a: string }[];
 
   useEffect(() => {
-    fetchMembershipPlans("cleaning").then((data) => {
-      setPlans(data);
-      setLoading(false);
-    });
+    const timeout = setTimeout(() => setLoading(false), 8000);
+    fetchMembershipPlans("cleaning")
+      .then((data) => {
+        setPlans(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        clearTimeout(timeout);
+        setLoading(false);
+      });
   }, []);
 
   const regularPlans = plans.filter(p => !p.byQuote);
@@ -415,6 +421,20 @@ export default function PlansPage() {
         {loading ? (
           <div className="flex justify-center py-20">
             <Icons.Loader2 size={28} className="animate-spin text-brand" />
+          </div>
+        ) : regularPlans.length === 0 ? (
+          <div className="text-center py-16 space-y-4">
+            <Icons.CalendarCheck size={40} className="text-brand mx-auto opacity-40" />
+            <h3 className="text-lg font-bold text-gray-700">{t("plans.noPlansTitle", "Plans Coming Soon")}</h3>
+            <p className="text-sm text-gray-500 max-w-sm mx-auto">
+              {t("plans.noPlansBody", "We're setting up our membership plans. In the meantime, book a one-time visit and we'll get you on the schedule.")}
+            </p>
+            <a
+              href="/#booking"
+              className="inline-block bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
+            >
+              {t("plans.bookOneTime", "Book a One-Time Visit")}
+            </a>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
