@@ -1,102 +1,114 @@
 # Agent Onboarding — grenbee-firebase-web
 
-> **Read this first. Every agent, every session, no exceptions.**
-> Whether you are Claude Code, Codex, Copilot, or any other model — this is your entry point.
+> **Lee esto primero. Cada agente, cada sesión, sin excepciones.**
+> Sea Claude Code, Codex, Copilot u otro modelo — este es tu punto de entrada.
 
 ---
 
-## What Is This Project
+## Qué es este proyecto
 
-**Grenbee** is a home-services booking platform (cleaning, lawn mowing, TV installation, etc.) built for production in Utah County.
+**Grenbee** es una plataforma de booking de servicios para el hogar (limpieza, jardinería, vacation rentals, etc.) construida para Utah County.
 
-Customers visit the marketing site, get a quote, book a cleaning via the app, pay via Stripe, and a technician is dispatched.
+Los clientes visitan el sitio, obtienen un presupuesto, reservan un servicio, pagan vía Stripe y se despacha un técnico. El sitio también tiene landing pages por ciudad para SEO.
 
 ---
 
-## Tech Stack (current)
+## Tech Stack (actual)
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, TypeScript, Next.js 15 (App Router) |
-| Styling | Tailwind CSS v4 (brand tokens: `bg-brand`, `text-brand`, `bg-brand-light`, `bg-brand-hover`) |
+| Frontend | React 19, TypeScript, Next.js 15.5 (App Router) |
+| Styling | Tailwind CSS v4 (tokens: `bg-brand`, `text-brand`, `bg-brand-light`) |
 | Icons | Lucide React |
-| Animation | Motion (Framer Motion v12) |
 | Database | Firebase Firestore (named DB: `ai-studio-590843c3-6656-4faa-a42c-fc98f2b5ecb1`) |
 | Auth | Firebase Auth — Google Sign-In + email/password |
-| Backend | Vercel Serverless Functions (`apps/app/api/*.js`, ES modules) |
+| Backend | Vercel Serverless Functions (`/api/*.js` en la **raíz del repo**) |
 | Server DB | Firebase Admin SDK (`FIREBASE_SERVICE_ACCOUNT_JSON` env var) |
-| Payments | Stripe — `capture_method: "manual"` (authorize at booking, capture after job done) |
+| Payments | Stripe — `capture_method: "manual"` (autorizar al reservar, capturar al completar) |
 | Email | Resend (`RESEND_API_KEY`) |
-| i18n | react-i18next — EN/ES, routing `/us/` and `/us/es/` |
-| Monorepo | Turborepo (`turbo.json` at root) |
-| Deploy | Vercel — two separate projects |
+| i18n | react-i18next — EN/ES, routing `/us/` y `/us/es/` |
+| Monorepo | Turborepo (`turbo.json` en raíz) |
+| Deploy | Vercel — **un solo proyecto** (`grenbee-app`) sirviendo `grenbee.com` |
 
 ---
 
-## Monorepo Structure
+## Estructura del monorepo
 
 ```
 /
+├── api/                          ← Vercel Serverless Functions (desplegadas en producción)
+│   ├── _pricing.js               ← FUENTE DE VERDAD de precios (server-authoritative)
+│   ├── _mailer.js
+│   ├── create-payment-intent.js
+│   ├── confirm-payment.js
+│   ├── stripe-webhook.js
+│   └── ...
+│
 ├── apps/
-│   ├── web/                ← @grenbee/web — Marketing site (grenbee.com)
-│   │   ├── app/            ← Next.js App Router pages
-│   │   │   ├── [country]/(en)/   ← English routes (/us/*, /cl/*)
-│   │   │   └── [country]/es/     ← Spanish routes (/us/es/*, /cl/es/*)
-│   │   ├── components/
-│   │   │   ├── views/      ← HomePage, AreasPage, FAQPage, ContactPage, PlansPage, legal pages
-│   │   │   └── layout/     ← SiteNavbar, PageShell, LegalPage
-│   │   └── index.css
-│   │
-│   └── app/                ← @grenbee/app — Booking/user/admin/staff app (app.grenbee.com / control-room.grenbee.com)
-│       ├── app/            ← Next.js App Router pages
-│       │   ├── (app)/      ← /book, /account, /bookings, /estimate
-│       │   ├── admin/      ← /admin (AdminRoute — requires admin/manager role)
-│       │   └── staff/      ← /staff (StaffRoute — requires staff role)
+│   └── app/                      ← @grenbee/app — App completa (marketing + booking + admin + staff)
+│       ├── app/                  ← Next.js App Router pages
+│       │   ├── [country]/(en)/   ← Rutas marketing EN: /us/plans, /us/areas, /us/hosts, etc.
+│       │   ├── [country]/es/     ← Rutas marketing ES: /us/es/plans, etc.
+│       │   ├── (app)/            ← /book, /account, /bookings (sin prefijo de país)
+│       │   ├── admin/            ← /admin (requiere rol admin/manager)
+│       │   ├── staff/            ← /staff (requiere rol staff)
+│       │   ├── sitemap.ts        ← Sitemap automático con city pages
+│       │   └── robots.ts         ← robots.txt
 │       ├── components/
-│       │   ├── PublicApp.tsx     ← main booking app shell
-│       │   ├── Navbar.tsx
-│       │   ├── BookingWizard.tsx
-│       │   ├── StripePaymentPanel.tsx
-│       │   ├── admin/      ← AdminRoute, AdminPanel, tabs
-│       │   └── staff/      ← StaffRoute, StaffPortal
-│       └── api/            ← Vercel Serverless Functions (Firebase Admin SDK)
-│           ├── _pricing.js       ← CANONICAL pricing engine (source of truth)
-│           ├── _mailer.js
-│           ├── create-payment-intent.js
-│           ├── confirm-payment.js
-│           ├── stripe-webhook.js
-│           └── ...
+│       │   ├── layout/           ← SiteNavbar, PageShell
+│       │   ├── views/            ← PlansPage, FAQPage, ContactPage, legal pages
+│       │   ├── areas/            ← AreaLandingView (SSG), AreasView (SSG), WaitlistForm
+│       │   └── hosts/            ← HostsLandingView (SSG)
+│       ├── lib/
+│       │   ├── launchAreas.ts         ← Datos build-time para 10 ciudades de Utah
+│       │   ├── areaContent.server.ts  ← Firestore Admin fetchers para SSG
+│       │   ├── areaRender.tsx         ← Helpers render SSG: AreaPage, ServicePage
+│       │   ├── areaCopy.ts            ← Diccionario estático EN/ES para area server components
+│       │   └── hostsCopy.ts           ← Diccionario estático EN/ES para hosts page
+│       └── middleware.ts         ← Domain routing: staff.grenbee.com → /staff, etc.
 │
 ├── packages/
-│   ├── types/              ← @grenbee/types — all TypeScript interfaces
-│   ├── firebase/           ← @grenbee/firebase — Firebase client SDK + services + contexts
-│   │   ├── index.ts        ← db, auth, storage exports
-│   │   ├── services/       ← firebaseService, pricingService, recurringPlanService
-│   │   └── contexts/       ← SiteSettingsContext
-│   ├── i18n/               ← @grenbee/i18n — react-i18next config + EN/ES locales
-│   │   └── locales/        ← en.json (351 keys), es.json (351 keys)
-│   └── config/             ← @grenbee/config — static data (SERVICES_DATA, INITIAL_BOOKINGS, etc.)
+│   ├── types/       ← @grenbee/types — todas las interfaces TypeScript
+│   ├── firebase/    ← @grenbee/firebase — Firebase client SDK + services + contexts
+│   │   ├── index.ts
+│   │   ├── services/ ← firebaseService, pricingService, recurringPlanService
+│   │   └── contexts/ ← SiteSettingsContext
+│   ├── i18n/        ← @grenbee/i18n — config react-i18next + locales EN/ES
+│   │   └── locales/ ← en.json, es.json
+│   └── config/      ← @grenbee/config — SERVICES_DATA, precios UI
 │
-├── docs/                   ← agent documentation (this folder)
-├── scripts/                ← seed scripts, admin grant, firestore rules deploy
-├── CLAUDE.md               ← project rules for AI agents (i18n, security, Stripe)
+├── scripts/
+│   ├── seed-services.mjs          ← Seed Firestore con servicios
+│   ├── seed-area-content.mjs      ← Seed Firestore con contenido de ciudades
+│   └── check-pricing-sync.ts      ← Guard: verifica que precios cliente/servidor estén sincronizados
+│
+├── docs/            ← documentación para agentes (esta carpeta)
+├── CLAUDE.md        ← reglas del proyecto para agentes IA
+├── AGENTS.md        ← notas de integración backend y multi-agente
+├── DEPLOY.md        ← guía de deploy y checklist pre-producción
 └── turbo.json
 ```
+
+> **NOTA IMPORTANTE**: `apps/web/` fue eliminado. Antes había dos apps separadas (`apps/web` para marketing, `apps/app` para booking). Ahora todo vive en `apps/app` y sirve desde `grenbee.com`.
+>
+> **NOTA IMPORTANTE**: `apps/app/api/` también fue eliminado. Era una copia muerta. Las funciones serverless viven SOLO en `/api/` (raíz del repo).
 
 ---
 
 ## Vercel Projects
 
-| Project | Domain | Root Directory | Purpose |
+| Proyecto | Dominio | Root Dir | Propósito |
 |---|---|---|---|
-| `grenbee-web` | grenbee.com | `apps/web` | Marketing site |
-| `grenbee-app` | app.grenbee.com, control-room.grenbee.com | `apps/app` | Booking app + admin + staff |
+| `grenbee-app` | grenbee.com | `apps/app` | App completa: marketing + booking + admin + staff |
+
+### Subdominios (mismo proyecto, mismo deploy)
+- `staff.grenbee.com` → `/staff` (gated por rol staff)
+- `control-room.grenbee.com` → `/admin` (gated por rol admin/manager)
+- `app.grenbee.com` → redirect a `grenbee.com` (configurado en Vercel Dashboard, no en código)
 
 ---
 
-## Shared Packages — Import Conventions
-
-All apps import from packages using the `@grenbee/*` namespace:
+## Imports de paquetes compartidos
 
 ```ts
 import { Booking, Service } from "@grenbee/types";
@@ -107,108 +119,123 @@ import i18n from "@grenbee/i18n";
 import { SERVICES_DATA } from "@grenbee/config";
 ```
 
-Packages export TypeScript source directly — no build step. Consumed via `transpilePackages` in each app's `next.config.ts`.
+Los paquetes exportan TypeScript source directamente (sin build step). `transpilePackages` en `apps/app/next.config.ts` lo maneja.
 
-**NEVER** use relative `../../src/shared/` imports — they no longer exist. Always use `@grenbee/*`.
+**NUNCA** usar imports relativos `../../packages/...` — siempre usar `@grenbee/*`.
 
 ---
 
-## Critical Rules — Read Before Touching Anything
+## Reglas Críticas — Lee Antes de Tocar Cualquier Cosa
 
-### i18n (MANDATORY)
-- **NEVER** hardcode user-visible strings in JSX. Always use `t("key")` from `useTranslation()`.
-- Add new keys to BOTH `packages/i18n/locales/en.json` AND `packages/i18n/locales/es.json`.
-- Key convention: `pageName.section.label` (e.g. `home.hero.title`, `plans.basic.name`).
-- Full rules in `CLAUDE.md`.
+### i18n (OBLIGATORIO)
+- **NUNCA** hardcodees strings visibles al usuario en JSX.
+- Componentes cliente: `t("key")` de `useTranslation()`.
+- Server components: usar diccionarios estáticos en `lib/areaCopy.ts` / `lib/hostsCopy.ts` — react-i18next NO funciona en server components.
+- Agregar claves a AMBOS `packages/i18n/locales/en.json` Y `es.json`.
 
-### Pricing (SECURITY)
-- **NEVER** accept `amount` from the client. Server recalculates everything.
-- `apps/app/api/_pricing.js` is the single source of truth for all prices.
-- Any modifier not in `ALLOWED_MODIFIERS` throws 400 — intentional anti-tamper.
+### Routing con prefijo de país (OBLIGATORIO)
+- TODOS los links de marketing deben ir a `/${country}/plans`, `/${country}/areas`, etc.
+- Usar `useParams()` para obtener `country`, construir `const base = \`/${country ?? "us"}\``.
+- Las rutas de app (`/book`, `/account`, `/bookings`) NO llevan prefijo de país.
+
+### Precios (SEGURIDAD)
+- **NUNCA** aceptar `amount` del cliente. El servidor recalcula todo.
+- `/api/_pricing.js` (raíz) es la fuente de verdad del servidor.
+- `packages/config/index.ts` (`SERVICES_DATA`) es la fuente de verdad del cliente/UI.
+- Deben estar sincronizados: corre `npm run check:pricing`.
+- `ALLOWED_MODIFIERS` en `api/_pricing.js` es un allowlist de seguridad anti-tamper.
 
 ### Stripe
-- `capture_method: "manual"` — authorized at booking, captured after job completion.
-- **Do not change to `automatic`** without explicit user approval.
-- `confirm-payment.js` handles capture + coupon usage recording.
+- `capture_method: "manual"` — autorizar al booking, capturar después de completar el trabajo.
+- **No cambiar a `automatic`** sin aprobación explícita del usuario.
 
 ### Firebase
-- **Client SDK**: imported from `@grenbee/firebase` — exports `db`, `auth`, `storage`.
-- **Admin SDK**: each `api/` file initializes its own instance — check `admin.apps.length` before `initializeApp`.
-- **CRITICAL**: Named Firestore DB ID must always be passed: `getFirestore(app, "ai-studio-590843c3-6656-4faa-a42c-fc98f2b5ecb1")`. Omitting it silently targets the wrong (default) database.
-- Never mix client SDK and Admin SDK imports in the same file.
+- **Client SDK**: importar desde `@grenbee/firebase`.
+- **Admin SDK**: cada archivo `api/*.js` inicializa su propia instancia — siempre verificar `admin.apps.length` antes de `initializeApp`.
+- **CRÍTICO**: El ID de la DB de Firestore es personalizado, siempre pasarlo: `getFirestore(app, "ai-studio-590843c3-6656-4faa-a42c-fc98f2b5ecb1")`.
+- Nunca mezclar client SDK y Admin SDK en el mismo archivo.
 
-### Environment Variables
-- Client-side vars: `NEXT_PUBLIC_*` prefix (replaces old `VITE_*` from the Vite era).
-- Server-side (api/): no prefix needed.
-- **Never** use `import.meta.env.VITE_*` — the project is no longer on Vite.
+### Variables de entorno
+- Client-side: prefijo `NEXT_PUBLIC_*` (reemplaza el viejo `VITE_*` de la era Vite).
+- Server-side (api/): sin prefijo.
+- **Nunca** usar `import.meta.env.VITE_*` — el proyecto ya no usa Vite.
 
 ### TypeScript
-- Run `npx tsc --noEmit` from the app directory before reporting a task complete.
-- Zero type errors is a hard requirement.
-- `strictNullChecks: false` in both apps' tsconfig.json (intentional).
+- Correr `npx tsc --noEmit -p apps/app/tsconfig.json` antes de reportar una tarea completa.
+- Cero errores de tipo es un requisito.
+
+### Dependencias
+- `stripe` y `resend` DEBEN estar en el `package.json` raíz (no en `apps/app/package.json`). Son usadas por las Vercel Functions en `/api/`. Si no están ahí, producción da 500 "Cannot find module".
 
 ---
 
-## Current State of the Project
+## Estado Actual del Proyecto
 
-### Completed
-- [x] Turborepo monorepo — `apps/web` + `apps/app` + 4 shared packages
-- [x] Vite → Next.js 15 App Router migration (complete)
-- [x] i18n EN/ES — 351 keys, routing `/us/` + `/us/es/`
-- [x] Full booking wizard (3 steps: date/slot → details → payment)
-- [x] Server-side price validation (`api/_pricing.js` + `api/create-payment-intent.js`)
-- [x] Slot availability check (`api/availability.js`, max 3 concurrent per slot)
-- [x] Same-day fee (+$35) and 2-technician fee (+$50) — computed client + verified server
+### Completado
+- [x] Turborepo monorepo — `apps/app` + 4 paquetes compartidos (apps/web eliminado)
+- [x] Next.js 15.5 App Router — SSG para city pages, ISR para contenido dinámico
+- [x] i18n EN/ES — routing `/us/` + `/us/es/`
+- [x] Full booking wizard (3 pasos: fecha/slot → detalles → pago)
+- [x] Validación de precios server-side (`api/_pricing.js` + `api/create-payment-intent.js`)
+- [x] Slot availability check (`api/availability.js`)
+- [x] Same-day fee (+$35) y 2-technician fee (+$50)
 - [x] Stripe embedded checkout (PaymentElement, `capture_method: manual`)
-- [x] Coupon system (Firestore-validated, server-authoritative)
-- [x] Admin panel (`/admin`) — Google Sign-In, role check (admin/manager)
-- [x] Staff portal (`/staff`) — role-gated
-- [x] Membership tiers — Basic Care / Home Care / Premium Care (cleaning-focused, home-size pricing)
-- [x] Vercel: `grenbee-web` → `apps/web`, `grenbee-app` → `apps/app`
+- [x] Sistema de cupones (validado server-side, Firestore-authoritative)
+- [x] Admin panel (`/admin`)
+- [x] Staff portal (`/staff`)
+- [x] Planes de membresía (Firestore-based, visit-included — el antiguo "discount club" fue eliminado)
+- [x] Servicio Vacation Rental Turnover + página "For Hosts" (`/us/hosts`)
+- [x] City landing pages para 10 ciudades de Utah (SSG con `generateStaticParams`)
+- [x] Hub de áreas (`/us/areas`) con WaitlistForm
+- [x] Sitemap + robots.txt automáticos
+- [x] Guard de sincronía de precios (`npm run check:pricing`)
+- [x] Footer y navbar con links correctos (prefijo `/${country}`)
+- [x] Dominio único `grenbee.com` (antes había dos apps separadas)
 
-### Pending / Known Issues
-- [ ] Seed cleaning membership plans in Firestore: `node scripts/seed-cleaning-plans.mjs --serviceAccount="path/to/key.json"`
-- [ ] `control-room.grenbee.com` needs to be added to Firebase Auth → Authorized Domains
-- [ ] OAuth client "Grenbee" needs `control-room.grenbee.com` in authorized JS origins + redirect URIs
-- See `docs/AGENT_TASK_REGISTRY.md` for active tasks.
+### Pendiente
+- [ ] Redirect `app.grenbee.com` → `grenbee.com`: configurar en Vercel Dashboard → Domains → `app.grenbee.com` → Redirect, 308
+- [ ] Stripe live mode: cambiar `STRIPE_SECRET_KEY` de `sk_test_...` a `sk_live_...` en Vercel env vars
+- [ ] Smoke test del flujo completo de booking end-to-end
+- [ ] Seed de planes de membresía en Firestore: `node scripts/seed-services.mjs`
 
 ---
 
-## Dev Commands
+## Comandos de desarrollo
 
 ```bash
-npm run dev:web      # apps/web on port 3000
-npm run dev:app      # apps/app on port 3001
-npm run build        # build both apps via Turborepo
-npm run typecheck    # tsc --noEmit on both apps
+npm run dev          # apps/app en puerto 3000/3001
+npm run build        # build via Turborepo
+npm run typecheck    # tsc --noEmit
+npm run check:pricing # verifica sincronía de precios cliente/servidor
+node scripts/seed-services.mjs        # seed servicios en Firestore
+node scripts/seed-area-content.mjs    # seed contenido de ciudades en Firestore
 ```
 
 ---
 
-## Before You Start — Determine Your Role First
+## Antes de Empezar — Define tu Rol
 
-### Did you receive a raw request from the user (not a task from the registry)?
-→ You are the **ORCHESTRATOR**. Read `docs/AGENT_SYSTEM.md` → ORCHESTRATOR section. Decompose the request into tasks, write them into `docs/AGENT_TASK_REGISTRY.md`, then coordinate execution.
+### ¿Recibiste una petición directa del usuario?
+→ Eres el **ORCHESTRATOR**. Lee `docs/AGENT_SYSTEM.md` → sección ORCHESTRATOR.
 
-### Did you receive a specific task ID (e.g. "work on TASK-007")?
-→ Open `docs/AGENT_TASK_REGISTRY.md`, find the task, read the `Role` field. That is your role. Follow the rules for that role in `docs/AGENT_SYSTEM.md`.
+### ¿Recibiste un Task ID específico (ej. "trabaja en TASK-007")?
+→ Abre `docs/AGENT_TASK_REGISTRY.md`, encuentra la tarea, lee el campo `Role`.
 
-### In all cases, before writing any code:
-1. Read this file (done ✓)
-2. Read `docs/AGENT_KNOWLEDGE.md` — accumulated learnings from all previous agents
-3. Read `docs/AGENT_SYSTEM.md` — rules for your role
-4. Read `docs/AGENT_TASK_REGISTRY.md` — active tasks and file ownership map
-5. Confirm your file ownership area does not overlap with any `IN_PROGRESS` task
-6. Set your task to `IN_PROGRESS` in the registry before writing any code
-7. When done: run `npx tsc --noEmit` from the app directory, report in the standard format, set status to `REVIEW`
+### En todos los casos, antes de escribir código:
+1. Lee este archivo (✓ hecho)
+2. Lee `docs/AGENT_KNOWLEDGE.md` — lecciones acumuladas
+3. Lee `docs/AGENT_SYSTEM.md` — reglas para tu rol
+4. Lee `docs/AGENT_TASK_REGISTRY.md` — tareas activas y ownership de archivos
+5. Confirma que tu área no se solapa con ninguna tarea `IN_PROGRESS`
+6. Cambia el estado de tu tarea a `IN_PROGRESS` antes de escribir código
+7. Al terminar: corre `npx tsc --noEmit`, reporta en formato estándar, cambia status a `REVIEW`
 
-### When you finish any task:
-- If you discovered something non-obvious that would have saved you time → add it to `docs/AGENT_KNOWLEDGE.md`
-- If an existing entry in `AGENT_KNOWLEDGE.md` is now wrong or outdated → fix or delete it
-- One entry max per finding. No summaries of what you did — that belongs in the git commit.
+### Al terminar cualquier tarea:
+- Si descubriste algo no obvio que te hubiera ahorrado tiempo → agrégalo a `docs/AGENT_KNOWLEDGE.md`
+- Si una entrada en `AGENT_KNOWLEDGE.md` ya no es verdad → corrígela o elimínala
 
 ---
 
-## Where to Ask for Help
+## Dónde pedir ayuda
 
-If something is unclear, blocked, or conflicts with another task — stop and report to the Orchestrator before proceeding. Do not guess on security, pricing, or Stripe behavior.
+Si algo no está claro, está bloqueado, o conflicto con otra tarea — para y reporta al Orchestrator antes de continuar. No adivines en seguridad, pricing o comportamiento de Stripe.

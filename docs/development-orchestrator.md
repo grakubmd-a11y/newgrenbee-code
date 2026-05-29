@@ -16,17 +16,15 @@ User task
 
 ## Model Budgeting
 
-- Use `gpt-5.5` with high reasoning for complex or critical tasks:
-  - architecture decisions that span `api/`, `src/`, auth/payments, or deployment;
-  - Stripe/payment flow integrity, webhook semantics, coupon accounting;
-  - security/privacy changes;
-  - large refactors or hard-to-reproduce bugs.
-- Use smaller models for cheaper work:
-  - Explorer/Test: `gpt-5.4-mini` (low/medium)
-  - Builder: `gpt-5.3-codex` (medium) or `gpt-5.4-mini` for simple edits
-  - Reviewer: `gpt-5.4-mini` for normal diffs; escalate to `gpt-5.5` for critical review
-
-Avoid `gpt-5.5` high for routine file lookup, basic tests, or narrow mechanical edits.
+- Usar modelos más capaces (Claude Opus) para tareas complejas o críticas:
+  - Decisiones de arquitectura que abarcan `api/`, auth/payments, o deployment
+  - Integridad del flujo Stripe/payment, semántica de webhooks, contabilidad de cupones
+  - Cambios de seguridad/privacidad
+  - Refactors grandes o bugs difíciles de reproducir
+- Usar modelos más rápidos (Claude Haiku/Sonnet) para:
+  - Explorer/Test: lecturas, búsquedas, grep, validaciones
+  - Builder: ediciones mecánicas o bien acotadas
+  - Reviewer: diffs normales (escalar a Opus para review crítico)
 
 ## Delegation Rules
 

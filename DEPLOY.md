@@ -1,214 +1,205 @@
 # Deployment Guide — grenbee-firebase-web
 
-## Prerequisites
+## Stack de Deploy
 
-- Node.js 18+
-- Firebase CLI: `npm install -g firebase-tools`
-- Vercel CLI: `npm install -g vercel`
-- Access to:
-  - Firebase Console (servicios-maps project)
-  - Vercel Dashboard
-  - Stripe Dashboard (test + live)
-  - Resend Dashboard
+- **Un solo proyecto Vercel** (`grenbee-app`) sirviendo `grenbee.com`
+- **Un solo proyecto Firebase** (`servicios-maps`) para Firestore + Auth
+- **Funciones serverless** en `/api/` (raíz del repo) — Vercel las detecta automáticamente
+- **No hay `apps/web`** — fue eliminado. Todo está en `apps/app`.
 
 ---
 
 ## 1. Firebase Projects
 
-### Current projects
-| Alias       | Firebase Project   | Purpose              |
-|-------------|-------------------|----------------------|
-| `default`   | `servicios-maps`  | Development / current |
-| `staging`   | `grenbee-staging` | Pre-production QA     |
-| `production`| `servicios-maps`  | Production (same project for now) |
+### Proyectos actuales
+| Alias | Firebase Project | Propósito |
+|---|---|---|
+| `default` | `servicios-maps` | Desarrollo + producción (mismo proyecto por ahora) |
 
-### Create staging project (one-time)
+### Deploy de reglas de Firestore
 ```bash
-# Create grenbee-staging in Firebase Console, then:
-firebase use --add   # select grenbee-staging, alias: staging
-```
-
-### Deploy Firestore rules
-```bash
-firebase use staging
 firebase deploy --only firestore:rules
-
-firebase use production
-firebase deploy --only firestore:rules
-```
-
-### Deploy Storage rules
-```bash
 firebase deploy --only storage
-```
-
-### Deploy Firestore indexes (if any new composite indexes)
-```bash
 firebase deploy --only firestore:indexes
 ```
 
 ---
 
-## 2. Environment Variables
+## 2. Variables de Entorno
 
-Copy `.env.example` → `.env.local` for local dev (never commit).
+Configurar en **Vercel Dashboard → Project → Settings → Environment Variables**.
 
-### Required variables (set in Vercel Dashboard per environment)
+| Variable | Dev | Production |
+|---|---|---|
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` | `pk_live_...` |
+| `STRIPE_SECRET_KEY` | `sk_test_...` | `sk_live_...` |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | `whsec_...` |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | service account JSON | service account JSON |
+| `RESEND_API_KEY` | `re_...` | `re_...` |
+| `NOTIFY_FROM` | `test@grenbee.com` | `hello@grenbee.com` |
+| `CRON_SECRET` | cualquier hex 32 chars | único y secreto |
+| `APP_URL` | `http://localhost:3000` | `https://grenbee.com` |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | browser key | browser key |
+| `GOOGLE_MAPS_API_KEY` | server key | server key |
+| `NEXT_PUBLIC_FIREBASE_*` | config del cliente | config del cliente |
 
-| Variable | Dev | Staging | Production |
-|---|---|---|---|
-| `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` | `pk_test_...` | `pk_live_...` |
-| `STRIPE_SECRET_KEY` | `sk_test_...` | `sk_test_...` | `sk_live_...` |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | `whsec_...` | `whsec_...` |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | staging SA | staging SA | prod SA |
-| `RESEND_API_KEY` | `re_...` | `re_...` | `re_...` |
-| `NOTIFY_FROM` | `test@grenbee.com` | `test@grenbee.com` | `hello@grenbee.com` |
-| `CRON_SECRET` | any 32-char hex | unique secret | unique secret |
-| `APP_URL` | `http://localhost:5173` | `https://staging.grenbee.com` | `https://grenbee.com` |
-| `VITE_GOOGLE_MAPS_API_KEY` | browser key | browser key | browser key |
-| `GOOGLE_MAPS_API_KEY` | server key | server key | server key |
-
-### Generate CRON_SECRET
+### Generar CRON_SECRET
 ```bash
 openssl rand -hex 32
 ```
+
+### IMPORTANTE — `stripe` y `resend` en package.json raíz
+Estos paquetes DEBEN estar declarados en el `package.json` de la raíz (no solo en `apps/app`). Las Vercel Functions en `/api/` los necesitan. Sin esto, producción da 500 "Cannot find module 'stripe'".
 
 ---
 
 ## 3. Vercel Setup
 
-### Initial deploy
-```bash
-vercel --prod   # first time: follow prompts, link to project
-```
+### Proyecto único
+| Proyecto | Root Directory | Dominio | Propósito |
+|---|---|---|---|
+| `grenbee-app` | `apps/app` | `grenbee.com` | Todo: marketing + booking + admin + staff |
+
+### Subdominios (mismo proyecto)
+- `staff.grenbee.com` → apunta al mismo deploy; middleware redirige a `/staff`
+- `control-room.grenbee.com` → apunta al mismo deploy; middleware redirige a `/admin`
+- `app.grenbee.com` → configurar redirect 308 en Vercel Dashboard → Domains → Edit → Redirect to `grenbee.com`
 
 ### Branch strategy
-| Git Branch | Vercel Environment | Domain |
+| Git Branch | Vercel Environment | Dominio |
 |---|---|---|
 | `main` | Production | `grenbee.com` |
-| `develop` | Preview | `staging.grenbee.com` |
 | `feature/*` | Preview | auto-generated URL |
 
-### Custom domains
-1. `grenbee.com` → main branch (production)
-2. `staging.grenbee.com` → develop branch
-3. `staff.grenbee.com` → same project, same `main` branch
-   - No code changes needed — all routes are handled by the SPA
-
-In Vercel Dashboard → Domains → Add domain for each.
+### Initial deploy
+```bash
+vercel --prod   # primera vez: seguir prompts, linkear al proyecto
+```
 
 ---
 
 ## 4. Stripe Webhooks
 
-### Register webhook endpoints in Stripe Dashboard
+### Registrar endpoints en Stripe Dashboard
 
 **Production:** `https://grenbee.com/api/stripe-webhook`
-**Staging:** `https://staging.grenbee.com/api/stripe-webhook`
 
-Events to subscribe:
+Eventos a suscribir:
 - `payment_intent.succeeded`
 - `payment_intent.payment_failed`
 - `payment_intent.amount_capturable_updated`
 - `payment_intent.canceled`
 
-After creating the webhook, copy the **Signing Secret** (`whsec_...`) and add it as `STRIPE_WEBHOOK_SECRET` in Vercel.
+Después de crear el webhook, copiar el **Signing Secret** (`whsec_...`) y agregarlo como `STRIPE_WEBHOOK_SECRET` en Vercel.
 
 ---
 
 ## 5. Firebase Admin Service Account
 
 1. Firebase Console → Project Settings → Service Accounts
-2. Click "Generate new private key" → download JSON
-3. Copy the entire JSON content (one line) into `FIREBASE_SERVICE_ACCOUNT_JSON` env var in Vercel
-4. Create a **separate** service account for staging
+2. Click "Generate new private key" → descargar JSON
+3. Copiar el contenido JSON completo (una línea) en `FIREBASE_SERVICE_ACCOUNT_JSON` env var en Vercel
 
-**Important:** Never commit service account files to git.
+**Importante:** Nunca commitear archivos de service account a git.
+
+### Desarrollo local con ADC (alternativa)
+```bash
+gcloud auth application-default login
+# Los scripts de seed usarán ADC automáticamente si no hay --serviceAccount flag
+```
 
 ---
 
 ## 6. Resend (Email)
 
-1. Add and verify your sending domain at https://resend.com/domains
-2. Create an API key with "Sending access" (not full access)
-3. Set `NOTIFY_FROM` to match a verified sender address
+1. Agregar y verificar el sending domain en resend.com/domains
+2. Crear API key con acceso "Sending access" (no full access)
+3. Setear `NOTIFY_FROM` con una dirección del dominio verificado
 
 ---
 
 ## 7. Pre-launch Checklist
 
-### Code
-- [ ] `npm run build` passes with no TS errors
-- [ ] All `.env.example` variables are set in Vercel for production environment
-- [ ] `STRIPE_SECRET_KEY` is set to live key (`sk_live_...`)
-- [ ] `VITE_STRIPE_PUBLISHABLE_KEY` is set to live key (`pk_live_...`)
-- [ ] `STRIPE_WEBHOOK_SECRET` points to the live webhook endpoint
+### Código
+- [ ] `npm run build` pasa sin errores TS
+- [ ] `npm run check:pricing` pasa (0 drift entre cliente/servidor)
+- [ ] Todas las variables de env están seteadas en Vercel para production
+- [ ] `STRIPE_SECRET_KEY` es la live key (`sk_live_...`)
+- [ ] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` es la live key (`pk_live_...`)
+- [ ] `STRIPE_WEBHOOK_SECRET` apunta al endpoint live
 
 ### Firebase
 - [ ] Firestore rules deployed: `firebase deploy --only firestore:rules`
 - [ ] Storage rules deployed: `firebase deploy --only storage`
-- [ ] Firebase Auth → Authorized domains includes `grenbee.com` and `staff.grenbee.com`
-- [ ] Firebase Auth → Google sign-in enabled (if using Google login)
-- [ ] Firestore indexes built (check console for "Building" status)
+- [ ] Firebase Auth → Authorized Domains incluye: `grenbee.com`, `staff.grenbee.com`, `control-room.grenbee.com`
+- [ ] Firebase Auth → Google sign-in habilitado
+- [ ] Firestore indexes construidos (verificar "Building" status en consola)
+
+### Vercel / Dominios
+- [ ] `grenbee.com` configurado como dominio principal
+- [ ] `staff.grenbee.com` y `control-room.grenbee.com` agregados al proyecto
+- [ ] `app.grenbee.com` configurado con redirect 308 → `grenbee.com`
 
 ### Stripe
-- [ ] Webhook endpoint registered for production URL
-- [ ] Test payment flow end-to-end in live mode (use real card, cancel quickly)
-- [ ] Capture method confirmed as `manual` (admin must capture within 7 days)
+- [ ] Webhook endpoint registrado para URL de producción
+- [ ] Test payment flow end-to-end en live mode
+- [ ] Capture method confirmado como `manual`
 
 ### Resend
-- [ ] Domain DNS records verified (SPF, DKIM, DMARC)
-- [ ] Test email send from production `NOTIFY_FROM` address
+- [ ] DNS records verificados (SPF, DKIM, DMARC)
+- [ ] Test email send desde dirección de producción
 
 ### Security
-- [ ] Firebase service account has minimum required roles:
-  - `Cloud Datastore User` (Firestore read/write)
-  - `Firebase Authentication Admin`
-  - `Storage Object Admin` (for photo operations)
-- [ ] `CRON_SECRET` is set and non-trivial (not "test" or "secret")
-- [ ] Google Maps API keys are restricted by domain/IP
+- [ ] `CRON_SECRET` seteado y no trivial
+- [ ] Google Maps API keys restringidas por dominio/IP
 
-### Smoke tests after deploy
-- [ ] Home page loads
-- [ ] Booking wizard completes (test mode payment)
-- [ ] Staff portal login works
-- [ ] Admin panel loads bookings
-- [ ] Recurring plan cron doesn't error (check Vercel Function logs)
+### Smoke tests después de deploy
+- [ ] Home page carga
+- [ ] Nav links funcionan (`/us/plans`, `/us/areas`, `/us/hosts`, etc.)
+- [ ] Booking wizard completa (test mode payment)
+- [ ] Staff portal login funciona
+- [ ] Admin panel carga bookings
+- [ ] City landing page carga (`/us/areas/mapleton`)
+- [ ] Hosts page carga (`/us/hosts`)
+- [ ] Recurring plan cron no da error (verificar Vercel Function logs)
 
 ---
 
-## 8. Common Commands
+## 8. Comandos comunes
 
 ```bash
-# Local development
+# Desarrollo local
 npm run dev
 
-# Production build + preview
-npm run build && npx vite preview
+# Build + type check
+npm run build
+npx tsc --noEmit -p apps/app/tsconfig.json
 
-# Deploy to Vercel (production)
+# Verificar sincronía de precios
+npm run check:pricing
+
+# Deploy Vercel (producción)
 vercel --prod
 
-# Deploy Firebase rules only
+# Deploy Firebase rules
 firebase deploy --only firestore:rules,storage
 
-# Switch Firebase project
-firebase use staging
-firebase use production
+# Seed Firestore
+node scripts/seed-services.mjs
+node scripts/seed-area-content.mjs
 
-# Tail Vercel function logs (requires vercel login)
+# Logs de funciones en producción
 vercel logs --prod --follow
 ```
 
 ---
 
-## 9. Staff Subdomain (staff.grenbee.com)
+## 9. Middleware de Subdominios
 
-The staff portal lives at `/staff` in the same Vite SPA. To expose it at `staff.grenbee.com`:
+`apps/app/middleware.ts` maneja el routing por dominio:
 
-1. In Vercel Dashboard → your project → Domains → Add `staff.grenbee.com`
-2. In your DNS provider: add `CNAME staff → cname.vercel-dns.com`
-3. No code changes needed — Vercel serves the same `index.html` for all paths
+- `staff.grenbee.com` → redirige a `/staff` (login gateado por rol staff)
+- `control-room.grenbee.com` → redirige a `/admin` (login gateado por rol admin/manager)
+- `app.grenbee.com` → NO redirige en código (se configura en Vercel Dashboard para evitar loops)
 
-Staff login is gated by Firebase Auth custom claims (`role: "staff"` or `admin: true`).
-Set claims via Firebase Admin SDK or from the Admin Panel → Staff tab.
+El middleware es solo una capa de UX/routing. Todos los endpoints de API y rutas admin/staff tienen sus propios server-side role checks.
