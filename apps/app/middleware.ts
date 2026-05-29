@@ -40,16 +40,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── app.grenbee.com ── permanent redirect to grenbee.com ─────────────────
-  // The app is now a single unified deployment (the old grenbee-web multi-zone
-  // proxy was removed), so app.grenbee.com would otherwise serve a duplicate of
-  // grenbee.com. Consolidate everything on the apex domain (same path + query).
-  if (hostname === "app.grenbee.com") {
-    const target = new URL(request.url);
-    target.protocol = "https:";
-    target.host = "grenbee.com";
-    return NextResponse.redirect(target, 308);
-  }
+  // ── app.grenbee.com ── no redirect ───────────────────────────────────────
+  // This domain is used as the rewrite destination from grenbee-web's
+  // multi-zone proxy (Next.js rewrites grenbee.com/book → app.grenbee.com/book
+  // server-side). Adding a redirect here would cause an infinite loop.
+  // app.grenbee.com is not exposed in customer-facing links or emails;
+  // it is a technical proxy target only.
 
   return NextResponse.next();
 }
