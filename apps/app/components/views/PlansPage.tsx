@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
