@@ -80,15 +80,17 @@ export default function PublicApp() {
 
   // Local UI state
   const [activeTab, setActiveTab] = useState<string>(() => getInitialTab(pathname));
-  // Preselect a service from ?service=<id> synchronously so CostEstimator
-  // mounts with the correct initialServiceId on the very first render.
-  const [selectedEstimatorId, setSelectedEstimatorId] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      const svc = new URLSearchParams(window.location.search).get("service");
-      if (svc) return svc;
-    }
-    return "house-cleaning";
-  });
+  const [selectedEstimatorId, setSelectedEstimatorId] = useState("house-cleaning");
+
+  // Read ?service= AFTER hydration (useEffect), not in useState initializer.
+  // The lazy initializer runs on the server where window is undefined, so
+  // Next.js sends "house-cleaning" in the HTML. The client then hydrates
+  // matching that server value — the initializer never re-runs.
+  // useEffect always runs client-side after hydration with the real URL.
+  useEffect(() => {
+    const svc = new URLSearchParams(window.location.search).get("service");
+    if (svc) setSelectedEstimatorId(svc);
+  }, []);
   const [wizardParams, setWizardParams] = useState<WizardBookingParams | null>(() => {
     try {
       const stored = sessionStorage.getItem("gbee_wizard_params");
