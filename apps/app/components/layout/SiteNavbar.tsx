@@ -281,7 +281,7 @@ export default function SiteNavbar() {
             </nav>
 
             {/* Right section */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4 ml-auto">
               {/* Membresía — siempre visible, botón destacado amber */}
               <Link
                 href={`${base}/plans`}
