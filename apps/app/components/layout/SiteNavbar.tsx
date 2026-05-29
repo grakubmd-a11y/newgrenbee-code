@@ -244,17 +244,20 @@ export default function SiteNavbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center h-20">
 
-            {/* Logo */}
+            {/* Logo — extremo izquierdo */}
             <Link href="/" className="flex items-center shrink-0">
               <span className="text-xl font-extrabold text-gray-950 tracking-tight leading-none">
                 Gren<span className="text-emerald-500">bee</span>
               </span>
             </Link>
 
-            {/* Desktop nav links */}
-            <nav className="hidden md:flex items-center gap-1">
+            {/* Todo lo demás — agrupado a la derecha con ml-auto */}
+            <div className="hidden md:flex items-center gap-1 ml-auto">
+
+            {/* Nav links */}
+            <nav className="flex items-center gap-1 mr-3">
               {NAV_LINKS.map((link) =>
                 link.href.startsWith("/#") ? (
                   <button
@@ -280,8 +283,8 @@ export default function SiteNavbar() {
               )}
             </nav>
 
-            {/* Right section */}
-            <div className="hidden md:flex items-center gap-4 ml-auto">
+            {/* Botones CTA + Auth */}
+            <div className="flex items-center gap-2">
               {/* Membresía — siempre visible, botón destacado amber */}
               <Link
                 href={`${base}/plans`}
@@ -433,6 +436,7 @@ export default function SiteNavbar() {
                 </button>
               )}
             </div>
+            </div>{/* fin: Todo lo demás (nav + botones) */}
 
             {/* Mobile hamburger */}
             <button
