@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Calendar, Clock, User, MapPin, CreditCard, ArrowLeft, ArrowRight,
   CheckCircle2, AlertTriangle, Loader, ShieldCheck, MapPinOff, HelpCircle,
@@ -43,7 +44,7 @@ interface BookingWizardProps {
 const DEFAULT_sameDayFee = 35;
 const TWO_TECH_FEE = 50;
 
-const STEP_LABELS = ["Schedule", "Details", "Pay"];
+// Step labels are rendered via t() inside StepLabels component
 
 /** Convert "09:00" → "9:00 AM" using the HOUR_SLOTS lookup */
 function formatTimeSlot(slot: string): string {
@@ -124,6 +125,8 @@ function ProgressBar({ step }: { step: WizardStep }) {
 
 /** Step label row below the progress bar */
 function StepLabels({ step }: { step: WizardStep }) {
+  const { t } = useTranslation();
+  const STEP_LABELS = [t("wizard.steps.schedule"), t("wizard.steps.details"), t("wizard.steps.pay")];
   if (step >= 4) return null;
   return (
     <div className="flex justify-between mt-2 px-0.5">
@@ -160,6 +163,7 @@ function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, 
   isTwoTech: boolean;
   sameDayFee: number;
 }) {
+  const { t } = useTranslation();
   const discountTotal = (params.couponDiscount ?? 0);
   const sameDayAmt    = isSameDay ? sameDayFee : 0;
   const twoTechAmt    = isTwoTech ? TWO_TECH_FEE : 0;
@@ -171,7 +175,7 @@ function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, 
       <div className="bg-[#0d1117] text-white rounded-2xl p-6 space-y-5 lg:sticky lg:top-24">
         {/* Service */}
         <div>
-          <p className="text-[10px] font-extrabold text-brand uppercase tracking-widest mb-1">Order Summary</p>
+          <p className="text-[10px] font-extrabold text-brand uppercase tracking-widest mb-1">{t("wizard.sidebar.orderSummary")}</p>
           <p className="text-base font-bold truncate">{service.name}</p>
           {selectedDate && (
             <p className="text-xs text-gray-400 mt-0.5 font-medium">
@@ -188,20 +192,20 @@ function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, 
             <LineItem label={`${params.frequency} plan`} value="" valueClass="text-brand/80 capitalize" />
           )}
           {discountTotal > 0 && params.couponCode && (
-            <LineItem label={`Coupon · ${params.couponCode}`} value={`-$${discountTotal.toFixed(2)}`}
+            <LineItem label={`${t("wizard.sidebar.coupon")} · ${params.couponCode}`} value={`-$${discountTotal.toFixed(2)}`}
                       valueClass="text-emerald-400" />
           )}
           {sameDayAmt > 0 && (
-            <LineItem label="Same-day fee" value={`+$${sameDayAmt.toFixed(2)}`} valueClass="text-amber-400" />
+            <LineItem label={t("wizard.sidebar.sameDayFee")} value={`+$${sameDayAmt.toFixed(2)}`} valueClass="text-amber-400" />
           )}
           {twoTechAmt > 0 && (
-            <LineItem label="2nd technician" value={`+$${twoTechAmt.toFixed(2)}`} valueClass="text-amber-400" />
+            <LineItem label={t("wizard.sidebar.technicianFee")} value={`+$${twoTechAmt.toFixed(2)}`} valueClass="text-amber-400" />
           )}
         </div>
 
         {/* Total */}
         <div className="border-t border-white/8 pt-4 flex items-baseline justify-between">
-          <span className="text-sm font-semibold text-gray-400">Total</span>
+          <span className="text-sm font-semibold text-gray-400">{t("wizard.sidebar.total")}</span>
           <span className="text-3xl font-extrabold text-brand">${grandTotal.toFixed(2)}</span>
         </div>
 
@@ -209,20 +213,20 @@ function PriceSidebar({ service, params, selectedDate, selectedSlot, isSameDay, 
         {isTwoTech && (
           <div className="flex items-start gap-2 bg-amber-900/25 text-amber-300 text-[11px] rounded-xl px-3 py-2.5">
             <Users size={13} className="shrink-0 mt-0.5" />
-            <span>Requires 2 technicians — second tech fee added.</span>
+            <span>{t("wizard.sidebar.twoTechNote")}</span>
           </div>
         )}
         {isSameDay && (
           <div className="flex items-start gap-2 bg-amber-900/25 text-amber-300 text-[11px] rounded-xl px-3 py-2.5">
             <CalendarClock size={13} className="shrink-0 mt-0.5" />
-            <span>Same-day booking — priority scheduling fee applies.</span>
+            <span>{t("wizard.sidebar.sameDayNote")}</span>
           </div>
         )}
 
         {/* Trust badge */}
         <div className="flex items-center gap-2 text-[11px] text-gray-500 border-t border-white/8 pt-4">
           <ShieldCheck size={13} className="text-brand shrink-0" />
-          <span>Card authorized now, <strong className="text-gray-400">charged only after service</strong></span>
+          <span>{t("wizard.sidebar.paymentNote")} <strong className="text-gray-400">{t("wizard.sidebar.paymentNoteStrong")}</strong></span>
         </div>
       </div>
     </aside>
@@ -240,10 +244,11 @@ function LineItem({ label, value, valueClass = "text-white" }: { label: string; 
 
 /** Mobile floating price bar */
 function MobileTotal({ total, isSameDay, isTwoTech, sameDayFee }: { total: number; isSameDay: boolean; isTwoTech: boolean; sameDayFee: number }) {
+  const { t } = useTranslation();
   const grand = total + (isSameDay ? sameDayFee : 0) + (isTwoTech ? TWO_TECH_FEE : 0);
   return (
     <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur border-t border-gray-100 px-4 py-3 flex items-center justify-between shadow-2xl">
-      <span className="text-xs text-gray-500 font-medium">Estimated total</span>
+      <span className="text-xs text-gray-500 font-medium">{t("wizard.sidebar.estimatedTotal")}</span>
       <span className="text-lg font-extrabold text-gray-900">${grand.toFixed(2)}</span>
     </div>
   );
@@ -264,25 +269,26 @@ function StepHeader({ icon, title, sub }: { icon: React.ReactNode; title: string
 
 /** Coverage badge */
 function CoverageBadge({ status }: { status: CoverageStatus }) {
+  const { t } = useTranslation();
   if (status === "idle") return null;
   if (status === "checking") return (
     <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
-      <Loader size={11} className="animate-spin" /> Checking coverage…
+      <Loader size={11} className="animate-spin" /> {t("wizard.coverage.checking")}
     </div>
   );
   if (status === "covered") return (
     <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 mt-1 font-semibold">
-      <CheckCircle2 size={11} /> Covered — we service your area.
+      <CheckCircle2 size={11} /> {t("wizard.coverage.covered")}
     </div>
   );
   if (status === "not-covered") return (
     <div className="flex items-center gap-1.5 text-[11px] text-amber-600 mt-1 font-semibold">
-      <MapPinOff size={11} /> Outside standard area — you can still book.
+      <MapPinOff size={11} /> {t("wizard.coverage.notCovered")}
     </div>
   );
   return (
     <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
-      <HelpCircle size={11} /> Coverage unverified — you can still proceed.
+      <HelpCircle size={11} /> {t("wizard.coverage.unknown")}
     </div>
   );
 }
@@ -299,42 +305,40 @@ function ConfirmationScreen({
   onViewBookings: () => void;
   onBookAnother: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="max-w-xl mx-auto px-4 py-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Icon */}
       <div className="mx-auto w-20 h-20 rounded-full bg-brand/10 flex items-center justify-center mb-6">
         <div className="w-14 h-14 rounded-full bg-brand flex items-center justify-center shadow-lg shadow-brand/30">
           <Check size={28} className="text-white" strokeWidth={3} />
         </div>
       </div>
 
-      <h2 className="text-2xl font-black text-gray-900 mb-2">Booking confirmed!</h2>
+      <h2 className="text-2xl font-black text-gray-900 mb-2">{t("wizard.confirmation.title")}</h2>
       <p className="text-gray-500 text-sm mb-8">
-        Your appointment is scheduled. A confirmation will be sent to <strong>{draft.email}</strong>.
+        {t("wizard.confirmation.subtitle")} <strong>{draft.email}</strong>.
       </p>
 
-      {/* Booking details card */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 text-left space-y-3 mb-6">
-        <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-3">Booking Details</p>
-        <DetailRow icon={<Calendar size={14} />} label="Service" value={draft.serviceName} />
-        <DetailRow icon={<Calendar size={14} />} label="Date" value={formatDate(draft.bookingDate)} />
-        <DetailRow icon={<Clock size={14} />} label="Time" value={formatTimeSlot(draft.timeSlot)} />
-        <DetailRow icon={<MapPin size={14} />} label="Address" value={draft.address} />
-        <DetailRow icon={<User size={14} />} label="Contact" value={`${draft.customerName} · ${draft.email}`} />
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-3">{t("wizard.confirmation.detailsTitle")}</p>
+        <DetailRow icon={<Calendar size={14} />} label={t("wizard.confirmation.labelService")} value={draft.serviceName} />
+        <DetailRow icon={<Calendar size={14} />} label={t("wizard.confirmation.labelDate")} value={formatDate(draft.bookingDate)} />
+        <DetailRow icon={<Clock size={14} />} label={t("wizard.confirmation.labelTime")} value={formatTimeSlot(draft.timeSlot)} />
+        <DetailRow icon={<MapPin size={14} />} label={t("wizard.confirmation.labelAddress")} value={draft.address} />
+        <DetailRow icon={<User size={14} />} label={t("wizard.confirmation.labelContact")} value={`${draft.customerName} · ${draft.email}`} />
         {bookingId && (
-          <DetailRow icon={<ShieldCheck size={14} />} label="Reference" value={bookingId}
+          <DetailRow icon={<ShieldCheck size={14} />} label={t("wizard.confirmation.labelReference")} value={bookingId}
                      valueClass="font-mono text-brand" />
         )}
       </div>
 
-      {/* What happens next */}
       <div className="bg-gray-50 rounded-2xl p-5 text-left mb-8">
-        <p className="text-xs font-bold text-gray-700 mb-3">What happens next</p>
+        <p className="text-xs font-bold text-gray-700 mb-3">{t("wizard.confirmation.nextTitle")}</p>
         <ul className="space-y-2.5">
           {[
-            "You'll receive a confirmation email shortly.",
-            "We'll assign a technician and confirm your appointment.",
-            "Your card is held now and charged only after the service is completed.",
+            t("wizard.confirmation.nextStep1"),
+            t("wizard.confirmation.nextStep2"),
+            t("wizard.confirmation.nextStep3"),
           ].map((item, i) => (
             <li key={i} className="flex items-start gap-2.5 text-xs text-gray-600">
               <div className="w-4 h-4 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-black">
@@ -346,19 +350,12 @@ function ConfirmationScreen({
         </ul>
       </div>
 
-      {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <button
-          onClick={onViewBookings}
-          className="flex-1 h-12 bg-brand hover:bg-brand-hover text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-brand/20 hover:scale-[1.01]"
-        >
-          View my bookings
+        <button onClick={onViewBookings} className="flex-1 h-12 bg-brand hover:bg-brand-hover text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-brand/20 hover:scale-[1.01]">
+          {t("wizard.confirmation.viewBookings")}
         </button>
-        <button
-          onClick={onBookAnother}
-          className="flex-1 h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition-all"
-        >
-          Book another service
+        <button onClick={onBookAnother} className="flex-1 h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-xl transition-all">
+          {t("wizard.confirmation.bookAnother")}
         </button>
       </div>
     </div>
@@ -393,6 +390,7 @@ export default function BookingWizard({
   );
 
   // ── Step ──
+  const { t } = useTranslation();
   const [step, setStep] = useState<WizardStep>(1);
 
   // ── Step 1: Schedule ──
@@ -553,11 +551,11 @@ export default function BookingWizard({
   function validate(): boolean {
     if (step !== 2) return true;
     const e: Record<string, string> = {};
-    if (!fullName.trim()) e.fullName = "Required";
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = "Valid email required";
-    if (phone.replace(/\D/g, "").length < 10) e.phone = "10-digit phone required";
-    if (!address.trim()) e.address = "Address required to dispatch";
-    if (!zip || zip.length < 5) e.zip = "5-digit ZIP required";
+    if (!fullName.trim()) e.fullName = t("wizard.form.errorRequired");
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = t("wizard.form.errorEmail");
+    if (phone.replace(/\D/g, "").length < 10) e.phone = t("wizard.form.errorPhone");
+    if (!address.trim()) e.address = t("wizard.form.errorAddress");
+    if (!zip || zip.length < 5) e.zip = t("wizard.form.errorZip");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -674,9 +672,9 @@ export default function BookingWizard({
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
             {/* Header strip */}
             <div className="px-6 pt-6 pb-5 border-b border-gray-50">
-              {step === 1 && <StepHeader icon={<Calendar size={20} />} title="Choose Date & Time" sub="Pick the best day and arrival window for your appointment." />}
-              {step === 2 && <StepHeader icon={<User size={20} />} title="Your Details" sub="We'll dispatch your technician and send confirmations to this info." />}
-              {step === 3 && <StepHeader icon={<CreditCard size={20} />} title="Review & Pay" sub="Your card is authorized now and only charged after service is completed." />}
+              {step === 1 && <StepHeader icon={<Calendar size={20} />} title={t("wizard.steps_header.step1Title")} sub={t("wizard.steps_header.step1Sub")} />}
+              {step === 2 && <StepHeader icon={<User size={20} />} title={t("wizard.steps_header.step2Title")} sub={t("wizard.steps_header.step2Sub")} />}
+              {step === 3 && <StepHeader icon={<CreditCard size={20} />} title={t("wizard.steps_header.step3Title")} sub={t("wizard.steps_header.step3Sub")} />}
             </div>
 
             <div className="px-6 py-6 space-y-6">
@@ -697,18 +695,18 @@ export default function BookingWizard({
 
                   {availabilityStatus === "checking" && (
                     <div className="flex items-center gap-2 text-xs text-gray-500 pt-1">
-                      <Loader size={12} className="animate-spin" /> Confirming availability…
+                      <Loader size={12} className="animate-spin" /> {t("wizard.availability.checking")}
                     </div>
                   )}
                   {availabilityStatus === "full" && (
                     <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 font-semibold">
                       <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                      This slot is fully booked. Please choose a different date or time.
+                      {t("wizard.availability.full")}
                     </div>
                   )}
                   {availabilityStatus === "available" && (
                     <div className="flex items-center gap-2 text-xs text-emerald-600 font-semibold pt-1">
-                      <CheckCircle2 size={12} /> Slot available — proceed to your details.
+                      <CheckCircle2 size={12} /> {t("wizard.availability.available")}
                     </div>
                   )}
                 </>
@@ -717,23 +715,23 @@ export default function BookingWizard({
               {/* ── STEP 2: DETAILS ── */}
               {step === 2 && (
                 <>
-                  <FormField label="Full Name" error={errors.fullName}>
+                  <FormField label={t("wizard.form.fullName")} error={errors.fullName}>
                     <TextInput icon={<User size={14} />} value={fullName} onChange={setFullName}
                       placeholder="Jane Doe" hasError={!!errors.fullName} />
                   </FormField>
 
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField label="Email" error={errors.email}>
+                    <FormField label={t("wizard.form.email")} error={errors.email}>
                       <TextInput icon={<CheckCircle2 size={14} />} type="email" value={email} onChange={setEmail}
                         placeholder="jane@example.com" hasError={!!errors.email} />
                     </FormField>
-                    <FormField label="Phone" error={errors.phone}>
+                    <FormField label={t("wizard.form.phone")} error={errors.phone}>
                       <TextInput icon={<Clock size={14} />} type="tel" value={phone} onChange={setPhone}
                         placeholder="(801) 555-0100" hasError={!!errors.phone} />
                     </FormField>
                   </div>
 
-                  <FormField label="Property Address" error={errors.address}>
+                  <FormField label={t("wizard.form.address")} error={errors.address}>
                     <div className="relative">
                       <span className="absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"><MapPin size={14} /></span>
                       <input
@@ -752,13 +750,13 @@ export default function BookingWizard({
                     </div>
                     {mapsReady && !errors.address && (
                       <p className="text-[10px] text-emerald-600 mt-1 font-medium">
-                        ✓ Address autocomplete active
+                        {t("wizard.form.addressAutoComplete")}
                       </p>
                     )}
                   </FormField>
 
                   <div className="grid sm:grid-cols-2 gap-4 items-end">
-                    <FormField label="ZIP Code" error={errors.zip}>
+                    <FormField label={t("wizard.form.zip")} error={errors.zip}>
                       <input
                         type="text"
                         value={zip}
@@ -784,9 +782,9 @@ export default function BookingWizard({
                       <div className="flex items-start gap-2">
                         <MapPinOff size={15} className="text-amber-600 shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-bold text-amber-800">ZIP {zip} is outside our standard service area</p>
+                          <p className="text-xs font-bold text-amber-800">{t("wizard.coverage_prompt.title", { zip })}</p>
                           <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                            You can still book — our team will review and confirm availability before dispatching.
+                            {t("wizard.coverage_prompt.body")}
                           </p>
                         </div>
                       </div>
@@ -794,17 +792,17 @@ export default function BookingWizard({
                         <input type="checkbox" checked={coverageConfirmed}
                           onChange={(e) => setCoverageConfirmed(e.target.checked)}
                           className="h-4 w-4 rounded border-amber-300 accent-amber-600 cursor-pointer" />
-                        <span className="text-xs font-semibold text-amber-800">I understand and want to proceed</span>
+                        <span className="text-xs font-semibold text-amber-800">{t("wizard.coverage_prompt.confirm")}</span>
                       </label>
                     </div>
                   )}
 
-                  <FormField label="Access Notes (optional)">
+                  <FormField label={t("wizard.form.notes")}>
                     <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
-                      placeholder="Gate code, lockbox location, parking instructions, pets…"
+                      placeholder={t("wizard.form.notesPlaceholder")}
                       className="w-full border border-gray-200 rounded-xl px-3.5 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none resize-none transition-all"
                     />
                   </FormField>
@@ -817,11 +815,11 @@ export default function BookingWizard({
                   {/* Inline recap */}
                   <div className="bg-gray-50 rounded-xl p-4 grid sm:grid-cols-2 gap-2 text-xs">
                     {[
-                      { l: "Service",  v: service.name },
-                      { l: "Date",     v: formatDate(selectedDate) },
-                      { l: "Window",   v: formatTimeSlot(selectedSlot) },
-                      { l: "Address",  v: address },
-                      { l: "Contact",  v: `${fullName} · ${email}` },
+                      { l: t("wizard.recap.service"),  v: service.name },
+                      { l: t("wizard.recap.date"),     v: formatDate(selectedDate) },
+                      { l: t("wizard.recap.window"),   v: formatTimeSlot(selectedSlot) },
+                      { l: t("wizard.recap.address"),  v: address },
+                      { l: t("wizard.recap.contact"),  v: `${fullName} · ${email}` },
                     ].map(({ l, v }) => (
                       <div key={l} className="flex gap-1.5">
                         <span className="text-gray-400 w-14 shrink-0">{l}:</span>
@@ -833,29 +831,29 @@ export default function BookingWizard({
                   {coverageStatus === "not-covered" && coverageConfirmed && (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex gap-2 text-xs text-amber-800">
                       <MapPinOff size={14} className="text-amber-600 shrink-0 mt-0.5" />
-                      ZIP <strong className="mx-1">{zip}</strong> is outside our standard area. Our team will confirm before dispatching.
+                      ZIP <strong className="mx-1">{zip}</strong> {t("wizard.outside_area.note")}
                     </div>
                   )}
 
                   <div className="rounded-xl border border-brand/20 bg-brand/5 p-3.5 flex gap-2.5 text-xs text-brand leading-relaxed">
                     <ShieldCheck size={15} className="shrink-0 mt-0.5" />
-                    <span>We authorize (hold) your card now but <strong>only charge after the technician completes the service</strong>.</span>
+                    <span>{t("wizard.payment.holdNote")} <strong>{t("wizard.payment.holdNoteStrong")}</strong>.</span>
                   </div>
 
                   {/* Terms */}
                   <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 space-y-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Authorization & Consent</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t("wizard.terms.sectionTitle")}</p>
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input type="checkbox" checked={termsAccepted}
                         onChange={(e) => { setTermsAccepted(e.target.checked); setTermsError(""); }}
                         className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
                       <span className="text-xs text-gray-700 leading-relaxed">
-                        I agree to the{" "}
+                        {t("wizard.terms.agree")}{" "}
                         <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
-                          Terms of Service <ExternalLink size={10} />
-                        </a>{" "}and{" "}
+                          {t("wizard.terms.termsLink")} <ExternalLink size={10} />
+                        </a>{" "}{t("wizard.terms.and")}{" "}
                         <a href="/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
-                          Cancellation Policy <ExternalLink size={10} />
+                          {t("wizard.terms.cancellationLink")} <ExternalLink size={10} />
                         </a>. <span className="text-rose-500 font-bold">*</span>
                       </span>
                     </label>
@@ -888,7 +886,7 @@ export default function BookingWizard({
                     selectedSlot={selectedSlot}
                     validateBeforePayment={() => {
                       if (!termsAccepted) {
-                        setTermsError("Please accept the Terms of Service and Cancellation Policy to continue.");
+                        setTermsError(t("wizard.terms.termsError"));
                         return false;
                       }
                       if (needsRecurringConsent && !recurringConsent) {

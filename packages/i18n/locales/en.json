@@ -904,5 +904,109 @@
     "basePrice": "Base Price",
     "currency": "USD",
     "book": "Book"
+  },
+  "schedule": {
+    "occupied": "Fully booked",
+    "sameDaySurcharge": "+${{fee}} same-day surcharge",
+    "arrivalTime": "Arrival time",
+    "available": "Available",
+    "unavailable": "Unavailable"
+  },
+  "wizard": {
+    "steps": {
+      "schedule": "Schedule",
+      "details": "Details",
+      "pay": "Pay"
+    },
+    "sidebar": {
+      "orderSummary": "Order Summary",
+      "sameDayFee": "Same-day fee",
+      "technicianFee": "2nd technician",
+      "coupon": "Coupon",
+      "total": "Total",
+      "estimatedTotal": "Estimated total",
+      "twoTechNote": "Requires 2 technicians — second tech fee added.",
+      "sameDayNote": "Same-day booking — priority scheduling fee applies.",
+      "paymentNote": "Card authorized now,",
+      "paymentNoteStrong": "charged only after service"
+    },
+    "coverage": {
+      "checking": "Checking coverage…",
+      "covered": "Covered — we service your area.",
+      "notCovered": "Outside standard area — you can still book.",
+      "unknown": "Coverage unverified — you can still proceed."
+    },
+    "confirmation": {
+      "title": "Booking confirmed!",
+      "subtitle": "Your appointment is scheduled. A confirmation will be sent to",
+      "detailsTitle": "Booking Details",
+      "labelService": "Service",
+      "labelDate": "Date",
+      "labelTime": "Time",
+      "labelAddress": "Address",
+      "labelContact": "Contact",
+      "labelReference": "Reference",
+      "nextTitle": "What happens next",
+      "nextStep1": "You'll receive a confirmation email shortly.",
+      "nextStep2": "We'll assign a technician and confirm your appointment.",
+      "nextStep3": "Your card is held now and charged only after the service is completed.",
+      "viewBookings": "View my bookings",
+      "bookAnother": "Book another service"
+    },
+    "availability": {
+      "checking": "Confirming availability…",
+      "full": "This slot is fully booked. Please choose a different date or time.",
+      "available": "Slot available — proceed to your details."
+    },
+    "steps_header": {
+      "step1Title": "Choose Date & Time",
+      "step1Sub": "Pick the best day and arrival window for your appointment.",
+      "step2Title": "Your Details",
+      "step2Sub": "We'll dispatch your technician and send confirmations to this info.",
+      "step3Title": "Review & Pay",
+      "step3Sub": "Your card is authorized now and only charged after service is completed."
+    },
+    "form": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Property Address",
+      "zip": "ZIP Code",
+      "notes": "Access Notes (optional)",
+      "notesPlaceholder": "Gate code, lockbox location, parking instructions, pets…",
+      "addressAutoComplete": "✓ Address autocomplete active",
+      "errorRequired": "Required",
+      "errorEmail": "Valid email required",
+      "errorPhone": "10-digit phone required",
+      "errorAddress": "Address required to dispatch",
+      "errorZip": "5-digit ZIP required"
+    },
+    "coverage_prompt": {
+      "title": "ZIP {{zip}} is outside our standard service area",
+      "body": "You can still book — our team will review and confirm availability before dispatching.",
+      "confirm": "I understand and want to proceed"
+    },
+    "recap": {
+      "service": "Service",
+      "date": "Date",
+      "window": "Window",
+      "address": "Address",
+      "contact": "Contact"
+    },
+    "terms": {
+      "sectionTitle": "Authorization & Consent",
+      "agree": "I agree to the",
+      "termsLink": "Terms of Service",
+      "and": "and",
+      "cancellationLink": "Cancellation Policy",
+      "termsError": "Please accept the Terms of Service and Cancellation Policy to continue."
+    },
+    "payment": {
+      "holdNote": "We authorize (hold) your card now but",
+      "holdNoteStrong": "only charge after the technician completes the service"
+    },
+    "outside_area": {
+      "note": "is outside our standard area. Our team will confirm before dispatching."
+    }
   }
 }

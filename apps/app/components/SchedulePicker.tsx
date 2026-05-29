@@ -1,18 +1,13 @@
+"use client";
 /**
  * SchedulePicker.tsx
  * ─────────────────────────────────────────────────────────────────────────────
  * Monthly calendar + hourly time slot picker for the booking wizard.
- *
- * - Navigate forward/back by month (can't go before current month or past
- *   MAX_ADVANCE_DAYS into the future)
- * - Days in the past are grayed and not selectable
- * - When a day is clicked, hourly slots (8 AM – 5 PM) appear below
- * - Occupied slots show a strikethrough + "Ocupado" tooltip on hover
- * - Available slots can be selected; selected slot highlights in brand green
  */
 
 import React, { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -31,49 +26,37 @@ export const HOUR_SLOTS = [
 
 const MAX_ADVANCE_DAYS = 60;
 
-const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type SlotInfo = { available: boolean; slotsRemaining: number };
 
 interface Props {
-  selectedDate: string;   // "YYYY-MM-DD"
-  selectedTime: string;   // "08:00"
+  selectedDate: string;
+  selectedTime: string;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
   slotsMap: Record<string, SlotInfo>;
   slotsLoading: boolean;
-  /** Set of "YYYY-MM-DD" dates where every slot is fully booked */
   busyDates?: Set<string>;
-  /** Same-day surcharge amount (shown as tooltip on today's cell) */
   sameDayFee?: number;
-  /** Called whenever the user navigates to a different month */
   onMonthChange?: (year: number, month: number) => void;
 }
-
-// ─── Calendar cell ────────────────────────────────────────────────────────────
 
 interface CalendarCell {
   rawDate: string;
   label: number;
   disabled: boolean;
   isToday: boolean;
-  isEmpty: boolean;  // filler cell (padding before/after month)
+  isEmpty: boolean;
 }
 
 function buildCells(cursor: Date, today: Date, maxDate: Date): CalendarCell[] {
   const year  = cursor.getFullYear();
   const month = cursor.getMonth();
 
-  const firstDay   = new Date(year, month, 1);
+  const firstDay    = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // ISO week starts on Monday (0 = Mon … 6 = Sun)
   let startOffset = firstDay.getDay() - 1;
   if (startOffset < 0) startOffset = 6;
 
@@ -88,14 +71,11 @@ function buildCells(cursor: Date, today: Date, maxDate: Date): CalendarCell[] {
     }
     const d = new Date(year, month, dayOffset + 1);
     const rawDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayOffset + 1).padStart(2, "0")}`;
-    const isToday   = d.toDateString() === today.toDateString();
-    const isPast    = d < today;
-    const isFuture  = d > maxDate;
     cells.push({
       rawDate,
       label: dayOffset + 1,
-      disabled: isPast || isFuture,
-      isToday,
+      disabled: d < today || d > maxDate,
+      isToday: d.toDateString() === today.toDateString(),
       isEmpty: false,
     });
   }
@@ -115,7 +95,11 @@ export default function SchedulePicker({
   sameDayFee,
   onMonthChange,
 }: Props) {
-  // Use a stable today reference (midnight local)
+  const { t, i18n } = useTranslation();
+
+  // Locale for Intl formatters — map i18next lang to BCP-47
+  const locale = i18n.language?.startsWith("es") ? "es-US" : "en-US";
+
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -128,7 +112,18 @@ export default function SchedulePicker({
     return d;
   }, [today]);
 
-  // Which month is the calendar showing
+  // Locale-aware weekday headers (Mo, Tu, …) using Intl
+  const weekdays = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(locale, { weekday: "short" });
+    // Build Mon–Sun sequence (ISO week starts Monday)
+    const monday = new Date(2024, 0, 1); // 2024-01-01 is a Monday
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return fmt.format(d).slice(0, 2);
+    });
+  }, [locale]);
+
   const [cursor, setCursor] = useState<Date>(() => {
     if (selectedDate) {
       const base = new Date(selectedDate + "T00:00:00");
@@ -144,16 +139,18 @@ export default function SchedulePicker({
   }, [cursor, today]);
 
   const canGoNext = useMemo(() => {
-    const maxMonthStart  = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
-    const nextStart      = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+    const maxMonthStart = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+    const nextStart     = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
     return nextStart <= maxMonthStart;
   }, [cursor, maxDate]);
 
   const cells = useMemo(() => buildCells(cursor, today, maxDate), [cursor, today, maxDate]);
 
-  const monthLabel = `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`;
+  // Locale-aware month + year label
+  const monthLabel = useMemo(() => {
+    return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(cursor);
+  }, [cursor, locale]);
 
-  // Notify parent when the visible month changes so it can fetch busy dates
   React.useEffect(() => {
     onMonthChange?.(cursor.getFullYear(), cursor.getMonth() + 1);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -172,7 +169,7 @@ export default function SchedulePicker({
           <ChevronLeft size={15} className="text-gray-700" />
         </button>
 
-        <span className="text-sm font-bold text-gray-900 tracking-tight">{monthLabel}</span>
+        <span className="text-sm font-bold text-gray-900 tracking-tight capitalize">{monthLabel}</span>
 
         <button
           type="button"
@@ -188,7 +185,7 @@ export default function SchedulePicker({
       <div>
         {/* Weekday headers */}
         <div className="grid grid-cols-7 mb-1">
-          {WEEKDAYS.map((d) => (
+          {weekdays.map((d) => (
             <div key={d} className="text-center text-[10px] font-bold text-gray-400 uppercase py-1">
               {d}
             </div>
@@ -200,11 +197,9 @@ export default function SchedulePicker({
           {cells.map((cell, i) => {
             if (cell.isEmpty) return <div key={i} className="h-9" />;
 
-            const isSelected  = selectedDate === cell.rawDate;
-            const isBusy      = !cell.disabled && (busyDates?.has(cell.rawDate) ?? false);
+            const isSelected         = selectedDate === cell.rawDate;
+            const isBusy             = !cell.disabled && (busyDates?.has(cell.rawDate) ?? false);
             const effectivelyDisabled = cell.disabled || isBusy;
-
-            // Which tooltip to show (busy wins over same-day)
             const showBusy    = isBusy;
             const showSameDay = !isBusy && cell.isToday && !!sameDayFee;
 
@@ -229,21 +224,21 @@ export default function SchedulePicker({
                   {cell.label}
                 </button>
 
-                {/* "Ocupado" tooltip for fully-booked days */}
+                {/* Fully-booked tooltip */}
                 {showBusy && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-20 whitespace-nowrap">
                     <div className="bg-gray-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
-                      Ocupado
+                      {t("schedule.occupied")}
                     </div>
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                   </div>
                 )}
 
-                {/* Same-day surcharge tooltip for today */}
+                {/* Same-day surcharge tooltip */}
                 {showSameDay && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-20 whitespace-nowrap">
                     <div className="bg-amber-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
-                      +${sameDayFee} cargo mismo día
+                      {t("schedule.sameDaySurcharge", { fee: sameDayFee })}
                     </div>
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-amber-600" />
                   </div>
@@ -259,7 +254,7 @@ export default function SchedulePicker({
         <div className="space-y-3 pt-2 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold text-gray-700 uppercase tracking-widest">
-              Arrival time
+              {t("schedule.arrivalTime")}
             </p>
             {slotsLoading && <Loader2 size={12} className="animate-spin text-gray-400" />}
           </div>
@@ -287,13 +282,11 @@ export default function SchedulePicker({
                     {label}
                   </button>
 
-                  {/* "Ocupado" tooltip on hover (occupied only) */}
                   {isOccupied && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-20">
                       <div className="bg-gray-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg whitespace-nowrap">
-                        Ocupado
+                        {t("schedule.occupied")}
                       </div>
-                      {/* Arrow */}
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                     </div>
                   )}
@@ -306,10 +299,10 @@ export default function SchedulePicker({
           {!slotsLoading && Object.keys(slotsMap).length > 0 && (
             <div className="flex items-center gap-4 text-[10px] text-gray-400 font-medium pt-1">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-brand inline-block" /> Available
+                <span className="w-2.5 h-2.5 rounded-sm bg-brand inline-block" /> {t("schedule.available")}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-gray-100 inline-block" /> Occupied
+                <span className="w-2.5 h-2.5 rounded-sm bg-gray-100 inline-block" /> {t("schedule.unavailable")}
               </span>
             </div>
           )}

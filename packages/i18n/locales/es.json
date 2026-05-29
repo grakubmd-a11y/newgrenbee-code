@@ -904,5 +904,109 @@
     "basePrice": "Precio Base",
     "currency": "USD",
     "book": "Reservar"
+  },
+  "schedule": {
+    "occupied": "Sin disponibilidad",
+    "sameDaySurcharge": "+${{fee}} recargo mismo día",
+    "arrivalTime": "Hora de llegada",
+    "available": "Disponible",
+    "unavailable": "No disponible"
+  },
+  "wizard": {
+    "steps": {
+      "schedule": "Horario",
+      "details": "Datos",
+      "pay": "Pago"
+    },
+    "sidebar": {
+      "orderSummary": "Resumen del pedido",
+      "sameDayFee": "Cargo mismo día",
+      "technicianFee": "2do técnico",
+      "coupon": "Cupón",
+      "total": "Total",
+      "estimatedTotal": "Total estimado",
+      "twoTechNote": "Requiere 2 técnicos — cargo por segundo técnico incluido.",
+      "sameDayNote": "Reserva del mismo día — se aplica cargo de programación prioritaria.",
+      "paymentNote": "Tarjeta autorizada ahora,",
+      "paymentNoteStrong": "cobrada solo después del servicio"
+    },
+    "coverage": {
+      "checking": "Verificando cobertura…",
+      "covered": "Cubierto — atendemos tu área.",
+      "notCovered": "Fuera del área estándar — igual puedes reservar.",
+      "unknown": "Cobertura no verificada — puedes continuar."
+    },
+    "confirmation": {
+      "title": "¡Reserva confirmada!",
+      "subtitle": "Tu cita está programada. Se enviará una confirmación a",
+      "detailsTitle": "Detalles de la reserva",
+      "labelService": "Servicio",
+      "labelDate": "Fecha",
+      "labelTime": "Hora",
+      "labelAddress": "Dirección",
+      "labelContact": "Contacto",
+      "labelReference": "Referencia",
+      "nextTitle": "¿Qué sigue?",
+      "nextStep1": "Recibirás un correo de confirmación en breve.",
+      "nextStep2": "Asignaremos un técnico y confirmaremos tu cita.",
+      "nextStep3": "Tu tarjeta está retenida ahora y se cobra solo después de completar el servicio.",
+      "viewBookings": "Ver mis reservas",
+      "bookAnother": "Reservar otro servicio"
+    },
+    "availability": {
+      "checking": "Confirmando disponibilidad…",
+      "full": "Este horario no está disponible. Por favor elige otra fecha u hora.",
+      "available": "Horario disponible — continúa con tus datos."
+    },
+    "steps_header": {
+      "step1Title": "Elige Fecha y Hora",
+      "step1Sub": "Selecciona el mejor día y ventana de llegada para tu cita.",
+      "step2Title": "Tus Datos",
+      "step2Sub": "Enviaremos a tu técnico y las confirmaciones a esta información.",
+      "step3Title": "Revisar y Pagar",
+      "step3Sub": "Tu tarjeta se autoriza ahora y solo se cobra después del servicio."
+    },
+    "form": {
+      "fullName": "Nombre Completo",
+      "email": "Correo Electrónico",
+      "phone": "Teléfono",
+      "address": "Dirección del Inmueble",
+      "zip": "Código Postal",
+      "notes": "Notas de Acceso (opcional)",
+      "notesPlaceholder": "Código de puerta, caja de llaves, instrucciones de estacionamiento, mascotas…",
+      "addressAutoComplete": "✓ Autocompletado de dirección activo",
+      "errorRequired": "Requerido",
+      "errorEmail": "Correo electrónico válido requerido",
+      "errorPhone": "Teléfono de 10 dígitos requerido",
+      "errorAddress": "Dirección requerida para el envío",
+      "errorZip": "Código postal de 5 dígitos requerido"
+    },
+    "coverage_prompt": {
+      "title": "El código postal {{zip}} está fuera de nuestra área de servicio estándar",
+      "body": "Igual puedes reservar — nuestro equipo revisará y confirmará disponibilidad antes de enviar.",
+      "confirm": "Entiendo y quiero continuar"
+    },
+    "recap": {
+      "service": "Servicio",
+      "date": "Fecha",
+      "window": "Ventana",
+      "address": "Dirección",
+      "contact": "Contacto"
+    },
+    "terms": {
+      "sectionTitle": "Autorización y Consentimiento",
+      "agree": "Acepto los",
+      "termsLink": "Términos de Servicio",
+      "and": "y la",
+      "cancellationLink": "Política de Cancelación",
+      "termsError": "Por favor acepta los Términos de Servicio y la Política de Cancelación para continuar."
+    },
+    "payment": {
+      "holdNote": "Autorizamos (retenemos) tu tarjeta ahora pero",
+      "holdNoteStrong": "solo cobramos después de que el técnico complete el servicio"
+    },
+    "outside_area": {
+      "note": "está fuera de nuestra área estándar. Nuestro equipo confirmará antes de enviar."
+    }
   }
 }
