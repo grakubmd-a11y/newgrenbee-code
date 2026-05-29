@@ -124,7 +124,14 @@
     "faq": "FAQ",
     "contact": "Contact",
     "getFreeQuote": "Get a Free Quote",
-    "toggleMenu": "Toggle menu"
+    "toggleMenu": "Toggle menu",
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "myAccount": "My Account",
+    "signOut": "Sign Out",
+    "inProgress": "In Progress",
+    "membership": "Membership",
+    "hello": "Hello"
   },
   "home": {
     "pageTitle": "Grenbee — Professional Lawn Care & Home Cleaning in Utah County, UT",

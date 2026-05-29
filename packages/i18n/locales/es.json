@@ -124,7 +124,14 @@
     "faq": "FAQ",
     "contact": "Contacto",
     "getFreeQuote": "Cotización Gratis",
-    "toggleMenu": "Abrir menú"
+    "toggleMenu": "Abrir menú",
+    "signIn": "Iniciar Sesión",
+    "createAccount": "Crear Cuenta",
+    "myAccount": "Mi Cuenta",
+    "signOut": "Cerrar Sesión",
+    "inProgress": "En Progreso",
+    "membership": "Membresía",
+    "hello": "Hola"
   },
   "home": {
     "pageTitle": "Grenbee — Cuidado de Césped y Limpieza del Hogar en Utah County, UT",
