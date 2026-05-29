@@ -290,6 +290,39 @@ export default function SiteNavbar() {
                 {phone}
               </a>
 
+              {/* Logged-in quick nav: Membresía + En Progreso */}
+              {currentUser && (
+                <div className="flex items-center gap-1">
+                  <Link
+                    href="/plans"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+                      pathname === "/plans"
+                        ? "text-amber-600 bg-amber-50"
+                        : "text-gray-600 hover:text-amber-600 hover:bg-amber-50"
+                    }`}
+                  >
+                    <Award size={15} className="text-amber-500 shrink-0" />
+                    {t("siteNav.membership")}
+                  </Link>
+                  <Link
+                    href="/bookings"
+                    className={`relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+                      pathname === "/bookings"
+                        ? "text-emerald-600 bg-emerald-50"
+                        : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
+                    }`}
+                  >
+                    <ClipboardList size={15} className="shrink-0" />
+                    {t("siteNav.inProgress")}
+                    {activeBookingsCount > 0 && (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                        {activeBookingsCount}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+              )}
+
               {/* Auth area */}
               {currentUser ? (
                 /* ── Logged in: avatar dropdown ── */
