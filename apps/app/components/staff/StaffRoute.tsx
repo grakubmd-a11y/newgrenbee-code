@@ -52,9 +52,12 @@ export default function StaffRoute() {
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
+    const safetyTimer = setTimeout(() => setChecking(false), 6000);
+
     getGoogleRedirectResult().catch((err) => setAuthError(getFirebaseAuthErrorMessage(err)));
 
     const unsub = subscribeToAuthChanges(async (firebaseUser) => {
+      clearTimeout(safetyTimer);
       setChecking(true);
       setAuthError("");
       setAccessDenied(false);
@@ -114,7 +117,10 @@ export default function StaffRoute() {
       }
     });
 
-    return unsub;
+    return () => {
+      clearTimeout(safetyTimer);
+      unsub();
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -149,17 +155,14 @@ export default function StaffRoute() {
             setAuthError("");
             setLoginBusy(true);
             try {
-              // Use redirect as primary — avoids popup-blocker issues on custom domains.
-              // See AdminRoute for full explanation.
-              await signInWithGoogleRedirect();
-              // Page navigates away on success.
+              await signInWithGooglePopup();
             } catch (e: any) {
-              // Redirect failed — fall back to popup.
-              try { await signInWithGooglePopup(); }
-              catch (pe: any) {
-                setAuthError(getFirebaseAuthErrorMessage(pe));
-                setLoginBusy(false);
+              if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
+                setAuthError("Tu navegador bloqueó la ventana de login. Permite los popups para staff.grenbee.com en la barra de URL y vuelve a intentar.");
+              } else {
+                setAuthError(getFirebaseAuthErrorMessage(e));
               }
+              setLoginBusy(false);
             }
           }}
           disabled={loginBusy}

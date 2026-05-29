@@ -73,11 +73,18 @@ export default function AdminRoute() {
   };
 
   useEffect(() => {
+    // Safety timeout: Firebase's onAuthStateChanged waits for any pending
+    // signInWithRedirect to finish before firing. On custom domains this can
+    // hang indefinitely due to cross-origin IndexedDB issues. After 6 s we
+    // force the page out of the loading state so the login form shows.
+    const safetyTimer = setTimeout(() => setCheckingAuth(false), 6000);
+
     getGoogleRedirectResult().catch((error) => {
       setAuthError(getFirebaseAuthErrorMessage(error));
     });
 
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
+      clearTimeout(safetyTimer);
       setCheckingAuth(true);
       setAuthError("");
 
@@ -126,29 +133,29 @@ export default function AdminRoute() {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      clearTimeout(safetyTimer);
+      unsubscribe();
+    };
   }, []);
 
   const handleGoogleLogin = async () => {
     setAuthError("");
     setLoginBusy(true);
     try {
-      // Use redirect as primary method on custom domains (control-room.grenbee.com).
-      // When popups are blocked by the browser, Chrome navigates the main tab to the
-      // Firebase auth handler URL (/__/auth/handler?authType=signInViaPopup) which
-      // then shows "The requested action is invalid" because it expects window.opener.
-      // signInWithRedirect avoids this entirely: it navigates directly to Google OAuth
-      // and returns via getGoogleRedirectResult() in the useEffect below.
-      await signInWithGoogleRedirect();
-      // Page will navigate away — no code after this runs on success.
+      await signInWithGooglePopup();
     } catch (error: any) {
-      // Redirect failed (rare) — fall back to popup.
-      try {
-        await signInWithGooglePopup();
-      } catch (popupError: any) {
-        setAuthError(getFirebaseAuthErrorMessage(popupError));
-        setLoginBusy(false);
+      if (error?.code === "auth/popup-blocked" || error?.code === "auth/popup-closed-by-user") {
+        // Popup was blocked — ask the user to allow popups rather than
+        // falling back to signInWithRedirect, which causes onAuthStateChanged
+        // to hang indefinitely on custom domains (cross-origin IndexedDB issue).
+        setAuthError(
+          "Tu navegador bloqueó la ventana de login. Permite los popups para control-room.grenbee.com en la barra de URL y vuelve a intentar."
+        );
+      } else {
+        setAuthError(getFirebaseAuthErrorMessage(error));
       }
+      setLoginBusy(false);
     }
   };
 
