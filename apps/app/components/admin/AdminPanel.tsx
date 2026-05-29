@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import * as Icons from "lucide-react";
+import { SERVICES_DATA } from "@grenbee/config";
 import { collection, getDocs } from "firebase/firestore";
 import { db, auth } from "@grenbee/firebase";
 import PlansAdminTab from "./PlansAdminTab";
@@ -663,7 +664,8 @@ export default function AdminPanel({
         estimatedMinutesPerUnit: Number(editingService.estimatedMinutesPerUnit !== undefined ? editingService.estimatedMinutesPerUnit : 30),
         includedSpecs: editingService.includedSpecs || [],
         factors: editingService.factors || [],
-        popularUnitValue: Number(editingService.popularUnitValue !== undefined ? editingService.popularUnitValue : 1)
+        popularUnitValue: Number(editingService.popularUnitValue !== undefined ? editingService.popularUnitValue : 1),
+        active: editingService.active !== false,
       };
       await saveServiceInFirestore(svc);
       await recordActivity({
@@ -3847,6 +3849,47 @@ export default function AdminPanel({
                 />
               </label>
             </div>
+
+            {/* ── Servicios activos en el estimador público ── */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 block mb-0.5">Servicios visibles en el estimador público</label>
+                <p className="text-[10px] text-gray-400">Solo los servicios marcados aparecerán en el estimador de precios del sitio. Desactiva servicios sin cobertura activa.</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {SERVICES_DATA.map((svc) => {
+                  const SvcIcon = (Icons as any)[svc.iconName] || Icons.Sparkles;
+                  const currentIds: string[] = businessSettings.activeServiceIds ?? SERVICES_DATA.filter(s => s.active !== false).map(s => s.id);
+                  const isOn = currentIds.includes(svc.id);
+                  return (
+                    <label
+                      key={svc.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        isOn ? "border-brand/30 bg-brand/5" : "border-gray-200 bg-gray-50 opacity-60"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isOn}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...currentIds, svc.id]
+                            : currentIds.filter((id) => id !== svc.id);
+                          setBusinessSettings({ ...businessSettings, activeServiceIds: next });
+                        }}
+                        className="rounded border-gray-300 text-brand focus:ring-brand h-4 w-4 cursor-pointer"
+                      />
+                      <SvcIcon size={14} className={isOn ? "text-brand" : "text-gray-400"} />
+                      <div className="min-w-0">
+                        <span className={`block text-xs font-bold ${isOn ? "text-gray-900" : "text-gray-500"}`}>{svc.name}</span>
+                        <span className="block text-[10px] text-gray-400">${svc.basePrice} base</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
 
           <button

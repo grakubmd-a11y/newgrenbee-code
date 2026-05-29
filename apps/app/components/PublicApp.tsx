@@ -37,9 +37,10 @@ import {
   fetchReviewsFromFirestore,
   fetchServicesFromFirestore,
 } from "@grenbee/firebase/services";
-import { INITIAL_BOOKINGS } from "@grenbee/config";
+import { SERVICES_DATA, INITIAL_BOOKINGS } from "@grenbee/config";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSiteSettings } from "@grenbee/firebase/contexts";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -63,14 +64,19 @@ export default function PublicApp() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useTranslation();
-  const auth = useAuth();
+  const auth         = useAuth();
+  const siteSettings = useSiteSettings();
 
   // Auth + data from context
   const currentUser     = auth?.currentUser     ?? null;
   const bookings        = auth?.bookings        ?? INITIAL_BOOKINGS;
   const reviews         = auth?.reviews         ?? [];
-  const services        = auth?.services        ?? [];
   const setBookings     = auth?.setBookings;
+
+  // Filter SERVICES_DATA by admin-controlled active list
+  const visibleServices = SERVICES_DATA.filter(s =>
+    siteSettings.activeServiceIds.includes(s.id)
+  );
 
   // Local UI state
   const [activeTab, setActiveTab] = useState<string>(() => getInitialTab(pathname));
@@ -216,7 +222,7 @@ export default function PublicApp() {
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                {services.map((service) => (
+                {visibleServices.map((service) => (
                   <ServiceCard
                     key={service.id}
                     service={service}
@@ -292,7 +298,7 @@ export default function PublicApp() {
             <CostEstimator
               initialServiceId={selectedEstimatorId}
               onProceedToBook={(params) => setWizardParams(params)}
-              services={services}
+              services={visibleServices}
             />
           </div>
         </section>
@@ -303,7 +309,7 @@ export default function PublicApp() {
         <section className="max-w-7xl mx-auto pb-16">
           <BookingWizard
             bookingParams={wizardParams}
-            services={services}
+            services={visibleServices}
             currentUser={currentUser}
             onSubmitBooking={async (draft) => auth?.handleWizardSubmit(draft)}
             onBack={() => setWizardParams(null)}

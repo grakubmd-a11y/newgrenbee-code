@@ -166,6 +166,8 @@ export interface BusinessSettings {
   crmWebhookUrl?: string;
   /** Extra fee charged when the customer books for today (same-day booking). Default 35. */
   sameDayFee?: number;
+  /** Service IDs currently enabled on the public estimator. If absent, falls back to SERVICES_DATA active flags. */
+  activeServiceIds?: string[];
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────────
