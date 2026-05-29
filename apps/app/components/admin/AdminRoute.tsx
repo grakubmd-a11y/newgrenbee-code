@@ -323,14 +323,14 @@ export default function AdminRoute() {
       services={services}
       currentUser={currentUser}
       onNavigateToAccount={() => {
-        window.location.href = "/";
+        window.location.href = "https://app.grenbee.com/";
       }}
       onUpdateBookingStatus={handleUpdateBookingStatus}
       onDeleteReview={handleDeleteReview}
       onAddReviewDirect={handleAddReviewDirect}
       onSynchronizeAll={loadAdminData}
       onExit={() => {
-        window.location.href = "/";
+        window.location.href = "https://app.grenbee.com/";
       }}
     />
   );
