@@ -31,11 +31,13 @@ export default function CostEstimator({
   services = SERVICES_DATA
 }: CostEstimatorProps) {
   const { t } = useTranslation();
+  const activeServices = useMemo(() => services.filter((s) => s.active !== false), [services]);
+
   // 1. Core State
   const [activeServiceId, setActiveServiceId] = useState<string>(initialServiceId);
   const activeService = useMemo(() => {
-    return services.find((s) => s.id === activeServiceId) || services[0];
-  }, [activeServiceId, services]);
+    return activeServices.find((s) => s.id === activeServiceId) || activeServices[0];
+  }, [activeServiceId, activeServices]);
 
   const [units, setUnits] = useState<number>(activeService.popularUnitValue);
   
@@ -50,16 +52,16 @@ export default function CostEstimator({
 
   // 2. Reset calculations when service changes
   useEffect(() => {
-    const selectedSvc = services.find((s) => s.id === activeServiceId) || services[0];
+    const selectedSvc = activeServices.find((s) => s.id === activeServiceId) || activeServices[0];
     setUnits(selectedSvc.popularUnitValue);
-    
+
     // Initialize default factors (first option for each factor)
     const defaults: { [factorName: string]: ServiceFactorOption } = {};
     selectedSvc.factors.forEach((f) => {
       defaults[f.name] = f.options[0];
     });
     setSelectedOptions(defaults);
-  }, [activeServiceId, services]);
+  }, [activeServiceId, activeServices]);
 
   // ── Transform selectedOptions → selectedFactors (format expected by pricingService) ──
   const selectedFactors = useMemo(() => {
@@ -225,7 +227,7 @@ const handleApplyCoupon = async () => {
     <div className="w-full">
       {/* Services selector tabs */}
       <div className="mb-8 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center border-b border-gray-100 pb-4">
-        {services.map((svc) => {
+        {activeServices.map((svc) => {
           const SvcIcon = (Icons as any)[svc.iconName] || Icons.HelpCircle;
           const isActive = svc.id === activeServiceId;
           return (

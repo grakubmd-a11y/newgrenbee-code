@@ -138,19 +138,19 @@
     "pageTitle": "Grenbee — Professional Lawn Care & Home Cleaning in Utah County, UT",
     "metaDescription": "Book professional lawn care and house cleaning in Mapleton, Spanish Fork, Springville, and Utah County. Instant online quotes, same-week availability, eco-friendly products.",
     "hero": {
-      "badge": "200+ Five-Star Reviews in Utah County",
+      "badge": "Serving Utah County",
       "title": "Professional Lawn Care & Home Cleaning in Utah County, UT",
       "titleHighlight": "Home Cleaning",
       "subtitle": "Grenbee delivers reliable, eco-friendly home services across Utah County. Book online in minutes — same-week availability guaranteed.",
       "ctaPrimary": "Get a Free Quote",
-      "ctaPhone": "(305) 555-0000",
+      "ctaPhone": "",
       "trustNote": "Talk to a real person — we typically respond within the hour."
     },
     "stats": {
-      "happyHomeowners": "Happy Homeowners Served",
-      "fiveStarReviews": "Five-Star Google Reviews",
-      "serviceTrucks": "Service Trucks on the Road",
-      "technicians": "Professional Technicians"
+      "happyHomeowners": "Service Area",
+      "fiveStarReviews": "Service Rating",
+      "serviceTrucks": "Insured & Background-Checked",
+      "technicians": "Availability"
     },
     "servicesSection": {
       "eyebrow": "What We Do",
@@ -270,7 +270,7 @@
       "title": "Make Your Home Look Its Best",
       "subtitle": "Get an instant quote in seconds. No contracts, no hidden fees — just reliable service.",
       "cta": "Get a Free Quote",
-      "reviewsBadge": "200+ Five-Star Reviews"
+      "reviewsBadge": "5-Star Rated Service"
     },
     "directory": {
       "title": "Service Areas — Utah County, UT",

@@ -61,19 +61,21 @@ export default function PageShell({ children, seo }: PageShellProps) {
             <div className="md:col-span-1 space-y-3">
               <Link href="/" className="inline-block">
                 <span className="text-lg font-extrabold text-white tracking-tight">
-                  Green<span className="text-emerald-400">bee</span>
+                  Gren<span className="text-emerald-400">bee</span>
                 </span>
               </Link>
               <p className="text-sm leading-relaxed">
                 {t("home.footer.tagline")}
               </p>
-              <a
-                href={`tel:${phone.replace(/\D/g, "")}`}
-                className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
-              >
-                <Phone className="w-3.5 h-3.5" />
-                {phone}
-              </a>
+              {phone && (
+                <a
+                  href={`tel:${phone.replace(/\D/g, "")}`}
+                  className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  {phone}
+                </a>
+              )}
               <p className="text-xs text-gray-600">
                 © {new Date().getFullYear()} Grenbee. {t("home.footer.rights")}
               </p>

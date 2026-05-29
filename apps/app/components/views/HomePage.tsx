@@ -54,12 +54,9 @@ function PhotoSlot({
       </div>
     );
   }
+  // No URL: render a neutral background — no placeholder text visible to visitors
   return (
-    <div
-      className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-200 bg-gray-50 text-gray-300 ${className}`}
-    >
-      <Icons.ImagePlus className="w-8 h-8 mb-1" />
-      <span className="text-xs text-center px-2">{placeholderText ?? "Photo — add from Admin → Media"}</span>
+    <div className={`relative overflow-hidden bg-gray-100 ${className}`}>
       {children}
     </div>
   );
@@ -118,10 +115,10 @@ export default function HomePage() {
   const defaultTestimonials = t("home.testimonials.defaultItems", { returnObjects: true }) as { name: string; location: string; text: string }[];
   const footerServiceLinks = t("home.footer.serviceLinks", { returnObjects: true }) as string[];
   const statsItems = [
-    { value: "500+", label: t("home.stats.happyHomeowners"),  icon: Icons.Home },
-    { value: "200+", label: t("home.stats.fiveStarReviews"),  icon: Icons.Star },
-    { value: "5+",   label: t("home.stats.serviceTrucks"),    icon: Icons.Truck },
-    { value: "10+",  label: t("home.stats.technicians"),      icon: Icons.Users },
+    { value: "Utah County",  label: t("home.stats.happyHomeowners"),  icon: Icons.MapPin },
+    { value: "5-Star",       label: t("home.stats.fiveStarReviews"),  icon: Icons.Star },
+    { value: "100%",         label: t("home.stats.serviceTrucks"),    icon: Icons.ShieldCheck },
+    { value: "Same-week",    label: t("home.stats.technicians"),      icon: Icons.Calendar },
   ];
   const standardIcons = [Icons.Sparkles, Icons.ShieldCheck, Icons.Leaf, Icons.Clock];
 
@@ -202,13 +199,15 @@ export default function HomePage() {
                   {heroCta}
                   <Icons.ArrowRight className="w-4 h-4" />
                 </button>
-                <a
-                  href={`tel:${phone.replace(/\D/g, "")}`}
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-white/20"
-                >
-                  <Icons.Phone className="w-4 h-4" />
-                  {phone}
-                </a>
+                {phone && (
+                  <a
+                    href={`tel:${phone.replace(/\D/g, "")}`}
+                    className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-white/20"
+                  >
+                    <Icons.Phone className="w-4 h-4" />
+                    {phone}
+                  </a>
+                )}
               </div>
 
               {/* Trust statement */}
@@ -650,13 +649,15 @@ export default function HomePage() {
               <p className="text-sm leading-relaxed">
                 {t("home.footer.tagline")}
               </p>
-              <a
-                href={`tel:${phone.replace(/\D/g, "")}`}
-                className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
-              >
-                <Icons.Phone className="w-3.5 h-3.5" />
-                {phone}
-              </a>
+              {phone && (
+                <a
+                  href={`tel:${phone.replace(/\D/g, "")}`}
+                  className="flex items-center gap-1.5 text-sm text-emerald-400 font-semibold hover:text-emerald-300 transition-colors"
+                >
+                  <Icons.Phone className="w-3.5 h-3.5" />
+                  {phone}
+                </a>
+              )}
               <p className="text-xs text-gray-600">© {new Date().getFullYear()} Grenbee. {t("home.footer.rights")}</p>
             </div>
 

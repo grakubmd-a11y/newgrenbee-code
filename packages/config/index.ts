@@ -16,6 +16,7 @@ export const SERVICES_DATA: Service[] = [
     stepUnits: 1,
     estimatedMinutesPerUnit: 40,
     popularUnitValue: 0,
+    active: true,
     includedSpecs: [
       "Dust and wipe all accessible surfaces",
       "Vacuum all carpets, rugs, and stairs",
@@ -119,6 +120,7 @@ export const SERVICES_DATA: Service[] = [
     stepUnits: 1,
     estimatedMinutesPerUnit: 60,
     popularUnitValue: 1,
+    active: true,
     includedSpecs: [
       "Find studs and test dry-integrity with digital detectors",
       "Mount heavy-duty steel brackets with high-strength lag bolts",
@@ -189,6 +191,7 @@ export const SERVICES_DATA: Service[] = [
     stepUnits: 1,
     estimatedMinutesPerUnit: 20,
     popularUnitValue: 2,
+    active: true,
     includedSpecs: [
       "Lawn mowing with professional walk-behind or ride-on mowers",
       "Trimming of all grass along garden beds, posts, and trees",
@@ -255,6 +258,7 @@ export const SERVICES_DATA: Service[] = [
     stepUnits: 1,
     estimatedMinutesPerUnit: 45,
     popularUnitValue: 1,
+    active: false,
     includedSpecs: [
       "Hardware and panel sorting with manual parts verification",
       "Tension-checked joint alignment with manual screw torque checks",
@@ -314,6 +318,7 @@ export const SERVICES_DATA: Service[] = [
     stepUnits: 1,
     estimatedMinutesPerUnit: 30,
     popularUnitValue: 2,
+    active: false,
     includedSpecs: [
       "Wander inspect for masonry moss or fragile paint lines",
       "Pre-soak with biological surfactant detergents to loosen grime",
@@ -382,6 +387,7 @@ export const SERVICES_DATA: Service[] = [
     stepUnits: 1,
     estimatedMinutesPerUnit: 30,
     popularUnitValue: 2,
+    active: false,
     includedSpecs: [
       "Electronic stud and wire detection before every drill",
       "Grade-rated anchors and hardware selected for item weight",
@@ -444,6 +450,7 @@ export const SERVICES_DATA: Service[] = [
     stepUnits: 1,
     estimatedMinutesPerUnit: 120,
     popularUnitValue: 1,
+    active: true,
     includedSpecs: [
       "Before & after photo documentation for your records",
       "Guest-ready staging — beds made, towels set, surfaces reset",

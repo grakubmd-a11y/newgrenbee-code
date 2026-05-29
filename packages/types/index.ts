@@ -32,6 +32,8 @@ export interface Service {
   includedSpecs: string[];
   factors: ServiceFactor[];
   popularUnitValue: number;
+  /** false = hidden from estimator and booking; defaults to true if omitted */
+  active?: boolean;
 }
 
 export type BookingStatus = 'scheduled' | 'dispatched' | 'in-progress' | 'completed' | 'cancelled' | 'needs_assignment';
