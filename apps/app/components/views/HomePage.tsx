@@ -164,7 +164,7 @@ export default function HomePage() {
         <SiteNavbar />
 
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
-        <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[440px] flex items-center">
+        <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[380px] flex items-center">
           {/* Background photo — absolute, ancho completo */}
           {cms?.heroPhotoUrl ? (
             <img
