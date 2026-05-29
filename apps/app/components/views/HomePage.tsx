@@ -166,56 +166,61 @@ export default function HomePage() {
       <div className="min-h-screen flex flex-col bg-white">
         <SiteNavbar />
 
-        {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
+        {/* ── 1. HERO ───────────────────────────────────────────���──────────── */}
         <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[580px] flex items-center">
-          {/* Background photo slot */}
-          <PhotoSlot
-            url={cms?.heroPhotoUrl}
-            className="absolute inset-0 w-full h-full"
-            placeholderText={photoPlaceholder}
-          />
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gray-950/70" />
-
           <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-24 md:py-36 w-full">
-            <div className="max-w-2xl">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
-                <Icons.Star className="w-4 h-4 fill-emerald-400 text-emerald-400" />
-                {t("home.hero.badge")}
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+              {/* Left: Text content */}
+              <div className="max-w-2xl">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
+                  <Icons.Star className="w-4 h-4 fill-emerald-400 text-emerald-400" />
+                  {t("home.hero.badge")}
+                </div>
+
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6">
+                  {heroHeadline}
+                </h1>
+
+                <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
+                  {heroSubtitle}
+                </p>
+
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                  <button
+                    onClick={scrollToEstimator}
+                    className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors shadow-lg cursor-pointer"
+                  >
+                    {heroCta}
+                    <Icons.ArrowRight className="w-4 h-4" />
+                  </button>
+                  <a
+                    href={`tel:${phone.replace(/\D/g, "")}`}
+                    className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-white/20"
+                  >
+                    <Icons.Phone className="w-4 h-4" />
+                    {phone}
+                  </a>
+                </div>
+
+                {/* Trust statement */}
+                <p className="text-sm text-gray-400 flex items-center gap-2">
+                  <Icons.CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  {t("home.hero.trustNote")}
+                </p>
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6">
-                {heroHeadline}
-              </h1>
-
-              <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
-                {heroSubtitle}
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                <button
-                  onClick={scrollToEstimator}
-                  className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors shadow-lg cursor-pointer"
-                >
-                  {heroCta}
-                  <Icons.ArrowRight className="w-4 h-4" />
-                </button>
-                <a
-                  href={`tel:${phone.replace(/\D/g, "")}`}
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-white/20"
-                >
-                  <Icons.Phone className="w-4 h-4" />
-                  {phone}
-                </a>
+              {/* Right: Hero image */}
+              <div className="relative h-full min-h-96 md:min-h-[450px] rounded-2xl overflow-hidden">
+                <PhotoSlot
+                  url={cms?.heroPhotoUrl}
+                  className="h-full w-full"
+                  placeholderText={photoPlaceholder}
+                />
+                {/* Subtle overlay for depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/50 via-transparent to-transparent" />
               </div>
-
-              {/* Trust statement */}
-              <p className="text-sm text-gray-400 flex items-center gap-2">
-                <Icons.CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                {t("home.hero.trustNote")}
-              </p>
             </div>
           </div>
         </section>
