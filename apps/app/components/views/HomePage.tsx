@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SiteNavbar from "@/components/layout/SiteNavbar";
+import ServiceCard from "@/components/ServiceCard";
 import CostEstimator from "@/components/CostEstimator";
 import { fetchServicesFromFirestore, fetchReviewsFromFirestore, fetchPageContent } from "@grenbee/firebase/services";
 import { SERVICES_DATA } from "@grenbee/config";
@@ -254,59 +255,18 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.slice(0, 6).map((service) => {
-                const descKey = SERVICE_DESCRIPTION_KEYS[service.id];
-                const desc = descKey ? t(descKey) : (service.description ?? service.tagline ?? "");
-                const IconComponent = (Icons as any)[service.iconName] || Icons.HelpCircle;
+                const svcReviews = reviews.filter((r) => r.serviceId === service.id);
+                const avgRating = svcReviews.length
+                  ? svcReviews.reduce((s, r) => s + r.rating, 0) / svcReviews.length
+                  : 4.8;
                 return (
-                  <div
+                  <ServiceCard
                     key={service.id}
-                    className="group relative flex flex-col overflow-hidden rounded-[2.5rem] border border-slate-100/90 bg-white p-4 pb-6 shadow-[0_10px_45px_rgba(0,0,0,0.012)] transition-all duration-300 hover:border-emerald-500/35 hover:shadow-[0_24px_60px_-15px_rgba(14,173,107,0.15)] hover:-translate-y-2"
-                  >
-                    {/* Photo */}
-                    <div className="relative h-48 w-full overflow-hidden rounded-[2rem] bg-slate-50 shadow-inner">
-                      <PhotoSlot className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-hover:rotate-1" url={cms?.servicePhotos?.[service.id]} alt={service.name} placeholderText={photoPlaceholder} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
-                      <div className="absolute top-3.5 left-3.5">
-                        <span className="flex items-center gap-1 bg-white/95 backdrop-blur-md text-[9px] font-black text-slate-900 tracking-widest uppercase px-3 py-1.5 rounded-full shadow-sm border border-white/20">
-                          <Icons.Sparkles size={11} className="text-emerald-500 animate-pulse" />
-                          {t("serviceCard.premiumBadge")}
-                        </span>
-                      </div>
-                      <div className="absolute -bottom-1.5 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-500 border border-slate-100 shadow-[0_6px_16px_rgba(0,0,0,0.06)] group-hover:bg-emerald-500 group-hover:text-white group-hover:border-emerald-500 transition-all duration-300 transform group-hover:rotate-12">
-                        <IconComponent size={22} strokeWidth={2} />
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="px-3 pt-5 flex flex-col flex-grow text-left">
-                      <h3 className="text-lg font-extrabold text-slate-950 tracking-tight transition-colors duration-300 group-hover:text-emerald-600 leading-tight">
-                        {service.name}
-                      </h3>
-                      <p className="mt-1 text-[10px] text-emerald-600 font-black tracking-wider uppercase">
-                        {service.tagline}
-                      </p>
-                      <p className="mt-3 text-xs leading-relaxed text-slate-500 font-semibold line-clamp-2">
-                        {desc}
-                      </p>
-
-                      {/* Price & CTA */}
-                      <div className="mt-5 pt-3 flex items-center justify-between gap-3">
-                        <div className="text-left">
-                          <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block leading-none">{t("serviceCard.basePrice")}</span>
-                          <span className="text-lg font-black text-slate-950 tracking-tight leading-none">
-                            ${service.basePrice} <span className="text-[9px] text-slate-400 font-bold">{t("serviceCard.currency")}</span>
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => scrollToEstimator(service.id)}
-                          className="flex-grow cursor-pointer flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-emerald-600 text-white py-3 px-4 text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.25)] group-hover:bg-emerald-600 active:scale-[0.97]"
-                        >
-                          <span>{t("home.servicesSection.getQuote")}</span>
-                          <Icons.ChevronRight size={13} strokeWidth={2.5} className="transition-transform duration-300 group-hover:translate-x-0.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    service={service}
+                    onBookClick={() => scrollToEstimator(service.id)}
+                    avgRating={avgRating}
+                    reviewsCount={svcReviews.length}
+                  />
                 );
               })}
             </div>
