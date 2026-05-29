@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "next/navigation";
 import SiteNavbar from "./SiteNavbar";
 import { useSiteSettings } from "@grenbee/firebase/contexts";
 
@@ -18,13 +19,12 @@ interface PageShellProps {
   seo?: SEOMeta;
 }
 
-function toSlug(city: string) {
-  return city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-}
 
 export default function PageShell({ children, seo }: PageShellProps) {
   const { t } = useTranslation();
   const { phone, email } = useSiteSettings();
+  const params = useParams();
+  const base = `/${(params?.country as string) ?? "us"}`;
   const canonicalUrl =
     seo?.canonical ??
     `https://grenbee.com${typeof window !== "undefined" ? window.location.pathname : ""}`;
@@ -98,31 +98,31 @@ export default function PageShell({ children, seo }: PageShellProps) {
             {/* Areas */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
-                {t("home.footer.miamidadeTitle")}
+                Utah County
               </h4>
               <ul className="space-y-2 text-sm">
-                {["Miami", "Miami Beach", "Coral Gables", "Brickell", "Doral", "Hialeah"].map((city) => (
-                  <li key={city}>
-                    <Link href={`/areas/${toSlug(city)}`} className="hover:text-emerald-400 transition-colors">
-                      {city}
+                {["mapleton", "spanish-fork", "springville", "salem"].map((slug) => (
+                  <li key={slug}>
+                    <Link href={`${base}/areas/${slug}`} className="hover:text-emerald-400 transition-colors capitalize">
+                      {slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                     </Link>
                   </li>
                 ))}
               </ul>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">
-                {t("home.footer.browardTitle")}
+                Wasatch Back
               </h4>
               <ul className="space-y-2 text-sm">
-                {["Fort Lauderdale", "Hollywood", "Pembroke Pines", "Miramar"].map((city) => (
-                  <li key={city}>
-                    <Link href={`/areas/${toSlug(city)}`} className="hover:text-emerald-400 transition-colors">
-                      {city}
+                {["heber", "midway", "park-city"].map((slug) => (
+                  <li key={slug}>
+                    <Link href={`${base}/areas/${slug}`} className="hover:text-emerald-400 transition-colors">
+                      {slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
                     </Link>
                   </li>
                 ))}
               </ul>
               <div className="mt-3">
-                <Link href="/areas" className="text-emerald-400 hover:text-emerald-300 font-semibold text-sm transition-colors">
+                <Link href={`${base}/areas`} className="text-emerald-400 hover:text-emerald-300 font-semibold text-sm transition-colors">
                   {t("home.footer.allServiceAreas")} →
                 </Link>
               </div>
@@ -134,19 +134,20 @@ export default function PageShell({ children, seo }: PageShellProps) {
                 {t("home.footer.companyTitle")}
               </h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/plans"   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
-                <li><Link href="/areas"   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
-                <li><Link href="/faq"     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
-                <li><Link href="/contact" className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
+                <li><Link href={`${base}/plans`}   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
+                <li><Link href={`${base}/areas`}   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
+                <li><Link href={`${base}/hosts`}   className="hover:text-emerald-400 transition-colors">For Hosts</Link></li>
+                <li><Link href={`${base}/faq`}     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
+                <li><Link href={`${base}/contact`} className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
               </ul>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">
                 {t("home.footer.legalTitle")}
               </h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/terms"        className="hover:text-emerald-400 transition-colors">{t("home.footer.termsOfService")}</Link></li>
-                <li><Link href="/privacy"      className="hover:text-emerald-400 transition-colors">{t("home.footer.privacyPolicy")}</Link></li>
-                <li><Link href="/cancellation" className="hover:text-emerald-400 transition-colors">{t("home.footer.cancellationPolicy")}</Link></li>
-                <li><Link href="/guarantee"    className="hover:text-emerald-400 transition-colors">{t("home.footer.satisfactionGuarantee")}</Link></li>
+                <li><Link href={`${base}/terms`}        className="hover:text-emerald-400 transition-colors">{t("home.footer.termsOfService")}</Link></li>
+                <li><Link href={`${base}/privacy`}      className="hover:text-emerald-400 transition-colors">{t("home.footer.privacyPolicy")}</Link></li>
+                <li><Link href={`${base}/cancellation`} className="hover:text-emerald-400 transition-colors">{t("home.footer.cancellationPolicy")}</Link></li>
+                <li><Link href={`${base}/guarantee`}    className="hover:text-emerald-400 transition-colors">{t("home.footer.satisfactionGuarantee")}</Link></li>
               </ul>
             </div>
           </div>

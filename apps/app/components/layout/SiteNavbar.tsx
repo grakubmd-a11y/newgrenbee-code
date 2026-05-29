@@ -71,13 +71,14 @@ export default function SiteNavbar() {
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
+  const base = `/${country ?? "us"}`;
   const NAV_LINKS = [
     { label: t("siteNav.services"), href: "/#services" },
-    { label: t("siteNav.plans"), href: "/plans" },
-    { label: t("siteNav.areas"), href: "/areas" },
-    { label: t("siteNav.forHosts"), href: "/hosts" },
-    { label: t("siteNav.faq"), href: "/faq" },
-    { label: t("siteNav.contact"), href: "/contact" },
+    { label: t("siteNav.plans"), href: `${base}/plans` },
+    { label: t("siteNav.areas"), href: `${base}/areas` },
+    { label: t("siteNav.forHosts"), href: `${base}/hosts` },
+    { label: t("siteNav.faq"), href: `${base}/faq` },
+    { label: t("siteNav.contact"), href: `${base}/contact` },
   ];
 
   useEffect(() => {
@@ -295,9 +296,9 @@ export default function SiteNavbar() {
               {currentUser && (
                 <div className="flex items-center gap-1">
                   <Link
-                    href="/plans"
+                    href={`${base}/plans`}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-                      pathname === "/plans"
+                      pathname === `${base}/plans`
                         ? "text-amber-600 bg-amber-50"
                         : "text-gray-600 hover:text-amber-600 hover:bg-amber-50"
                     }`}
@@ -390,7 +391,7 @@ export default function SiteNavbar() {
                           )}
                         </Link>
                         <Link
-                          href="/plans"
+                          href={`${base}/plans`}
                           onClick={() => setIsUserMenuOpen(false)}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-amber-600 hover:bg-amber-50 transition-colors"
                         >
