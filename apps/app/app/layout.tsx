@@ -4,11 +4,15 @@ import Providers from "./providers";
 
 export const metadata: Metadata = {
   title: {
-    default: "Grenbee — Book a Cleaning",
+    default: "Grenbee — Home Cleaning Services",
     template: "%s | Grenbee",
   },
-  description: "Book professional home cleaning services online.",
-  metadataBase: new URL("https://app.grenbee.com"),
+  description: "Professional home cleaning services in Utah. Book online in minutes.",
+  metadataBase: new URL("https://grenbee.com"),
+  openGraph: {
+    type: "website",
+    siteName: "Grenbee",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

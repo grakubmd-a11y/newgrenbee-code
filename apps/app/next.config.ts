@@ -10,14 +10,6 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // ── Multi-zone asset prefix ────────────────────────────────────────────────
-  // When grenbee-web proxies /book,/account,etc. to this app, the browser loads
-  // the page from grenbee.com but Next.js bundles live here.
-  // assetPrefix tells Next.js to load _next/static/* from the app's own origin,
-  // not from grenbee.com where those assets don't exist.
-  // Set NEXT_PUBLIC_ASSET_PREFIX in Vercel → grenbee-app to the stable project URL.
-  assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX || "",
-
   // ── noindex headers for internal domains ──────────────────────────────────
   async headers() {
     return [
