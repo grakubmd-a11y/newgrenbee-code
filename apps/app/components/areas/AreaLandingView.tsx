@@ -71,7 +71,7 @@ interface Props {
 
 export default function AreaLandingView({ content: c, copy, lang, phone, service }: Props) {
   const langPrefix = lang === "es" ? "/us/es" : "/us";
-  const bookHref = `${langPrefix}/book`;
+  const bookHref = `/book`;
   const areasHref = `${langPrefix}/areas`;
   const cityHref = `${areasHref}/${c.slug}`;
   const telHref = `tel:${phone.replace(/\D/g, "")}`;

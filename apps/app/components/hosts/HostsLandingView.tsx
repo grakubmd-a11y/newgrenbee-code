@@ -23,7 +23,7 @@ export default function HostsLandingView({
   phone: string;
 }) {
   const langPrefix = lang === "es" ? "/us/es" : "/us";
-  const bookHref = `${langPrefix}/book?service=vacation-rental-turnover`;
+  const bookHref = `/book?service=vacation-rental-turnover`;
   const telHref = `tel:${phone.replace(/\D/g, "")}`;
 
   return (
