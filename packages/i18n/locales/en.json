@@ -940,5 +940,16 @@
       "trust": "No pre-payment. Cancel anytime."
     },
     "included": "Included In This Service Quote:"
+  },
+  "serviceCard": {
+    "premiumBadge": "Premium Service",
+    "reviews": "reviews",
+    "estimatedMin": "Est. Minutes",
+    "extraUnit": "Extra Unit",
+    "includedLabel": "Included in the service:",
+    "moreSpecs": "+{{count}} more specs",
+    "basePrice": "Base Price",
+    "currency": "USD",
+    "book": "Book"
   }
 }

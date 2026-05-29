@@ -940,5 +940,16 @@
       "trust": "Sin pago previo. Cancela cuando quieras."
     },
     "included": "Incluido en Esta Cotización:"
+  },
+  "serviceCard": {
+    "premiumBadge": "Servicio Premium",
+    "reviews": "opiniones",
+    "estimatedMin": "Minutos Est.",
+    "extraUnit": "Unidad Extra",
+    "includedLabel": "Incluido en el servicio:",
+    "moreSpecs": "+{{count}} especificaciones más",
+    "basePrice": "Precio Base",
+    "currency": "USD",
+    "book": "Reservar"
   }
 }
