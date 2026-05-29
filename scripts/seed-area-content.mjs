@@ -16,7 +16,7 @@
  * NOTE: If you edit apps/app/lib/launchAreas.ts, mirror the change in the
  * LAUNCH_AREAS array below (kept intentionally identical).
  */
-import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { cert, getApps, initializeApp, applicationDefault } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFile } from "node:fs/promises";
 
@@ -31,10 +31,7 @@ const serviceAccountPath = args.serviceAccount || process.env.GOOGLE_APPLICATION
 const databaseId = args.database || "ai-studio-590843c3-6656-4faa-a42c-fc98f2b5ecb1";
 const dryRun = "dry-run" in args;
 
-if (!serviceAccountPath) {
-  console.error("❌  Missing --serviceAccount=/absolute/path/service-account.json");
-  process.exit(1);
-}
+// serviceAccountPath is optional — falls back to ADC (gcloud auth application-default login)
 
 // ── Launch content (keep in sync with apps/app/lib/launchAreas.ts) ───────────
 const svc = (serviceId, serviceName, localDescription) => ({ serviceId, serviceName, localDescription });
@@ -293,10 +290,12 @@ const LAUNCH_AREAS = [
 ];
 
 // ── Init Admin SDK ────────────────────────────────────────────────────────
-const serviceAccount = JSON.parse(await readFile(serviceAccountPath, "utf8"));
+const credential = serviceAccountPath
+  ? cert(JSON.parse(await readFile(serviceAccountPath, "utf8")))
+  : applicationDefault();
 const app = getApps().length
   ? getApps()[0]
-  : initializeApp({ credential: cert(serviceAccount) });
+  : initializeApp({ credential });
 const db = getFirestore(app, databaseId);
 
 // ── Write ─────────────────────────────────────────────────────────────────

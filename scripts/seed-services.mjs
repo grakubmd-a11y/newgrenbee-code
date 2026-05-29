@@ -12,7 +12,7 @@
  */
 
 import { readFile } from "node:fs/promises";
-import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { cert, getApps, initializeApp, applicationDefault } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
 // ── Parse CLI args ─────────────────────────────────────────────────────────
@@ -28,10 +28,7 @@ const projectId          = args.project    || "servicios-maps";
 const databaseId         = args.database   || "ai-studio-590843c3-6656-4faa-a42c-fc98f2b5ecb1";
 const dryRun             = "dry-run" in args;
 
-if (!serviceAccountPath) {
-  console.error("❌  Missing --serviceAccount=/absolute/path/service-account.json");
-  process.exit(1);
-}
+// serviceAccountPath is optional — falls back to ADC (gcloud auth application-default login)
 
 // ── SERVICES_DATA (canonical copy — keep in sync with src/shared/data.ts) ─
 const SERVICES_DATA = [
@@ -539,11 +536,13 @@ const SERVICES_DATA = [
 ];
 
 // ── Init Firebase Admin ────────────────────────────────────────────────────
-const serviceAccount = JSON.parse(await readFile(serviceAccountPath, "utf8"));
+const credential = serviceAccountPath
+  ? cert(JSON.parse(await readFile(serviceAccountPath, "utf8")))
+  : applicationDefault();
 
 const app = getApps().length
   ? getApps()[0]
-  : initializeApp({ credential: cert(serviceAccount), projectId });
+  : initializeApp({ credential, projectId });
 
 const db = getFirestore(app, databaseId);
 
