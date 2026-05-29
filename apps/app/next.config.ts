@@ -10,9 +10,16 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // ── noindex headers for internal domains ──────────────────────────────────
+  // ── Headers ───────────────────────────────────────────────────────────────
   async headers() {
     return [
+      // COOP: unsafe-none permite que Firebase Google Sign-In popup funcione.
+      // El header por defecto "same-origin" bloquea window.closed del popup OAuth.
+      {
+        source: "/(.*)",
+        headers: [{ key: "Cross-Origin-Opener-Policy", value: "unsafe-none" }],
+      },
+      // noindex para dominios internos
       {
         source: "/(.*)",
         has: [{ type: "host", value: "staff.grenbee.com" }],

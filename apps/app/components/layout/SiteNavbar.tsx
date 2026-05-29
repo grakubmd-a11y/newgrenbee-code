@@ -16,7 +16,6 @@ import { usePathname, useRouter, useParams } from "next/navigation";
 import {
   Menu,
   X,
-  Phone,
   ChevronDown,
   LogOut,
   Settings,
@@ -29,6 +28,7 @@ import {
   CheckCircle2,
   ArrowLeft,
   KeyRound,
+  Phone,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSiteSettings } from "@grenbee/firebase/contexts";
@@ -490,14 +490,6 @@ export default function SiteNavbar() {
 
             {/* Phone + auth */}
             <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-2">
-              <a
-                href={`tel:${phone.replace(/\D/g, "")}`}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700"
-              >
-                <Phone className="w-4 h-4 text-emerald-500" />
-                {phone}
-              </a>
-
               {/* Membresía — siempre visible en mobile */}
               <Link
                 href={`${base}/plans`}
