@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Each internal subdomain is locked to its own section of the app:
  *   staff.grenbee.com        → /staff only
  *   control-room.grenbee.com → /admin only
- *   app.grenbee.com          → permanent redirect to grenbee.com (same path + query)
+ *   app.grenbee.com          → redirect to grenbee.com configured in Vercel domain settings (not in code)
  *
  * NOTE: This middleware is a routing/UX layer only.
  * All admin and staff API routes still perform their own server-side role checks.
