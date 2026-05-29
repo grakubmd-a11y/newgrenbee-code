@@ -28,7 +28,9 @@
     "firebase-admin": "^13.10.0",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
-    "react-i18next": "^17.0.8"
+    "react-i18next": "^17.0.8",
+    "resend": "^4.0.0",
+    "stripe": "^17.0.0"
   },
   "packageManager": "npm@10.9.2"
 }
