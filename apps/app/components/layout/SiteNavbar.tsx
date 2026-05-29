@@ -282,47 +282,50 @@ export default function SiteNavbar() {
             </nav>
 
             {/* Right section */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2">
               {/* Phone */}
               <a
                 href={`tel:${phone.replace(/\D/g, "")}`}
-                className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-emerald-600 transition-colors"
               >
                 <Phone className="w-4 h-4" />
                 {phone}
               </a>
 
-              {/* Logged-in quick nav: Membresía + En Progreso */}
+              {/* Separador */}
+              <span className="w-px h-5 bg-gray-200" />
+
+              {/* Membresía — siempre visible, botón destacado amber */}
+              <Link
+                href={`${base}/plans`}
+                className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-bold rounded-xl transition-all shadow-sm ${
+                  pathname === `${base}/plans`
+                    ? "bg-amber-500 text-white shadow-amber-200"
+                    : "bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white hover:shadow-amber-200"
+                }`}
+              >
+                <Award size={14} className="shrink-0" />
+                {t("siteNav.membership")}
+              </Link>
+
+              {/* En Progreso — solo para usuarios logueados */}
               {currentUser && (
-                <div className="flex items-center gap-1">
-                  <Link
-                    href={`${base}/plans`}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-                      pathname === `${base}/plans`
-                        ? "text-amber-600 bg-amber-50"
-                        : "text-gray-600 hover:text-amber-600 hover:bg-amber-50"
-                    }`}
-                  >
-                    <Award size={15} className="text-amber-500 shrink-0" />
-                    {t("siteNav.membership")}
-                  </Link>
-                  <Link
-                    href="/bookings"
-                    className={`relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-                      pathname === "/bookings"
-                        ? "text-emerald-600 bg-emerald-50"
-                        : "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
-                    }`}
-                  >
-                    <ClipboardList size={15} className="shrink-0" />
-                    {t("siteNav.inProgress")}
-                    {activeBookingsCount > 0 && (
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
-                        {activeBookingsCount}
-                      </span>
-                    )}
-                  </Link>
-                </div>
+                <Link
+                  href="/bookings"
+                  className={`relative flex items-center gap-1.5 px-3.5 py-2 text-sm font-bold rounded-xl transition-all ${
+                    pathname === "/bookings"
+                      ? "bg-emerald-500 text-white"
+                      : "bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white"
+                  }`}
+                >
+                  <ClipboardList size={14} className="shrink-0" />
+                  {t("siteNav.inProgress")}
+                  {activeBookingsCount > 0 && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                      {activeBookingsCount}
+                    </span>
+                  )}
+                </Link>
               )}
 
               {/* Auth area */}
@@ -495,6 +498,16 @@ export default function SiteNavbar() {
                 {phone}
               </a>
 
+              {/* Membresía — siempre visible en mobile */}
+              <Link
+                href={`${base}/plans`}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-all"
+              >
+                <Award size={15} />
+                {t("siteNav.membership")}
+              </Link>
+
               {currentUser ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl">
@@ -519,9 +532,9 @@ export default function SiteNavbar() {
                   <Link
                     href="/bookings"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-xl"
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl"
                   >
-                    <ClipboardList size={15} className="text-gray-400" />
+                    <ClipboardList size={15} className="text-emerald-500" />
                     {t("siteNav.inProgress")}
                     {activeBookingsCount > 0 && (
                       <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white">
