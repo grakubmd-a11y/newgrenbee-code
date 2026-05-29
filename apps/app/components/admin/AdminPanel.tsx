@@ -147,6 +147,11 @@ export default function AdminPanel({
   const [editingCoupon, setEditingCoupon] = useState<Partial<CouponRule> | null>(null);
   const [couponFormOpen, setCouponFormOpen] = useState(false);
 
+  // Service security states
+  const [editPendingServiceId,    setEditPendingServiceId]    = useState<string | null>(null);
+  const [confirmDeleteServiceId,  setConfirmDeleteServiceId]  = useState<string | null>(null);
+  const [confirmDeleteInput,      setConfirmDeleteInput]      = useState("");
+
   // Review Form States
   const [newAuthorName, setNewAuthorName] = useState("");
   const [newComment, setNewComment] = useState("");
@@ -687,8 +692,25 @@ export default function AdminPanel({
     }
   };
 
+  /** Toggle a service active/inactive. Saves only activeServiceIds to Firestore immediately. */
+  const handleToggleServiceActive = async (serviceId: string, currentlyActive: boolean) => {
+    const currentIds: string[] = businessSettings.activeServiceIds
+      ?? SERVICES_DATA.filter(s => s.active !== false).map(s => s.id);
+    const nextIds = currentlyActive
+      ? currentIds.filter(id => id !== serviceId)
+      : [...currentIds, serviceId];
+    const updated = { ...businessSettings, activeServiceIds: nextIds };
+    setBusinessSettings(updated);
+    try {
+      await saveSettingsInFirestore(updated);
+    } catch (err: any) {
+      // Rollback
+      setBusinessSettings(businessSettings);
+      setErrorMessage("Error al actualizar el estado del servicio: " + err.message);
+    }
+  };
+
   const handleDeleteService = async (id: string, name: string) => {
-    if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el servicio "${name}"? Esto alterará el flujo público de cotizaciones.`)) return;
     const actionId = `delete-service-${id}`;
     beginAction(actionId, "Eliminando servicio...");
     try {
@@ -1874,67 +1896,167 @@ export default function AdminPanel({
             </form>
           )}
 
-          {/* Grid list of services */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {globalServices.length === 0 ? (
-              <div className="md:col-span-2 lg:col-span-3">
-                <EmptyState
-                  icon={Icons.Sparkles}
-                  title="No hay servicios activos"
-                  description="El catalogo puede quedar vacio. Agrega un servicio cuando quieras volver a habilitar cotizaciones publicas."
-                />
-              </div>
-            ) : globalServices.map((svc) => (
-              <div key={svc.id} className="bg-white border border-gray-150 rounded-2xl p-5 text-left flex flex-col justify-between shadow-2xs group relative">
-                <div>
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                    <span className="font-mono text-[10px] text-gray-400 font-bold uppercase">{svc.id}</span>
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => {
-                          setEditingService(svc);
-                          setServiceFormOpen(true);
-                        }}
-                        className="text-neutral-500 hover:text-brand bg-transparent border-none p-1 shrink-0 cursor-pointer"
-                        title="Editar"
-                      >
-                        <Icons.Edit3 size={13} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteService(svc.id, svc.name)}
-                        disabled={isActionPending(`delete-service-${svc.id}`)}
-                        className="text-neutral-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-wait bg-transparent border-none p-1 shrink-0 cursor-pointer"
-                        title="Borrar"
-                      >
-                        {isActionPending(`delete-service-${svc.id}`) ? (
-                          <Icons.RotateCw size={13} className="animate-spin" />
-                        ) : (
-                          <Icons.Trash2 size={13} />
-                        )}
-                      </button>
+          {/* Grid list of services — merges SERVICES_DATA base with Firestore extras */}
+          {(() => {
+            const activeIds: string[] = businessSettings.activeServiceIds
+              ?? SERVICES_DATA.filter(s => s.active !== false).map(s => s.id);
+            // All known services: static base + any Firestore-only extras
+            const allServices = [
+              ...SERVICES_DATA,
+              ...globalServices.filter(gs => !SERVICES_DATA.find(sd => sd.id === gs.id)),
+            ];
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allServices.map((svc) => {
+                  const SvcIcon = (Icons as any)[svc.iconName] || Icons.Sparkles;
+                  const isActive = activeIds.includes(svc.id);
+                  const isDeleting = confirmDeleteServiceId === svc.id;
+                  const isEditPending = editPendingServiceId === svc.id;
+
+                  return (
+                    <div
+                      key={svc.id}
+                      className={`bg-white border rounded-2xl p-5 text-left flex flex-col justify-between shadow-2xs transition-opacity ${
+                        isActive ? "border-gray-150 opacity-100" : "border-gray-200 opacity-60"
+                      }`}
+                    >
+                      {/* Header row */}
+                      <div className="flex items-start justify-between pb-3 border-b border-gray-100 gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <SvcIcon size={15} className={isActive ? "text-brand shrink-0" : "text-gray-400 shrink-0"} />
+                          <span className="font-mono text-[10px] text-gray-400 font-bold uppercase truncate">{svc.id}</span>
+                        </div>
+                        {/* Active toggle */}
+                        <label className="flex items-center gap-1.5 cursor-pointer shrink-0 select-none" title={isActive ? "Desactivar servicio" : "Activar servicio"}>
+                          <span className={`text-[10px] font-bold ${isActive ? "text-emerald-600" : "text-gray-400"}`}>
+                            {isActive ? "Activo" : "Inactivo"}
+                          </span>
+                          <div
+                            onClick={() => handleToggleServiceActive(svc.id, isActive)}
+                            className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer ${
+                              isActive ? "bg-emerald-500" : "bg-gray-300"
+                            }`}
+                          >
+                            <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                              isActive ? "translate-x-4" : "translate-x-0.5"
+                            }`} />
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* Body */}
+                      <div className="py-3 space-y-1 flex-1">
+                        <h4 className="font-extrabold text-sm text-gray-900">{svc.name}</h4>
+                        <p className="text-[11px] text-gray-400 italic leading-normal line-clamp-2">"{svc.tagline}"</p>
+                      </div>
+
+                      {/* Pricing row */}
+                      <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-xs mb-3">
+                        <div>
+                          <span className="text-gray-400 text-[10px] block font-medium">Base</span>
+                          <span className="font-black text-brand">${svc.basePrice}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-gray-400 text-[10px] block font-medium">+ por {svc.unitName}</span>
+                          <span className="font-bold text-gray-700">${svc.pricePerUnit}</span>
+                        </div>
+                      </div>
+
+                      {/* Delete confirmation panel */}
+                      {isDeleting ? (
+                        <div className="space-y-2 border border-rose-200 bg-rose-50 rounded-xl p-3">
+                          <p className="text-[11px] font-bold text-rose-700">
+                            Escribe <strong>{svc.name}</strong> para confirmar la eliminación permanente:
+                          </p>
+                          <input
+                            autoFocus
+                            type="text"
+                            value={confirmDeleteInput}
+                            onChange={e => setConfirmDeleteInput(e.target.value)}
+                            placeholder={svc.name}
+                            className="w-full text-xs px-2.5 py-2 rounded-lg border border-rose-200 focus:outline-none focus:border-rose-400"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              disabled={confirmDeleteInput !== svc.name || isActionPending(`delete-service-${svc.id}`)}
+                              onClick={() => {
+                                handleDeleteService(svc.id, svc.name);
+                                setConfirmDeleteServiceId(null);
+                                setConfirmDeleteInput("");
+                              }}
+                              className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[11px] font-bold rounded-lg border-none cursor-pointer transition-colors"
+                            >
+                              Eliminar definitivamente
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setConfirmDeleteServiceId(null); setConfirmDeleteInput(""); }}
+                              className="px-3 py-1.5 border border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg bg-white cursor-pointer hover:bg-gray-50"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : isEditPending ? (
+                        /* Edit confirmation chip */
+                        <div className="space-y-2 border border-amber-200 bg-amber-50 rounded-xl p-3">
+                          <p className="text-[11px] font-bold text-amber-800 flex items-center gap-1.5">
+                            <Icons.AlertTriangle size={12} />
+                            Editar cambia el sitio en vivo. ¿Confirmar?
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingService(svc);
+                                setServiceFormOpen(true);
+                                setEditPendingServiceId(null);
+                              }}
+                              className="flex-1 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold rounded-lg border-none cursor-pointer"
+                            >
+                              Sí, editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditPendingServiceId(null)}
+                              className="px-3 py-1.5 border border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg bg-white cursor-pointer hover:bg-gray-50"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Normal action buttons */
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditPendingServiceId(svc.id)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-gray-200 text-gray-600 hover:border-brand hover:text-brand text-[11px] font-bold rounded-xl bg-white cursor-pointer transition-colors"
+                          >
+                            <Icons.Edit3 size={12} /> Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setConfirmDeleteServiceId(svc.id); setConfirmDeleteInput(""); }}
+                            disabled={isActionPending(`delete-service-${svc.id}`)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-gray-200 text-gray-400 hover:border-rose-300 hover:text-rose-600 text-[11px] font-bold rounded-xl bg-white cursor-pointer transition-colors disabled:opacity-50"
+                          >
+                            {isActionPending(`delete-service-${svc.id}`) ? (
+                              <Icons.RotateCw size={12} className="animate-spin" />
+                            ) : (
+                              <Icons.Trash2 size={12} />
+                            )}
+                            Eliminar
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="py-4 space-y-2">
-                    <h4 className="font-extrabold text-sm text-gray-900">{svc.name}</h4>
-                    <p className="text-[11px] text-gray-400 leading-normal font-semibold italic">"{svc.tagline}"</p>
-                    <p className="text-[11px] text-gray-500 leading-relaxed truncate-2-lines line-clamp-2">{svc.description}</p>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="text-gray-400 text-[10px] block font-medium">Cotización Inicial</span>
-                    <span className="font-black text-brand text-sm">${svc.basePrice} base</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-gray-400 text-[10px] block font-medium">Adicional por {svc.unitName}</span>
-                    <span className="font-bold text-gray-800">${svc.pricePerUnit} / {svc.unitName}</span>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       )}
 
@@ -3848,46 +3970,6 @@ export default function AdminPanel({
                   className="rounded border-gray-300 text-brand focus:ring-brand h-5 w-5 cursor-pointer"
                 />
               </label>
-            </div>
-
-            {/* ── Servicios activos en el estimador público ── */}
-            <div className="space-y-3">
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 block mb-0.5">Servicios visibles en el estimador público</label>
-                <p className="text-[10px] text-gray-400">Solo los servicios marcados aparecerán en el estimador de precios del sitio. Desactiva servicios sin cobertura activa.</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {SERVICES_DATA.map((svc) => {
-                  const SvcIcon = (Icons as any)[svc.iconName] || Icons.Sparkles;
-                  const currentIds: string[] = businessSettings.activeServiceIds ?? SERVICES_DATA.filter(s => s.active !== false).map(s => s.id);
-                  const isOn = currentIds.includes(svc.id);
-                  return (
-                    <label
-                      key={svc.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                        isOn ? "border-brand/30 bg-brand/5" : "border-gray-200 bg-gray-50 opacity-60"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isOn}
-                        onChange={(e) => {
-                          const next = e.target.checked
-                            ? [...currentIds, svc.id]
-                            : currentIds.filter((id) => id !== svc.id);
-                          setBusinessSettings({ ...businessSettings, activeServiceIds: next });
-                        }}
-                        className="rounded border-gray-300 text-brand focus:ring-brand h-4 w-4 cursor-pointer"
-                      />
-                      <SvcIcon size={14} className={isOn ? "text-brand" : "text-gray-400"} />
-                      <div className="min-w-0">
-                        <span className={`block text-xs font-bold ${isOn ? "text-gray-900" : "text-gray-500"}`}>{svc.name}</span>
-                        <span className="block text-[10px] text-gray-400">${svc.basePrice} base</span>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
             </div>
 
           </div>
