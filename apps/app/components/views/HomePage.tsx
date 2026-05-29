@@ -106,6 +106,7 @@ export default function HomePage() {
   const [reviews,  setReviews]    = useState<Review[]>([]);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [cms, setCms]             = useState<HomePageContent | null>(null);
+  const [estimatorServiceId, setEstimatorServiceId] = useState<string>("house-cleaning");
   const estimatorRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -140,7 +141,8 @@ export default function HomePage() {
       .catch(() => {});
   }, []);
 
-  function scrollToEstimator() {
+  function scrollToEstimator(serviceId?: string) {
+    if (serviceId) setEstimatorServiceId(serviceId);
     estimatorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -198,7 +200,7 @@ export default function HomePage() {
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <button
-                  onClick={scrollToEstimator}
+                  onClick={() => scrollToEstimator()}
                   className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors shadow-lg cursor-pointer"
                 >
                   {heroCta}
@@ -296,7 +298,7 @@ export default function HomePage() {
                           </span>
                         </div>
                         <button
-                          onClick={scrollToEstimator}
+                          onClick={() => scrollToEstimator(service.id)}
                           className="flex-grow cursor-pointer flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-emerald-600 text-white py-3 px-4 text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.25)] group-hover:bg-emerald-600 active:scale-[0.97]"
                         >
                           <span>{t("home.servicesSection.getQuote")}</span>
@@ -501,7 +503,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
-                onClick={scrollToEstimator}
+                onClick={() => scrollToEstimator()}
                 className="inline-flex items-center gap-2 bg-white text-emerald-700 hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl text-base transition-colors shadow-md cursor-pointer"
               >
                 {t("home.ctaBanner.cta")}
@@ -592,6 +594,7 @@ export default function HomePage() {
 
             <CostEstimator
               services={services}
+              initialServiceId={estimatorServiceId}
               onProceedToBook={(params) => {
                 // Store params in sessionStorage and navigate to the app booking flow
                 sessionStorage.setItem("gbee_wizard_params", JSON.stringify(params));
@@ -673,7 +676,7 @@ export default function HomePage() {
                 {footerServiceLinks.map((s) => (
                   <li key={s}>
                     <button
-                      onClick={scrollToEstimator}
+                      onClick={() => scrollToEstimator()}
                       className="hover:text-emerald-400 transition-colors cursor-pointer text-left"
                     >
                       {s}

@@ -36,6 +36,15 @@ export default function CostEstimator({
 
   // 1. Core State
   const [activeServiceId, setActiveServiceId] = useState<string>(initialServiceId);
+
+  // Sync if parent changes the initialServiceId prop after mount
+  useEffect(() => {
+    if (initialServiceId && initialServiceId !== activeServiceId) {
+      setActiveServiceId(initialServiceId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialServiceId]);
+
   const activeService = useMemo(() => {
     return activeServices.find((s) => s.id === activeServiceId) || activeServices[0];
   }, [activeServiceId, activeServices]);

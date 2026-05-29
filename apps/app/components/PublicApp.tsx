@@ -80,14 +80,15 @@ export default function PublicApp() {
 
   // Local UI state
   const [activeTab, setActiveTab] = useState<string>(() => getInitialTab(pathname));
-  const [selectedEstimatorId, setSelectedEstimatorId] = useState("house-cleaning");
-
-  // Preselect a service from ?service=<id> (e.g. the "For Hosts" landing CTA).
-  // Read from window.location to avoid a useSearchParams Suspense requirement on static routes.
-  useEffect(() => {
-    const svc = new URLSearchParams(window.location.search).get("service");
-    if (svc) setSelectedEstimatorId(svc);
-  }, []);
+  // Preselect a service from ?service=<id> synchronously so CostEstimator
+  // mounts with the correct initialServiceId on the very first render.
+  const [selectedEstimatorId, setSelectedEstimatorId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const svc = new URLSearchParams(window.location.search).get("service");
+      if (svc) return svc;
+    }
+    return "house-cleaning";
+  });
   const [wizardParams, setWizardParams] = useState<WizardBookingParams | null>(() => {
     try {
       const stored = sessionStorage.getItem("gbee_wizard_params");
