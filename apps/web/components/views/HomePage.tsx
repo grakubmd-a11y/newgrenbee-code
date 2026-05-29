@@ -166,10 +166,10 @@ export default function HomePage() {
       <div className="min-h-screen flex flex-col bg-white">
         <SiteNavbar />
 
-        {/* ── 1. HERO ───────────────────────────────────────────���──────────── */}
-        <section className="relative w-full overflow-hidden bg-white text-gray-950 min-h-[600px] md:min-h-[680px] flex items-center">
+        {/* ── 1. HERO ───────────────────────────────────────────�����──────────── */}
+        <section className="relative w-full overflow-hidden bg-emerald-50 text-gray-950 min-h-[600px] md:min-h-[680px] flex items-center">
           {/* Subtle gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-blue-50" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 via-emerald-50 to-emerald-100" />
           
           {/* Decorative accent circle */}
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-100 rounded-full opacity-40 blur-3xl" />
