@@ -181,7 +181,7 @@ export default function HomePage() {
           {/* Dark overlay */}
           <div className="absolute inset-0 bg-gray-950/65" />
 
-          <div className="relative z-10 w-full px-6 sm:px-10 lg:px-16 py-16 md:py-24">
+          <div className="relative z-10 w-full px-6 sm:px-10 lg:px-16 py-10 md:py-14">
             <div className="max-w-2xl">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
