@@ -164,17 +164,22 @@ export default function HomePage() {
         <SiteNavbar />
 
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
-        <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[580px] flex items-center">
-          {/* Background photo slot */}
-          <PhotoSlot
-            url={cms?.heroPhotoUrl}
-            className="absolute inset-0 w-full h-full"
-            placeholderText={photoPlaceholder}
-          />
+        <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[440px] flex items-center">
+          {/* Background photo — absolute, ancho completo */}
+          {cms?.heroPhotoUrl ? (
+            <img
+              src={cms.heroPhotoUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="eager"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gray-900" />
+          )}
           {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gray-950/70" />
+          <div className="absolute inset-0 bg-gray-950/65" />
 
-          <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-24 md:py-36 w-full">
+          <div className="relative z-10 w-full px-6 sm:px-10 lg:px-16 py-16 md:py-24">
             <div className="max-w-2xl">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
