@@ -151,6 +151,8 @@ export default function AdminPanel({
   const [editPendingServiceId,    setEditPendingServiceId]    = useState<string | null>(null);
   const [confirmDeleteServiceId,  setConfirmDeleteServiceId]  = useState<string | null>(null);
   const [confirmDeleteInput,      setConfirmDeleteInput]      = useState("");
+  const [togglePendingServiceId,  setTogglePendingServiceId]  = useState<string | null>(null);
+  const [toggleConfirmInput,      setToggleConfirmInput]      = useState("");
 
   // Review Form States
   const [newAuthorName, setNewAuthorName] = useState("");
@@ -1910,8 +1912,10 @@ export default function AdminPanel({
                 {allServices.map((svc) => {
                   const SvcIcon = (Icons as any)[svc.iconName] || Icons.Sparkles;
                   const isActive = activeIds.includes(svc.id);
-                  const isDeleting = confirmDeleteServiceId === svc.id;
-                  const isEditPending = editPendingServiceId === svc.id;
+                  const isDeleting       = confirmDeleteServiceId === svc.id;
+                  const isEditPending    = editPendingServiceId === svc.id;
+                  const isTogglePending  = togglePendingServiceId === svc.id;
+                  const toggleWord       = isActive ? "desactivar" : "activar";
 
                   return (
                     <div
@@ -1926,13 +1930,13 @@ export default function AdminPanel({
                           <SvcIcon size={15} className={isActive ? "text-brand shrink-0" : "text-gray-400 shrink-0"} />
                           <span className="font-mono text-[10px] text-gray-400 font-bold uppercase truncate">{svc.id}</span>
                         </div>
-                        {/* Active toggle */}
+                        {/* Active toggle — opens confirmation panel */}
                         <label className="flex items-center gap-1.5 cursor-pointer shrink-0 select-none" title={isActive ? "Desactivar servicio" : "Activar servicio"}>
                           <span className={`text-[10px] font-bold ${isActive ? "text-emerald-600" : "text-gray-400"}`}>
                             {isActive ? "Activo" : "Inactivo"}
                           </span>
                           <div
-                            onClick={() => handleToggleServiceActive(svc.id, isActive)}
+                            onClick={() => { setTogglePendingServiceId(svc.id); setToggleConfirmInput(""); }}
                             className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer ${
                               isActive ? "bg-emerald-500" : "bg-gray-300"
                             }`}
@@ -1961,6 +1965,49 @@ export default function AdminPanel({
                           <span className="font-bold text-gray-700">${svc.pricePerUnit}</span>
                         </div>
                       </div>
+
+                      {/* Toggle confirmation panel */}
+                      {isTogglePending ? (
+                        <div className={`space-y-2 border rounded-xl p-3 ${isActive ? "border-orange-200 bg-orange-50" : "border-emerald-200 bg-emerald-50"}`}>
+                          <p className={`text-[11px] font-bold flex items-center gap-1.5 ${isActive ? "text-orange-700" : "text-emerald-700"}`}>
+                            <Icons.ToggleLeft size={13} />
+                            Escribe <strong className="mx-1">{toggleWord}</strong> para confirmar:
+                          </p>
+                          <input
+                            autoFocus
+                            type="text"
+                            value={toggleConfirmInput}
+                            onChange={e => setToggleConfirmInput(e.target.value.toLowerCase())}
+                            placeholder={toggleWord}
+                            className={`w-full text-xs px-2.5 py-2 rounded-lg border focus:outline-none ${
+                              isActive ? "border-orange-200 focus:border-orange-400" : "border-emerald-200 focus:border-emerald-400"
+                            }`}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              disabled={toggleConfirmInput !== toggleWord}
+                              onClick={() => {
+                                handleToggleServiceActive(svc.id, isActive);
+                                setTogglePendingServiceId(null);
+                                setToggleConfirmInput("");
+                              }}
+                              className={`flex-1 py-1.5 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[11px] font-bold rounded-lg border-none cursor-pointer transition-colors ${
+                                isActive ? "bg-orange-500 hover:bg-orange-600" : "bg-emerald-600 hover:bg-emerald-700"
+                              }`}
+                            >
+                              {isActive ? "Desactivar servicio" : "Activar servicio"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setTogglePendingServiceId(null); setToggleConfirmInput(""); }}
+                              className="px-3 py-1.5 border border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg bg-white cursor-pointer hover:bg-gray-50"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
 
                       {/* Delete confirmation panel */}
                       {isDeleting ? (
@@ -1998,7 +2045,7 @@ export default function AdminPanel({
                             </button>
                           </div>
                         </div>
-                      ) : isEditPending ? (
+                      ) : isTogglePending ? null : isEditPending ? (
                         /* Edit confirmation chip */
                         <div className="space-y-2 border border-amber-200 bg-amber-50 rounded-xl p-3">
                           <p className="text-[11px] font-bold text-amber-800 flex items-center gap-1.5">
