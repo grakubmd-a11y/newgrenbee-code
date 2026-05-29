@@ -12,7 +12,6 @@ import { Service, Booking, Review, BookingStatus } from "@grenbee/types";
 import { createRecurringPlanFromBooking, autoAssignStaff } from "@grenbee/firebase/services";
 import { SERVICES_DATA, INITIAL_BOOKINGS, INITIAL_REVIEWS } from "@grenbee/config";
 import {
-  validateFirestoreConnection,
   subscribeToAuthChanges,
   getUserProfile,
   saveUserProfile,
@@ -69,6 +68,7 @@ export interface AuthContextValue {
 
   // Reviews — setReviews exposed for direct review injection
   setReviews: React.Dispatch<React.SetStateAction<Review[]>>;
+  setServices: React.Dispatch<React.SetStateAction<Service[]>>;
   handleAddReview(data: Omit<Review, "id" | "date" | "helpfulCount" | "verified">): Promise<void>;
   handleAddReviewDirect(review: Review): void;
   handleIncrementHelpful(id: string): Promise<void>;
@@ -115,11 +115,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [services, setServices] = useState<Service[]>(SERVICES_DATA);
 
-  // ── Auth + initial data effects ──────────────────────────────────────────
+  // ── Auth listener ─────────────────────────────────────────────────────────
+  // Intentionally lean: we only subscribe to auth changes here.
+  // validateFirestoreConnection(), fetchReviews, and fetchServices are
+  // deferred to PublicApp (the only place that actually needs them) so
+  // marketing pages don't trigger unnecessary Firestore reads on every load.
 
   useEffect(() => {
-    validateFirestoreConnection();
-
     // Handle Google redirect result (mobile flow)
     getGoogleRedirectResult().catch((err) =>
       console.error("[Auth] Redirect result error:", err),
@@ -206,17 +208,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Load shared data
-    fetchReviewsFromFirestore()
-      .then((r) => { if (r?.length) setReviews(r); })
-      .catch((err) => console.error("[Auth] Reviews load:", err));
-
-    fetchServicesFromFirestore()
-      .then((s) => { if (s?.length) setServices(s); })
-      .catch((err) => console.error("[Auth] Services load:", err));
-
     return () => unsubscribeAuth();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync bookings whenever the logged-in user changes
   useEffect(() => {
@@ -569,6 +562,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     handleRescheduleBooking,
     handleCancelBooking,
     setReviews,
+    setServices,
     handleAddReview,
     handleAddReviewDirect,
     handleIncrementHelpful,

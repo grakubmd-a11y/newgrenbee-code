@@ -3,6 +3,7 @@ import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { MembershipPlan, MembershipPriceTier, MembershipCredits, YardSizeTier } from "@grenbee/types";
 import { fetchMembershipPlans } from "@grenbee/firebase/services";
+import PageShell from "@/components/layout/PageShell";
 
 interface SizeGuideEntry {
   tier: YardSizeTier;
@@ -352,22 +353,13 @@ export default function PlansPage() {
   const customPlan   = plans.find(p => p.byQuote);
 
   return (
-    <div className="min-h-screen bg-[#f0faf4]">
-      {/* Nav bar */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 font-black text-[#0a2e1e] text-lg">
-            🌿 <span>Grenbee</span>
-          </a>
-          <a
-            href="/#booking"
-            className="text-xs font-bold text-brand border border-brand/30 rounded-full px-4 py-1.5 hover:bg-brand hover:text-white transition-colors"
-          >
-            {t("plans.bookOneTime")}
-          </a>
-        </div>
-      </header>
-
+    <PageShell
+      seo={{
+        title: t("plans.pageTitle", "Membership Plans | Grenbee"),
+        description: t("plans.metaDescription", "Choose a Grenbee membership plan that fits your home size. Regular cleaning on schedule with transparent pricing."),
+      }}
+    >
+    <div className="bg-[#f0faf4]">
       {/* Hero */}
       <section className="bg-[#0a2e1e] text-white py-16 px-4 text-center">
         <div className="max-w-2xl mx-auto space-y-4">
@@ -539,5 +531,6 @@ export default function PlansPage() {
         />
       )}
     </div>
+    </PageShell>
   );
 }

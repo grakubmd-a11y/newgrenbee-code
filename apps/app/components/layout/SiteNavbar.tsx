@@ -50,6 +50,9 @@ export default function SiteNavbar() {
     (b) => b.status !== "completed" && b.status !== "cancelled",
   ).length;
 
+  // Language toggle only makes sense on [country]/* routes that have ES equivalents
+  const isInternationalRoute = !!country;
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -394,14 +397,16 @@ export default function SiteNavbar() {
                 </div>
               )}
 
-              {/* Language toggle */}
-              <button
-                type="button"
-                onClick={switchLanguage}
-                className="h-9 w-9 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all cursor-pointer text-xs font-bold"
-              >
-                {i18n.language === "en" ? "ES" : "EN"}
-              </button>
+              {/* Language toggle — only on [country]/* routes */}
+              {isInternationalRoute && (
+                <button
+                  type="button"
+                  onClick={switchLanguage}
+                  className="h-9 w-9 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all cursor-pointer text-xs font-bold"
+                >
+                  {i18n.language === "en" ? "ES" : "EN"}
+                </button>
+              )}
             </div>
 
             {/* Mobile hamburger */}
@@ -523,17 +528,19 @@ export default function SiteNavbar() {
                 </div>
               )}
 
-              {/* Language toggle */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileOpen(false);
-                  switchLanguage();
-                }}
-                className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-bold transition-all cursor-pointer"
-              >
-                {i18n.language === "en" ? "Español" : "English"}
-              </button>
+              {/* Language toggle — only on [country]/* routes */}
+              {isInternationalRoute && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    switchLanguage();
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-bold transition-all cursor-pointer"
+                >
+                  {i18n.language === "en" ? "Español" : "English"}
+                </button>
+              )}
             </div>
           </div>
         )}

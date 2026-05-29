@@ -31,7 +31,12 @@ import MyAccount from "./MyAccount";
 
 import { usePathname, useRouter } from "next/navigation";
 import { Booking } from "@grenbee/types";
-import { createBookingInFirestore } from "@grenbee/firebase/services";
+import {
+  createBookingInFirestore,
+  validateFirestoreConnection,
+  fetchReviewsFromFirestore,
+  fetchServicesFromFirestore,
+} from "@grenbee/firebase/services";
 import { INITIAL_BOOKINGS } from "@grenbee/config";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +103,24 @@ export default function PublicApp() {
     const tab = getInitialTab(pathname);
     setActiveTab(tab);
   }, [pathname]);
+
+  // Load reviews, services, and verify Firestore only when PublicApp mounts
+  useEffect(() => {
+    validateFirestoreConnection();
+
+    if (auth?.setReviews) {
+      fetchReviewsFromFirestore()
+        .then((r) => { if (r?.length) auth.setReviews(r); })
+        .catch((err) => console.error("[PublicApp] Reviews load:", err));
+    }
+
+    if (auth?.setServices) {
+      fetchServicesFromFirestore()
+        .then((s) => { if (s?.length) auth.setServices(s); })
+        .catch((err) => console.error("[PublicApp] Services load:", err));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Navigation ────────────────────────────────────────────────────────────
 
