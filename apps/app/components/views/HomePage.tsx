@@ -284,7 +284,7 @@ export default function HomePage() {
                       </p>
 
                       {/* Price & CTA */}
-                      <div className="mt-5 pt-3 border-t border-dashed border-slate-100 flex items-center justify-between gap-3">
+                      <div className="mt-5 pt-3 flex items-center justify-between gap-3">
                         <div className="text-left">
                           <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block leading-none">{t("serviceCard.basePrice")}</span>
                           <span className="text-lg font-black text-slate-950 tracking-tight leading-none">

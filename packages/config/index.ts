@@ -177,7 +177,7 @@ export const SERVICES_DATA: Service[] = [
   {
     id: "lawn-mowing",
     name: "Lawn Mowing",
-    iconName: "Scissors",
+    iconName: "Sprout",
     tagline: "Precision lawn trimming, detailing, and green disposal.",
     description: "Keep your curb appeal immaculate. Our service includes sharp-blade mowing, line trimming along fences, obstacles and trees, concrete sidewalk edging, and clean power-blower finish.",
     basePrice: 45,
