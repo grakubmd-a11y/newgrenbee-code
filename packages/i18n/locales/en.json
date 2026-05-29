@@ -863,6 +863,10 @@
       "receiptBiWeekly": "Bi-Weekly Subscription (-{{pct}}%)",
       "receiptMonthly": "Monthly Subscription (-{{pct}}%)"
     },
+    "plansUpsell": {
+      "title": "Want weekly, bi-weekly or monthly service?",
+      "sub": "Check our membership plans and save up to 15%"
+    },
     "receipt": {
       "title": "Dynamic Estimate",
       "base": "{{service}} Base:",

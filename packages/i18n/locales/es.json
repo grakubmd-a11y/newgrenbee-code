@@ -863,6 +863,10 @@
       "receiptBiWeekly": "Suscripción Quincenal (-{{pct}}%)",
       "receiptMonthly": "Suscripción Mensual (-{{pct}}%)"
     },
+    "plansUpsell": {
+      "title": "¿Quieres servicio semanal, quincenal o mensual?",
+      "sub": "Revisa nuestros planes de membresía y ahorra hasta un 15%"
+    },
     "receipt": {
       "title": "Presupuesto Dinámico",
       "base": "Base {{service}}:",

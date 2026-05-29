@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CouponRule, Service, ServiceFactor, ServiceFactorOption } from "@grenbee/types";
@@ -44,7 +45,8 @@ export default function CostEstimator({
   // Custom factors states: maps factor.name to selected ServiceFactorOption
   const [selectedOptions, setSelectedOptions] = useState<{ [factorName: string]: ServiceFactorOption }>({});
   
-  const [frequency, setFrequency] = useState<'once' | 'weekly' | 'bi-weekly' | 'monthly'>('once');
+  // Frequency is always one-time — recurring plans live on /plans
+  const frequency = 'once' as const;
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponRule | null>(null);
   const [couponStatus, setCouponStatus] = useState<{ type: "idle" | "success" | "error"; message: string }>({ type: "idle", message: "" });
@@ -404,46 +406,18 @@ const handleApplyCoupon = async () => {
             })}
           </div>
 
-          {/* Frequency & Subscriptions discounts */}
-          <div className="border-t border-gray-100 pt-5 space-y-3">
-            <div>
-              <span className="text-xs text-gray-500 font-bold tracking-tight uppercase block flex items-center justify-between">
-                <span>{t("estimator.frequency.label")}</span>
-                <span className="text-[10px] text-brand font-extrabold normal-case bg-brand-light px-2 py-0.5 rounded">
-                  {t("estimator.frequency.saveBadge")}
-                </span>
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-              {([
-                { id: "once"      , label: t("estimator.frequency.once"),     sub: t("estimator.frequency.onceSub") },
-                { id: "weekly"    , label: t("estimator.frequency.weekly"),    sub: t("estimator.frequency.save", { pct: Math.round(RECURRENCE_DISCOUNT_RATES.weekly      * 100) }) },
-                { id: "bi-weekly" , label: t("estimator.frequency.biWeekly"), sub: t("estimator.frequency.save", { pct: Math.round(RECURRENCE_DISCOUNT_RATES["bi-weekly"] * 100) }) },
-                { id: "monthly"   , label: t("estimator.frequency.monthly"),  sub: t("estimator.frequency.save", { pct: Math.round(RECURRENCE_DISCOUNT_RATES.monthly     * 100) }) },
-              ] as const).map((freqItem) => {
-                const isActive = frequency === freqItem.id;
-                return (
-                  <button
-                    key={freqItem.id}
-                    type="button"
-                    onClick={() => setFrequency(freqItem.id as any)}
-                    className={`flex flex-col items-center justify-center text-center p-3 rounded-xl border transition-all cursor-pointer ${
-                      isActive
-                        ? "border-brand bg-brand-light text-brand shadow-sm"
-                        : "border-gray-100 hover:border-gray-200 bg-white text-gray-600"
-                    }`}
-                  >
-                    <span className="text-xs font-bold leading-none">{freqItem.label}</span>
-                    <span className={`text-[10px] mt-1.5 px-1.5 py-0.5 rounded font-extrabold leading-none ${
-                      isActive ? "bg-brand text-white" : freqItem.id !== "once" ? "bg-brand-light text-brand" : "bg-gray-100 text-gray-400"
-                    }`}>
-                      {freqItem.sub}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Plans upsell — recurring → /plans */}
+          <div className="border-t border-gray-100 pt-4">
+            <Link
+              href="/us/plans"
+              className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-100 transition-colors group"
+            >
+              <div>
+                <p className="text-xs font-extrabold text-amber-700">{t("estimator.plansUpsell.title")}</p>
+                <p className="text-[11px] text-amber-600/80 mt-0.5">{t("estimator.plansUpsell.sub")}</p>
+              </div>
+              <span className="text-amber-500 group-hover:translate-x-0.5 transition-transform text-sm">→</span>
+            </Link>
           </div>
         </div>
 
