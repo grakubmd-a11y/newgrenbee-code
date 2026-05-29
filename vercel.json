@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "apps/app/.next",
   "headers": [
     {
       "source": "/(.*)",
