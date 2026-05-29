@@ -166,8 +166,8 @@ export default function HomePage() {
       <div className="min-h-screen flex flex-col bg-white">
         <SiteNavbar />
 
-        {/* ── 1. HERO ───────────────────────────────────────────���──────────── */}
-        <section className="relative w-full overflow-hidden text-white h-screen flex items-center justify-center">
+        {/* ── 1. HERO ───────────────────────────────────────────�����──────────── */}
+        <section className="relative w-full overflow-hidden text-white min-h-[500px] flex items-center justify-start pt-24 md:pt-32">
           {/* Background photo - full width */}
           <PhotoSlot
             url={cms?.heroPhotoUrl}
