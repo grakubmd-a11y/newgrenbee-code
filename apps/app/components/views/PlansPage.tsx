@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { MembershipPlan, MembershipPriceTier, MembershipCredits, YardSizeTier } from "@grenbee/types";
+import { MembershipPlan, MembershipPriceTier, YardSizeTier } from "@grenbee/types";
 import { fetchMembershipPlans } from "@grenbee/firebase/services";
 import PageShell from "@/components/layout/PageShell";
+import MembershipCheckoutModal from "@/components/plans/MembershipCheckoutModal";
 
 interface SizeGuideEntry {
   tier: YardSizeTier;
@@ -541,13 +542,13 @@ export default function PlansPage() {
         </div>
       </section>
 
-      {/* Modal */}
+      {/* Membership checkout modal */}
       {modalPlan && (
-        <WaitlistModal
+        <MembershipCheckoutModal
           plan={modalPlan}
-          size={selectedSize}
+          homeSize={selectedSize}
+          homeSizeLabel={sizeGuide.find(s => s.tier === selectedSize)?.label ?? selectedSize}
           onClose={() => setModalPlan(null)}
-          sizeGuide={sizeGuide}
         />
       )}
     </div>

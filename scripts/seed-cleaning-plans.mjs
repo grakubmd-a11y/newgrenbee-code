@@ -15,7 +15,7 @@
  */
 
 import { readFile } from "node:fs/promises";
-import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { cert, applicationDefault, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
 const args = Object.fromEntries(
@@ -30,15 +30,14 @@ const databaseId = args.database || "ai-studio-590843c3-6656-4faa-a42c-fc98f2b5e
 const projectId  = args.project  || "servicios-maps";
 const dryRun     = args["dry-run"] === true || args["dry-run"] === "true";
 
-if (!serviceAccountPath) {
-  console.error("❌  --serviceAccount=/path/to/key.json is required");
-  process.exit(1);
-}
-
-const serviceAccount = JSON.parse(await readFile(serviceAccountPath, "utf8"));
-
 if (!getApps().length) {
-  initializeApp({ credential: cert(serviceAccount), projectId });
+  if (serviceAccountPath) {
+    const serviceAccount = JSON.parse(await readFile(serviceAccountPath, "utf8"));
+    initializeApp({ credential: cert(serviceAccount), projectId });
+  } else {
+    console.log("ℹ️   No --serviceAccount flag — using Application Default Credentials (ADC)");
+    initializeApp({ credential: applicationDefault(), projectId });
+  }
 }
 const db = getFirestore(databaseId);
 
@@ -173,7 +172,7 @@ const CLEANING_PLANS = [
     },
     order: 3,
     active: true,
-    byQuote: true,   // Launch as "By Quote" — not yet self-serve
+    byQuote: false,
     createdAt: now,
     updatedAt: now,
   },

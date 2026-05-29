@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ShieldCheck,
   Settings,
+  LogIn,
   ArrowLeft,
   Clock,
   Sparkles,
@@ -36,7 +37,7 @@ import {
   ZoomIn,
   FileText,
 } from "lucide-react";
-import { Booking, JobPhoto, RecurringPlan, RecurringPlanAction } from "@grenbee/types";
+import { Booking, JobPhoto, RecurringPlan, RecurringPlanAction, MembershipSubscription, MembershipSubscriptionAction } from "@grenbee/types";
 import type { UserProfile } from "@grenbee/firebase/services";
 import { updateUserPassword, currentUserHasPasswordProvider, fetchPublicSettingsFromFirestore } from "@grenbee/firebase/services";
 import {
@@ -45,6 +46,11 @@ import {
   RECURRENCE_LABELS,
   STATUS_LABELS,
   STATUS_COLORS,
+  getUserMembershipSubscriptions,
+  manageMembershipSubscription,
+  MEMBERSHIP_STATUS_LABELS,
+  MEMBERSHIP_STATUS_COLORS,
+  HOME_SIZE_LABELS,
 } from "@grenbee/firebase/services";
 
 declare global {
@@ -390,24 +396,59 @@ export default function MyAccount({
     showSuccess("Visita cancelada.");
   };
 
+  // ── Membership Subscriptions state ───────────────────────────────────────
+  const [memberships, setMemberships]           = useState<MembershipSubscription[]>([]);
+  const [membershipsLoading, setMembershipsLoading] = useState(false);
+  const [membershipActioning, setMembershipActioning] = useState<string | null>(null);
+
   // ── Recurring Plans state ─────────────────────────────────────────────────
   const [plans, setPlans]               = useState<RecurringPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(false);
   const [plansError, setPlansError]     = useState("");
-  const [planActioning, setPlanActioning] = useState<string | null>(null); // planId being mutated
+  const [planActioning, setPlanActioning] = useState<string | null>(null);
 
-  // Load plans when navigating to the plans page
+  // Load plans & memberships when navigating to the plans page
   useEffect(() => {
     if (activePage !== "plans" || !currentUser?.uid) return;
     let cancelled = false;
+
     setPlansLoading(true);
+    setMembershipsLoading(true);
     setPlansError("");
+
     getUserRecurringPlans(currentUser.uid)
       .then((data) => { if (!cancelled) setPlans(data); })
       .catch(() => { if (!cancelled) setPlansError("No se pudieron cargar los planes."); })
       .finally(() => { if (!cancelled) setPlansLoading(false); });
+
+    getUserMembershipSubscriptions(currentUser.uid)
+      .then((data) => { if (!cancelled) setMemberships(data); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setMembershipsLoading(false); });
+
     return () => { cancelled = true; };
   }, [activePage, currentUser?.uid]);
+
+  const handleMembershipAction = async (subId: string, action: MembershipSubscriptionAction) => {
+    if (action === "cancel") {
+      if (!window.confirm("¿Cancelar esta membresía? No se realizarán más cargos.")) return;
+    }
+    setMembershipActioning(subId);
+    try {
+      const updated = await manageMembershipSubscription(subId, action);
+      setMemberships((prev) => prev.map((m) => (m.id === subId ? updated : m)));
+      const msgs: Record<MembershipSubscriptionAction, string> = {
+        pause:  "Membresía pausada.",
+        resume: "Membresía reactivada.",
+        cancel: "Membresía cancelada.",
+      };
+      showSuccess(msgs[action]);
+    } catch (err: any) {
+      setSaveError(err?.message ?? "No se pudo actualizar la membresía.");
+    } finally {
+      setMembershipActioning(null);
+    }
+  };
 
   const handlePlanAction = async (planId: string, action: RecurringPlanAction) => {
     if (action === "cancel") {
@@ -431,6 +472,7 @@ export default function MyAccount({
     }
   };
 
+  const activeMembershipsCount = memberships.filter((m) => m.status === "active").length;
   const activePlansCount = plans.filter((p) => p.status === "active" || p.status === "paused").length;
 
   const goBack = () => {
@@ -784,43 +826,93 @@ export default function MyAccount({
 
         {/* ── Mis Planes ── */}
         {activePage === "plans" && (
-          <div className="space-y-4">
-            {plansLoading && (
-              <div className="flex items-center justify-center py-12 gap-3 text-zinc-400">
-                <Loader size={20} className="animate-spin" />
-                <span className="text-sm font-semibold">Cargando planes…</span>
-              </div>
-            )}
-            {!plansLoading && plansError && (
-              <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-medium">
-                ⚠️ {plansError}
-              </div>
-            )}
-            {!plansLoading && !plansError && plans.length === 0 && (
-              <div className="bg-white border border-dashed border-zinc-200 rounded-2xl p-10 flex flex-col items-center text-center gap-4">
-                <div className="h-14 w-14 bg-teal-50 rounded-2xl flex items-center justify-center">
-                  <RefreshCw size={24} className="text-teal-500" />
+          <div className="space-y-6">
+
+            {/* ── Membership subscriptions ── */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-extrabold text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                <Sparkles size={13} className="text-brand" /> Membresías
+              </h3>
+
+              {membershipsLoading && (
+                <div className="flex items-center gap-3 py-4 text-zinc-400">
+                  <Loader size={18} className="animate-spin" />
+                  <span className="text-sm font-semibold">Cargando membresías…</span>
                 </div>
-                <div>
-                  <p className="font-bold text-zinc-800 text-sm">No tienes planes recurrentes</p>
-                  <p className="text-xs text-zinc-400 mt-1 max-w-xs">
-                    Al agendar un servicio con frecuencia semanal, quincenal o mensual, tu plan aparecerá aquí.
-                  </p>
+              )}
+
+              {!membershipsLoading && memberships.length === 0 && (
+                <div className="bg-white border border-dashed border-zinc-200 rounded-2xl p-6 flex flex-col items-center text-center gap-3">
+                  <div className="h-12 w-12 bg-brand/10 rounded-2xl flex items-center justify-center">
+                    <Sparkles size={20} className="text-brand" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-zinc-800 text-sm">Sin membresía activa</p>
+                    <p className="text-xs text-zinc-400 mt-1 max-w-xs">
+                      Activa un plan de membresía para recibir visitas programadas cada mes.
+                    </p>
+                  </div>
+                  <a href="./plans"
+                    className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-sm font-bold rounded-xl transition-all flex items-center gap-1.5">
+                    Ver planes <ArrowRight size={14} />
+                  </a>
                 </div>
-                <button onClick={() => onSelectTab("estimator")}
-                  className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
-                  Cotizar con suscripción <ArrowRight size={14} />
-                </button>
-              </div>
-            )}
-            {!plansLoading && plans.map((plan) => (
-              <RecurringPlanCard
-                key={plan.id}
-                plan={plan}
-                actioning={planActioning === plan.id}
-                onAction={(action) => handlePlanAction(plan.id, action)}
-              />
-            ))}
+              )}
+
+              {!membershipsLoading && memberships.map((m) => (
+                <MembershipSubscriptionCard
+                  key={m.id}
+                  subscription={m}
+                  actioning={membershipActioning === m.id}
+                  onAction={(action) => handleMembershipAction(m.id, action)}
+                />
+              ))}
+            </div>
+
+            {/* ── Recurring service plans ── */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-extrabold text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                <RefreshCw size={13} className="text-teal-500" /> Planes de servicio recurrente
+              </h3>
+
+              {plansLoading && (
+                <div className="flex items-center gap-3 py-4 text-zinc-400">
+                  <Loader size={18} className="animate-spin" />
+                  <span className="text-sm font-semibold">Cargando planes…</span>
+                </div>
+              )}
+              {!plansLoading && plansError && (
+                <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-medium">
+                  ⚠️ {plansError}
+                </div>
+              )}
+              {!plansLoading && !plansError && plans.length === 0 && (
+                <div className="bg-white border border-dashed border-zinc-200 rounded-2xl p-6 flex flex-col items-center text-center gap-3">
+                  <div className="h-12 w-12 bg-teal-50 rounded-2xl flex items-center justify-center">
+                    <RefreshCw size={20} className="text-teal-500" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-zinc-800 text-sm">No tienes planes recurrentes</p>
+                    <p className="text-xs text-zinc-400 mt-1 max-w-xs">
+                      Al agendar un servicio con frecuencia semanal, quincenal o mensual, tu plan aparecerá aquí.
+                    </p>
+                  </div>
+                  <button onClick={() => onSelectTab("estimator")}
+                    className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                    Cotizar con suscripción <ArrowRight size={14} />
+                  </button>
+                </div>
+              )}
+              {!plansLoading && plans.map((plan) => (
+                <RecurringPlanCard
+                  key={plan.id}
+                  plan={plan}
+                  actioning={planActioning === plan.id}
+                  onAction={(action) => handlePlanAction(plan.id, action)}
+                />
+              ))}
+            </div>
+
           </div>
         )}
 
@@ -1122,7 +1214,7 @@ export default function MyAccount({
             const IconComp = item.icon;
             const badge =
               item.id === "bookings" && upcomingBookings.length > 0 ? upcomingBookings.length
-              : item.id === "plans" && activePlansCount > 0 ? activePlansCount
+              : item.id === "plans" && (activeMembershipsCount + activePlansCount) > 0 ? (activeMembershipsCount + activePlansCount)
               : undefined;
             return (
               <button key={item.id} type="button" onClick={() => setActivePage(item.id)}
@@ -1412,5 +1504,128 @@ function PhotoThumb({ photo, onOpen }: { photo: JobPhoto; onOpen: () => void }) 
         <ZoomIn size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
       </div>
     </button>
+  );
+}
+
+// ── MembershipSubscriptionCard sub-component ──────────────────────────────────
+
+function MembershipSubscriptionCard({
+  subscription: sub,
+  actioning,
+  onAction,
+}: {
+  subscription: MembershipSubscription;
+  actioning: boolean;
+  onAction: (action: MembershipSubscriptionAction) => void;
+  key?: string;
+}) {
+  const isActive    = sub.status === "active";
+  const isPaused    = sub.status === "paused";
+  const isPastDue   = sub.status === "past_due";
+  const isCancelled = sub.status === "cancelled";
+
+  const statusCls   = MEMBERSHIP_STATUS_COLORS[sub.status] ?? "text-zinc-500 bg-zinc-50 border-zinc-200";
+  const statusLabel = MEMBERSHIP_STATUS_LABELS[sub.status] ?? sub.status;
+  const sizeLabel   = HOME_SIZE_LABELS[sub.homeSize] ?? sub.homeSize;
+
+  return (
+    <div className={`bg-white border rounded-2xl shadow-xs overflow-hidden ${isCancelled ? "opacity-60" : ""}`}>
+      {isActive && <div className="h-1 bg-gradient-to-r from-brand to-emerald-400" />}
+      <div className="p-5 space-y-4">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Sparkles size={14} className="text-brand shrink-0" />
+              <h3 className="text-sm font-extrabold text-zinc-900">{sub.planName}</h3>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-zinc-500 bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded-lg">
+                {sizeLabel} home
+              </span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-brand bg-brand/8 border border-brand/20 px-2 py-0.5 rounded-lg">
+                <RefreshCw size={9} /> {sub.frequencyLabel}
+              </span>
+              <span className={`inline-flex items-center text-[11px] font-bold border px-2 py-0.5 rounded-lg ${statusCls}`}>
+                {statusLabel}
+              </span>
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <span className="text-lg font-extrabold text-zinc-900">${sub.pricePerMonth}</span>
+            <span className="text-[10px] text-zinc-400 block font-semibold">/ month</span>
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="flex flex-wrap gap-4 text-xs text-zinc-500 border-t border-zinc-100 pt-3">
+          <div className="flex items-center gap-1.5">
+            <Calendar size={13} className="text-brand shrink-0" />
+            <span>{sub.visitsPerMonth} visit{sub.visitsPerMonth !== 1 ? "s" : ""}/month</span>
+          </div>
+          {!isCancelled && sub.nextBillingDate && (
+            <div className="flex items-center gap-1.5">
+              <CalendarDays size={13} className="text-teal-500 shrink-0" />
+              <span>Next billing: <strong className="text-zinc-700">{formatDate(sub.nextBillingDate)}</strong></span>
+            </div>
+          )}
+          {sub.lastBillingDate && (
+            <div className="flex items-center gap-1.5">
+              <DollarSign size={13} className="text-zinc-400 shrink-0" />
+              <span>Last charged: {formatDate(sub.lastBillingDate)}</span>
+            </div>
+          )}
+          {sub.creditsPerMonth && (
+            <div className="flex items-center gap-1.5">
+              <Sparkles size={13} className="text-amber-500 shrink-0" />
+              <span>+${sub.creditsPerMonth} service credits/mo</span>
+            </div>
+          )}
+          {isPastDue && sub.failureCount > 0 && (
+            <div className="flex items-center gap-1.5 text-rose-600 font-semibold">
+              <AlertCircle size={13} className="shrink-0" />
+              <span>{sub.failureCount} failed charge{sub.failureCount !== 1 ? "s" : ""}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        {!isCancelled && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {isActive && (
+              <ActionButton
+                onClick={() => onAction("pause")}
+                loading={actioning}
+                icon={<PauseCircle size={13} />}
+                label="Pause"
+                className="border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100"
+              />
+            )}
+            {(isPaused || isPastDue) && (
+              <ActionButton
+                onClick={() => onAction("resume")}
+                loading={actioning}
+                icon={<PlayCircle size={13} />}
+                label="Resume"
+                className="border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100"
+              />
+            )}
+            <ActionButton
+              onClick={() => onAction("cancel")}
+              loading={actioning}
+              icon={<XCircle size={13} />}
+              label="Cancel membership"
+              className="border border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100 ml-auto"
+            />
+          </div>
+        )}
+
+        {isCancelled && sub.cancelledAt && (
+          <p className="text-[11px] text-zinc-400 font-medium pt-1 border-t border-zinc-100">
+            Cancelled on {formatDate(sub.cancelledAt.split("T")[0])}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

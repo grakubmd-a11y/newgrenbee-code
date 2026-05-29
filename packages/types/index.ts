@@ -340,6 +340,39 @@ export interface MembershipSizeGuide {
   examples: string;
 }
 
+// ── Membership Subscriptions ───────────────────────────────────────────────────
+
+export type MembershipSubscriptionStatus = 'active' | 'paused' | 'cancelled' | 'past_due';
+export type MembershipSubscriptionAction = 'pause' | 'resume' | 'cancel';
+
+export interface MembershipSubscription {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  planId: string;
+  planName: string;
+  planType: MembershipPlanType;
+  homeSize: YardSizeTier;
+  pricePerMonth: number;
+  visitsPerMonth: number;
+  frequencyLabel: string;
+  creditsPerMonth?: number;
+  status: MembershipSubscriptionStatus;
+  stripeCustomerId?: string;
+  stripePaymentMethodId?: string;
+  stripePaymentIntentId: string;
+  currentPeriodStart: string;
+  nextBillingDate: string;
+  lastBillingDate?: string;
+  lastBillingStatus?: string;
+  cancelledAt?: string | null;
+  pausedAt?: string | null;
+  failureCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── Media Library ─────────────────────────────────────────────────────────────
 
 export interface MediaItem {
