@@ -168,6 +168,28 @@ export default function CostEstimator({
     }
   };
 
+  // ── Bedroom factor helpers (promoted to primary slider for house-cleaning) ──
+  const bedroomFactor = useMemo(
+    () => activeService.factors.find((f) => f.name === "bedroomCount") ?? null,
+    [activeService]
+  );
+  const bedroomIdx = useMemo(() => {
+    if (!bedroomFactor) return 0;
+    const sel = selectedOptions["bedroomCount"];
+    if (!sel) return 0;
+    return bedroomFactor.options.findIndex((o) => o.label === sel.label);
+  }, [bedroomFactor, selectedOptions]);
+
+  const setBedroomIdx = (idx: number) => {
+    if (!bedroomFactor) return;
+    const opt = bedroomFactor.options[idx];
+    if (opt) handleFactorChange("bedroomCount", opt);
+  };
+
+  /** Computed track fill % for any range input */
+  const rangePct = (val: number, min: number, max: number) =>
+    max > min ? Math.round(((val - min) / (max - min)) * 100) : 0;
+
   const handleFactorChange = (factorName: string, option: ServiceFactorOption) => {
     setSelectedOptions((prev) => ({
       ...prev,
@@ -277,63 +299,157 @@ const handleApplyCoupon = async () => {
             </p>
           </div>
 
-          {/* Stepper Input or Slider depending on size — hidden for fixed-unit services (e.g. turnover) */}
-          {activeService.maxUnits > activeService.minUnits && (
-          <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-bold text-gray-900 tracking-tight block">
-                  {activeService.unitLabel}
-                </label>
-                <span className="text-[11px] text-gray-400 font-medium">
-                  {t(`estimator.serviceNotes.${activeService.id}` as any)}
-                </span>
+          {/* ── PRIMARY: Bedroom slider (house-cleaning) or unit slider (other services) ── */}
+          {bedroomFactor ? (
+            /* ── BEDROOM COUNT — promoted primary slider ── */
+            <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-bold text-gray-900 tracking-tight block">
+                    {bedroomFactor.label}
+                  </label>
+                  <span className="text-[11px] text-gray-400 font-medium">
+                    {t(`estimator.serviceNotes.${activeService.id}` as any)}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-gray-400 block font-medium">{t("estimator.currentSelection")}</span>
+                  <span className="text-base font-extrabold text-brand tracking-tight">
+                    {bedroomFactor.options[bedroomIdx]?.label ?? "—"}
+                  </span>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-xs text-gray-400 block font-medium">{t("estimator.currentSelection")}</span>
-                <span className="text-base font-extrabold text-brand tracking-tight">
+              <div className="mt-4 flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setBedroomIdx(Math.max(0, bedroomIdx - 1))}
+                  disabled={bedroomIdx <= 0}
+                  className="flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer"
+                >
+                  <Icons.Minus size={18} />
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={bedroomFactor.options.length - 1}
+                  step={1}
+                  value={bedroomIdx}
+                  onChange={(e) => setBedroomIdx(Number(e.target.value))}
+                  className="estimator-range flex-grow"
+                  style={{
+                    background: `linear-gradient(to right, #0EAD6B ${rangePct(bedroomIdx, 0, bedroomFactor.options.length - 1)}%, #e5e7eb ${rangePct(bedroomIdx, 0, bedroomFactor.options.length - 1)}%)`,
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setBedroomIdx(Math.min(bedroomFactor.options.length - 1, bedroomIdx + 1))}
+                  disabled={bedroomIdx >= bedroomFactor.options.length - 1}
+                  className="flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer"
+                >
+                  <Icons.Plus size={18} />
+                </button>
+              </div>
+            </div>
+          ) : activeService.maxUnits > activeService.minUnits ? (
+            /* ── UNIT SLIDER — for other services (lawn, pressure-washing, etc.) ── */
+            <div className="bg-gray-50/50 rounded-xl p-5 border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-bold text-gray-900 tracking-tight block">
+                    {activeService.unitLabel}
+                  </label>
+                  <span className="text-[11px] text-gray-400 font-medium">
+                    {t(`estimator.serviceNotes.${activeService.id}` as any)}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-gray-400 block font-medium">{t("estimator.currentSelection")}</span>
+                  <span className="text-base font-extrabold text-brand tracking-tight">
+                    {unitLabelValue}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={decrementUnits}
+                  disabled={units <= activeService.minUnits}
+                  className="flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer"
+                >
+                  <Icons.Minus size={18} />
+                </button>
+                <input
+                  type="range"
+                  min={activeService.minUnits}
+                  max={activeService.maxUnits}
+                  step={activeService.stepUnits}
+                  value={units}
+                  onChange={(e) => setUnits(Number(e.target.value))}
+                  className="estimator-range flex-grow"
+                  style={{
+                    background: `linear-gradient(to right, #0EAD6B ${rangePct(units, activeService.minUnits, activeService.maxUnits)}%, #e5e7eb ${rangePct(units, activeService.minUnits, activeService.maxUnits)}%)`,
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={incrementUnits}
+                  disabled={units >= activeService.maxUnits}
+                  className="flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer"
+                >
+                  <Icons.Plus size={18} />
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Core Custom Factors */}
+          {/* Bathrooms + extra rooms for house-cleaning, rendered after the bedroom primary slider */}
+          {bedroomFactor && activeService.maxUnits > activeService.minUnits && (
+            <div className="bg-gray-50/30 rounded-xl p-4 border border-gray-100/80 space-y-1">
+              <label className="text-xs text-gray-500 font-bold tracking-tight uppercase block">
+                {activeService.unitLabel}
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={decrementUnits}
+                  disabled={units <= activeService.minUnits}
+                  className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer text-sm"
+                >
+                  <Icons.Minus size={14} />
+                </button>
+                <input
+                  type="range"
+                  min={activeService.minUnits}
+                  max={activeService.maxUnits}
+                  step={activeService.stepUnits}
+                  value={units}
+                  onChange={(e) => setUnits(Number(e.target.value))}
+                  className="estimator-range flex-grow"
+                  style={{
+                    background: `linear-gradient(to right, #0EAD6B ${rangePct(units, activeService.minUnits, activeService.maxUnits)}%, #e5e7eb ${rangePct(units, activeService.minUnits, activeService.maxUnits)}%)`,
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={incrementUnits}
+                  disabled={units >= activeService.maxUnits}
+                  className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 transition-all cursor-pointer"
+                >
+                  <Icons.Plus size={14} />
+                </button>
+                <span className="text-sm font-bold text-brand min-w-[3rem] text-right">
                   {unitLabelValue}
                 </span>
               </div>
             </div>
-
-            {/* Layout Controls */}
-            <div className="mt-4 flex items-center gap-4">
-              <button
-                type="button"
-                onClick={decrementUnits}
-                disabled={units <= activeService.minUnits}
-                className="flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-gray-600 transition-all cursor-pointer"
-              >
-                <Icons.Minus size={18} />
-              </button>
-              
-              {/* Range Slider for immediate tactile control */}
-              <input
-                type="range"
-                min={activeService.minUnits}
-                max={activeService.maxUnits}
-                step={activeService.stepUnits}
-                value={units}
-                onChange={(e) => setUnits(Number(e.target.value))}
-                className="flex-grow accent-brand h-1.5 bg-gray-200 rounded-lg cursor-pointer"
-              />
-
-              <button
-                type="button"
-                onClick={incrementUnits}
-                disabled={units >= activeService.maxUnits}
-                className="flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-gray-600 transition-all cursor-pointer"
-              >
-                <Icons.Plus size={18} />
-              </button>
-            </div>
-          </div>
           )}
 
-          {/* Core Custom Factors */}
           <div className="space-y-4">
             {activeService.factors.map((factor) => {
+              // bedroomCount is now the primary slider above — skip it here
+              if (factor.name === "bedroomCount" && bedroomFactor) return null;
+
               if (factor.displayType === "stepper") {
                 // ── Button-group (numbered pill) UI ──────────────────────
                 const currentOpt = selectedOptions[factor.name] ?? factor.options[0];
@@ -352,10 +468,10 @@ const handleApplyCoupon = async () => {
                     <div className="flex flex-wrap gap-2">
                       {factor.options.map((opt, idx) => {
                         const isSelected = currentIdx === idx;
-                        // Display short label: "Studio", "1", "2", "3", "4", "5", "6+"
-                        const shortLabel = idx === 0
-                          ? (opt.label.toLowerCase().includes("studio") ? "Studio" : String(idx))
-                          : opt.label.replace(/\s*(bedroom|bathroom|bath|br)s?/gi, "").trim();
+                        // Fix: extract the number from the label instead of using idx
+                        // "1 Bathroom" → "1", "2 Bedrooms" → "2", "Studio" → "Studio", "6+" → "6+"
+                        const stripped = opt.label.replace(/\s*(bedroom|bathroom|bath|br)s?/gi, "").trim();
+                        const shortLabel = stripped || String(idx);
                         return (
                           <button
                             key={idx}
