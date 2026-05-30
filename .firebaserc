@@ -1,7 +1,7 @@
 {
   "projects": {
     "default":    "servicios-maps",
-    "staging":    "grenbee-staging",
+    "staging":    "grenbee-stg-2025",
     "production": "servicios-maps"
   }
 }
