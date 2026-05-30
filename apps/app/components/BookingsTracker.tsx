@@ -1,18 +1,22 @@
 import React, { useState, useMemo } from "react";
 import * as Icons from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Booking, BookingStatus } from "@grenbee/types";
 
 interface BookingsTrackerProps {
   bookings: Booking[];
   onUpdateStatus: (
-    bookingId: string, 
-    status: BookingStatus, 
+    bookingId: string,
+    status: BookingStatus,
     paymentStatus?: 'unpaid' | 'paid' | 'authorized',
     paymentMethod?: 'card' | 'paypal' | 'cash'
   ) => void;
   onReschedule: (bookingId: string, newDate: string, newSlot: string) => void;
   onCancelBooking: (bookingId: string) => void;
   onWriteReview: (serviceId: string) => void;
+  /** Called when the user wants to repeat a completed booking.
+   *  Parent navigates to the estimator with the same service pre-selected. */
+  onRebook?: (booking: Booking) => void;
 }
 
 export default function BookingsTracker({
@@ -20,8 +24,10 @@ export default function BookingsTracker({
   onUpdateStatus,
   onReschedule,
   onCancelBooking,
-  onWriteReview
+  onWriteReview,
+  onRebook,
 }: BookingsTrackerProps) {
+  const { t } = useTranslation();
   const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
   
   // State for automatic technician execution pipeline simulation
@@ -587,21 +593,30 @@ export default function BookingsTracker({
 
                         {booking.status === "completed" ? (
                           <>
+                            {/* Book Again — pre-selects same service in the estimator */}
+                            {onRebook && (
+                              <button
+                                onClick={() => onRebook(booking)}
+                                title={t("bookings.bookAgainTitle")}
+                                className="bg-brand text-white hover:bg-brand-hover px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer"
+                              >
+                                <Icons.RefreshCw size={13} />
+                                <span>{t("bookings.bookAgain")}</span>
+                              </button>
+                            )}
                             <button
                               onClick={() => setInvoiceToView(booking)}
                               className="bg-white border border-gray-200 hover:border-brand text-gray-700 hover:text-brand px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                               <Icons.Receipt size={14} />
-                              <span>View Receipt Invoice</span>
+                              <span>View Receipt</span>
                             </button>
                             <button
-                              onClick={() => {
-                                onWriteReview(booking.serviceId);
-                              }}
-                              className="bg-brand text-white hover:bg-brand-hover px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer"
+                              onClick={() => onWriteReview(booking.serviceId)}
+                              className="bg-white border border-gray-200 hover:border-brand text-gray-700 hover:text-brand px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                               <Icons.PenLine size={13} />
-                              <span>Write Service Review</span>
+                              <span>{t("bookings.writeReview")}</span>
                             </button>
                           </>
                         ) : booking.status !== "cancelled" ? (

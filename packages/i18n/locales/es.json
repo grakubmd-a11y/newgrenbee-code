@@ -980,7 +980,13 @@
       "errorEmail": "Correo electrónico válido requerido",
       "errorPhone": "Teléfono de 10 dígitos requerido",
       "errorAddress": "Dirección requerida para el envío",
-      "errorZip": "Código postal de 5 dígitos requerido"
+      "errorZip": "Código postal de 5 dígitos requerido",
+      "nameHint": "Nombre completo tal como aparece en tu ID",
+      "emailHint": "Aquí recibirás la confirmación y el recibo",
+      "phoneHint": "El técnico puede llamarte o enviarte un mensaje antes de llegar",
+      "addressHint": "Empieza a escribir y selecciona de las sugerencias — el ZIP se llena automáticamente",
+      "zipHint": "Verificamos la cobertura de servicio en tu área",
+      "notesHint": "Lugar de estacionamiento, código de acceso, mascotas, cualquier dato útil"
     },
     "coverage_prompt": {
       "title": "El código postal {{zip}} está fuera de nuestra área de servicio estándar",
@@ -1008,6 +1014,17 @@
     },
     "outside_area": {
       "note": "está fuera de nuestra área estándar. Nuestro equipo confirmará antes de enviar."
+    },
+    "trust": {
+      "secure": "Pago seguro con Stripe",
+      "cancel": "Cancelación gratuita hasta 24 h antes del servicio",
+      "hold": "Se autoriza el cargo ahora — se cobra solo después de completar el trabajo",
+      "insured": "Todos los técnicos tienen verificación de antecedentes y seguro"
     }
+  },
+  "bookings": {
+    "bookAgain": "Reservar de Nuevo",
+    "bookAgainTitle": "Reservar este servicio de nuevo",
+    "writeReview": "Escribir Reseña"
   }
 }

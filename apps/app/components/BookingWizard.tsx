@@ -804,16 +804,19 @@ export default function BookingWizard({
                   <FormField label={t("wizard.form.fullName")} error={errors.fullName}>
                     <TextInput icon={<User size={14} />} value={fullName} onChange={setFullName}
                       placeholder="Jane Doe" hasError={!!errors.fullName} />
+                    <p className="text-[10px] text-gray-400 mt-1">{t("wizard.form.nameHint")}</p>
                   </FormField>
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <FormField label={t("wizard.form.email")} error={errors.email}>
                       <TextInput icon={<CheckCircle2 size={14} />} type="email" value={email} onChange={setEmail}
                         placeholder="jane@example.com" hasError={!!errors.email} />
+                      <p className="text-[10px] text-gray-400 mt-1">{t("wizard.form.emailHint")}</p>
                     </FormField>
                     <FormField label={t("wizard.form.phone")} error={errors.phone}>
                       <TextInput icon={<Clock size={14} />} type="tel" value={phone} onChange={setPhone}
                         placeholder="(801) 555-0100" hasError={!!errors.phone} />
+                      <p className="text-[10px] text-gray-400 mt-1">{t("wizard.form.phoneHint")}</p>
                     </FormField>
                   </div>
 
@@ -872,6 +875,9 @@ export default function BookingWizard({
                           <CheckCircle2 size={10} /> ZIP auto-filled from address
                         </p>
                       )}
+                      {!zipAutoFilled && !errors.zip && (
+                        <p className="text-[10px] text-gray-400 mt-1">{t("wizard.form.zipHint")}</p>
+                      )}
                       <CoverageBadge status={coverageStatus} />
                     </FormField>
                     <div className="pb-0.5">
@@ -907,6 +913,7 @@ export default function BookingWizard({
                       placeholder={t("wizard.form.notesPlaceholder")}
                       className="w-full border border-gray-200 rounded-xl px-3.5 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none resize-none transition-all"
                     />
+                    <p className="text-[10px] text-gray-400 mt-1">{t("wizard.form.notesHint")}</p>
                   </FormField>
                 </>
               )}
@@ -975,6 +982,21 @@ export default function BookingWizard({
                         <AlertTriangle size={13} /> {termsError}
                       </div>
                     )}
+                  </div>
+
+                  {/* ── Trust badges — concentrated before the pay button ── */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 space-y-2.5">
+                    {[
+                      { icon: <ShieldCheck size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.secure") },
+                      { icon: <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.cancel") },
+                      { icon: <CreditCard size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.hold") },
+                      { icon: <Users size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.insured") },
+                    ].map(({ icon, text }, i) => (
+                      <div key={i} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                        {icon}
+                        <span>{text}</span>
+                      </div>
+                    ))}
                   </div>
 
                   <StripePaymentPanel

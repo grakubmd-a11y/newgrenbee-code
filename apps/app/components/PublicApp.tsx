@@ -179,6 +179,34 @@ export default function PublicApp() {
     handleTabChange("bookings");
   };
 
+  // ── Rebook — repeat a completed booking with same service pre-selected ────
+
+  const handleRebook = (booking: Booking) => {
+    // Pre-fill the estimator with the same service, then optionally
+    // inject the previous booking's wizard params so user just picks a date.
+    setSelectedEstimatorId(booking.serviceId);
+    setWizardParams(null); // clear any stale wizard; user will go through estimator
+    // Store prior booking details so CostEstimator can pre-select units/factors
+    // via sessionStorage (non-breaking: estimator ignores missing keys)
+    try {
+      sessionStorage.setItem(
+        "gbee_rebook_hint",
+        JSON.stringify({
+          serviceId:       booking.serviceId,
+          units:           booking.units,
+          selectedFactors: booking.selectedFactors,
+          frequency:       booking.frequency,
+          address:         booking.address,
+          phone:           booking.phone,
+          customerName:    booking.customerName,
+          email:           booking.email,
+        }),
+      );
+    } catch { /* ignore storage errors */ }
+    handleTabChange("estimator");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // ── Review shortcut ───────────────────────────────────────────────────────
 
   const handleReviewShortcut = (serviceId: string) => {
@@ -279,6 +307,7 @@ export default function PublicApp() {
             }
             onCancelBooking={async (id) => auth?.handleCancelBooking(id)}
             onWriteReview={handleReviewShortcut}
+            onRebook={handleRebook}
           />
         </section>
       )}

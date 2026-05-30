@@ -980,7 +980,13 @@
       "errorEmail": "Valid email required",
       "errorPhone": "10-digit phone required",
       "errorAddress": "Address required to dispatch",
-      "errorZip": "5-digit ZIP required"
+      "errorZip": "5-digit ZIP required",
+      "nameHint": "Full name as it appears on your ID",
+      "emailHint": "We'll send your confirmation and receipt here",
+      "phoneHint": "Technician may call or text before arrival",
+      "addressHint": "Start typing and select from suggestions — ZIP fills automatically",
+      "zipHint": "We verify service coverage for your area",
+      "notesHint": "Parking spot, gate code, pets, anything helpful for the tech"
     },
     "coverage_prompt": {
       "title": "ZIP {{zip}} is outside our standard service area",
@@ -1008,6 +1014,17 @@
     },
     "outside_area": {
       "note": "is outside our standard area. Our team will confirm before dispatching."
+    },
+    "trust": {
+      "secure": "Secure checkout powered by Stripe",
+      "cancel": "Free cancellation up to 24 h before service",
+      "hold": "Card is authorized now — charged only after job is complete",
+      "insured": "All technicians are background-checked and insured"
     }
+  },
+  "bookings": {
+    "bookAgain": "Book Again",
+    "bookAgainTitle": "Book this service again",
+    "writeReview": "Write Review"
   }
 }
