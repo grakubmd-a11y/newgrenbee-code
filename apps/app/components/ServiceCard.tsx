@@ -35,8 +35,8 @@ export default function ServiceCard({ service: rawService, onBookClick, avgRatin
     >
       <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-[0.02] transition-opacity duration-500 pointer-events-none" />
 
-      {/* Photo */}
-      <div className="relative h-48 w-full overflow-hidden rounded-[2rem] bg-slate-50 shadow-inner">
+      {/* Photo — negative margins bleed to card edges; card's overflow-hidden clips */}
+      <div className="relative h-48 -mx-4 -mt-4 overflow-hidden bg-slate-50">
         <img
           src={cardImage}
           alt={service.name}
