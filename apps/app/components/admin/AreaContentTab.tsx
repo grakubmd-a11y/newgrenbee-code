@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import * as Icons from "lucide-react";
+import { SERVICES_DATA } from "@grenbee/config";
 import {
   fetchAreaContents,
   saveAreaContent,
@@ -293,16 +294,29 @@ function AreaEditor({
                   <Icons.Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <input
-                type="text"
-                placeholder="ID del servicio (ej: lawn-care)"
+              {/* Service selector — dropdown from SERVICES_DATA so admin picks
+                  the exact ID without typos. Selecting fills the name too. */}
+              <select
                 value={block.serviceId}
-                onChange={(e) => updateServiceBlock(idx, { serviceId: e.target.value })}
-                className="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              />
+                onChange={(e) => {
+                  const svc = SERVICES_DATA.find((s) => s.id === e.target.value);
+                  updateServiceBlock(idx, {
+                    serviceId: e.target.value,
+                    serviceName: svc ? svc.name : block.serviceName,
+                  });
+                }}
+                className="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+              >
+                <option value="">— Seleccionar servicio —</option>
+                {SERVICES_DATA.map((svc) => (
+                  <option key={svc.id} value={svc.id}>
+                    {svc.name} ({svc.id})
+                  </option>
+                ))}
+              </select>
               <input
                 type="text"
-                placeholder="Nombre del servicio"
+                placeholder="Nombre visible (se llena automáticamente)"
                 value={block.serviceName}
                 onChange={(e) => updateServiceBlock(idx, { serviceName: e.target.value })}
                 className="w-full border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400"

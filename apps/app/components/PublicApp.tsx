@@ -13,6 +13,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import * as Icons from "lucide-react";
 import ServiceCard from "./ServiceCard";
 import CostEstimator from "./CostEstimator";
@@ -61,8 +62,9 @@ function getInitialTab(pathname: string | null): string {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function PublicApp() {
-  const pathname = usePathname();
-  const router = useRouter();
+  const pathname     = usePathname();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useTranslation();
   const auth         = useAuth();
   const siteSettings = useSiteSettings();
@@ -80,17 +82,12 @@ export default function PublicApp() {
 
   // Local UI state
   const [activeTab, setActiveTab] = useState<string>(() => getInitialTab(pathname));
-  const [selectedEstimatorId, setSelectedEstimatorId] = useState("house-cleaning");
-
-  // Read ?service= AFTER hydration (useEffect), not in useState initializer.
-  // The lazy initializer runs on the server where window is undefined, so
-  // Next.js sends "house-cleaning" in the HTML. The client then hydrates
-  // matching that server value — the initializer never re-runs.
-  // useEffect always runs client-side after hydration with the real URL.
-  useEffect(() => {
-    const svc = new URLSearchParams(window.location.search).get("service");
-    if (svc) setSelectedEstimatorId(svc);
-  }, []);
+  // useSearchParams() is SSR-safe and reads ?service= synchronously on first
+  // render (both server and client), so there's no flash of "house-cleaning".
+  // The parent page wraps this component in <Suspense> as required by Next.js.
+  const [selectedEstimatorId, setSelectedEstimatorId] = useState<string>(
+    searchParams.get("service") ?? "house-cleaning"
+  );
   const [wizardParams, setWizardParams] = useState<WizardBookingParams | null>(() => {
     try {
       const stored = sessionStorage.getItem("gbee_wizard_params");

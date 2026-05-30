@@ -235,7 +235,7 @@ const handleApplyCoupon = async () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full pb-20 lg:pb-0">
       {/* Services selector tabs */}
       <div className="mb-8 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center border-b border-gray-100 pb-4">
         {activeServices.map((svc) => {
@@ -598,6 +598,29 @@ const handleApplyCoupon = async () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Mobile sticky price bar ─────────────────────────────────────────
+           Visible only below lg breakpoint. Floats at the bottom of the screen
+           so users can see the live price and proceed without scrolling down
+           to the receipt sidebar (which is hidden on mobile).               */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur-sm px-4 py-3 flex items-center gap-3 shadow-lg">
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider truncate">
+            {activeService.name}
+          </p>
+          <p className="text-xl font-extrabold text-brand leading-none">
+            ${pricingBreakdown.finalTotal.toFixed(2)}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={triggerProceed}
+          className="shrink-0 flex items-center gap-2 py-2.5 px-5 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-bold shadow-md shadow-brand/20 transition-all cursor-pointer"
+        >
+          <span>{t("estimator.cta.proceed")}</span>
+          <Icons.ArrowRight size={15} />
+        </button>
       </div>
     </div>
   );

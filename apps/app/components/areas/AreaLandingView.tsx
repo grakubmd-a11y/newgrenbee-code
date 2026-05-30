@@ -71,10 +71,14 @@ interface Props {
 
 export default function AreaLandingView({ content: c, copy, lang, phone, service }: Props) {
   const langPrefix = lang === "es" ? "/us/es" : "/us";
-  const bookHref = `/book`;
   const areasHref = `${langPrefix}/areas`;
   const cityHref = `${areasHref}/${c.slug}`;
   const telHref = `tel:${phone.replace(/\D/g, "")}`;
+
+  // ── Booking links — always include the service ID so the estimator
+  //    pre-selects the right service instead of defaulting to house-cleaning.
+  const primaryServiceId = service?.serviceId ?? c.serviceBlocks[0]?.serviceId ?? "house-cleaning";
+  const heroBookHref = `/book?service=${primaryServiceId}`;
 
   const heroHeadline = service
     ? `${service.serviceName} in ${c.city}, ${c.state}`
@@ -115,7 +119,7 @@ export default function AreaLandingView({ content: c, copy, lang, phone, service
             <h1 className="text-3xl sm:text-4xl font-black leading-tight max-w-2xl">{heroHeadline}</h1>
             <p className="text-white/70 text-base leading-relaxed max-w-xl">{heroSubtitle}</p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link href={bookHref} className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors">
+              <Link href={heroBookHref} className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors">
                 <Icons.CalendarCheck size={16} />
                 {copy.bookService}
               </Link>
@@ -168,7 +172,7 @@ export default function AreaLandingView({ content: c, copy, lang, phone, service
                       <h3 className="font-black text-gray-900">{svc.serviceName}</h3>
                     </div>
                     <p className="text-sm text-gray-600 leading-relaxed">{svc.localDescription}</p>
-                    <Link href={bookHref} className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline mt-1">
+                    <Link href={`/book?service=${svc.serviceId}`} className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline mt-1">
                       {copy.bookNow} <Icons.ArrowRight size={12} />
                     </Link>
                   </div>
@@ -305,7 +309,7 @@ export default function AreaLandingView({ content: c, copy, lang, phone, service
         <div className="max-w-md mx-auto space-y-4">
           <h2 className="text-2xl font-black text-white">{copy.bottomCta.title(c.city)}</h2>
           <p className="text-white/50 text-sm">{copy.bottomCta.subtitle}</p>
-          <Link href={bookHref} className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors">
+          <Link href={heroBookHref} className="inline-flex items-center gap-2 bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors">
             <Icons.CalendarCheck size={16} />
             {copy.bottomCta.button(c.city)}
           </Link>
