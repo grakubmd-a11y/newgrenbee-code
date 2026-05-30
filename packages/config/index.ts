@@ -451,6 +451,9 @@ export const SERVICES_DATA: Service[] = [
     estimatedMinutesPerUnit: 120,
     popularUnitValue: 1,
     active: true,
+    // Vacation rental jobs are reviewed by the team before dispatching —
+    // the booking wizard shows a manual review panel instead of Stripe.
+    requiresManualReview: true,
     includedSpecs: [
       "Before & after photo documentation for your records",
       "Guest-ready staging — beds made, towels set, surfaces reset",
