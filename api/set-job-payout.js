@@ -61,18 +61,34 @@ export default async function handler(req, res) {
       return sendJson(res, 400, { error: "periodStart and periodEnd (YYYY-MM-DD) are required." });
     }
 
-    const snap = await db
-      .collection("bookings")
-      .where("assignedStaffId", "==", staffId)
-      .where("bookingDate", ">=", periodStart)
-      .where("bookingDate", "<=", periodEnd)
-      .get();
+    // Run two queries: primary/single-tech and helper role.
+    // Merge and deduplicate so helpers are included in payroll.
+    const [primarySnap, helperSnap] = await Promise.all([
+      db
+        .collection("bookings")
+        .where("assignedStaffId", "==", staffId)
+        .where("bookingDate", ">=", periodStart)
+        .where("bookingDate", "<=", periodEnd)
+        .get(),
+      db
+        .collection("bookings")
+        .where("helperStaffId", "==", staffId)
+        .where("bookingDate", ">=", periodStart)
+        .where("bookingDate", "<=", periodEnd)
+        .get(),
+    ]);
+
+    const seen = new Set();
+    const allDocs = [];
+    for (const doc of [...primarySnap.docs, ...helperSnap.docs]) {
+      if (!seen.has(doc.id)) { seen.add(doc.id); allDocs.push(doc); }
+    }
 
     const now = new Date().toISOString();
     const batch = db.batch();
     let count = 0;
 
-    snap.docs.forEach((doc) => {
+    allDocs.forEach((doc) => {
       const data = doc.data();
       // Only mark completed/paid jobs that haven't been paid yet
       if (

@@ -61,7 +61,12 @@ export default async function handler(req, res) {
     }
 
     const staffId = staffSnap.docs[0].id;
-    if (booking.assignedStaffId !== staffId) {
+    const isAssigned =
+      booking.assignedStaffId === staffId ||
+      booking.primaryStaffId  === staffId ||
+      booking.helperStaffId   === staffId;
+
+    if (!isAssigned) {
       return sendJson(res, 403, { error: "This job is not assigned to you." });
     }
   }

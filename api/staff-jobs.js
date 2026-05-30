@@ -111,15 +111,44 @@ export default async function handler(req, res) {
 
   const statuses = showHistory ? HISTORY_STATUSES : ACTIVE_STATUSES;
 
-  const jobsSnap = await db
-    .collection("bookings")
-    .where("assignedStaffId", "==", staffId)
-    .where("status", "in", statuses)
-    .orderBy("bookingDate", showHistory ? "desc" : "asc")
-    .limit(50)
-    .get();
+  // Run two queries in parallel: primary/single-tech (assignedStaffId) and helper (helperStaffId).
+  // Firestore cannot OR across different fields, so we merge in memory and deduplicate by doc ID.
+  const [primarySnap, helperSnap] = await Promise.all([
+    db
+      .collection("bookings")
+      .where("assignedStaffId", "==", staffId)
+      .where("status", "in", statuses)
+      .orderBy("bookingDate", showHistory ? "desc" : "asc")
+      .limit(50)
+      .get(),
+    db
+      .collection("bookings")
+      .where("helperStaffId", "==", staffId)
+      .get(),
+  ]);
 
-  const jobs = jobsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const seen = new Set();
+  const allDocs = [];
+
+  for (const doc of primarySnap.docs) {
+    seen.add(doc.id);
+    allDocs.push(doc);
+  }
+  for (const doc of helperSnap.docs) {
+    if (!seen.has(doc.id) && statuses.includes(doc.data().status)) {
+      seen.add(doc.id);
+      allDocs.push(doc);
+    }
+  }
+
+  // Sort merged list by bookingDate
+  allDocs.sort((a, b) => {
+    const da = a.data().bookingDate || "";
+    const db_ = b.data().bookingDate || "";
+    return showHistory ? db_.localeCompare(da) : da.localeCompare(db_);
+  });
+
+  const jobs = allDocs.slice(0, 50).map((d) => ({ id: d.id, ...d.data() }));
 
   // Include payout settings so the portal can show estimated earnings per job
   const staffDoc = await db.collection("staff").doc(staffId).get().catch(() => null);

@@ -389,8 +389,23 @@ export default function AdminPanel({
     globalBookings
       .filter(b => (b.status === "completed" || b.paymentStatus === "paid") && inPeriod(b.bookingDate || b.createdAt || ""))
       .forEach(b => {
-        const staffId   = b.assignedStaffId   || "unassigned";
-        const staffName = b.assignedStaffName  || "Sin asignar";
+        // Process primary/single-tech assignment
+        const participants: { id: string; name: string; role: "primary" | "helper" }[] = [];
+        participants.push({
+          id:   (b as any).assignedStaffId  || "unassigned",
+          name: (b as any).assignedStaffName || "Sin asignar",
+          role: "primary",
+        });
+        // Also process helper if present (two-tech jobs)
+        if ((b as any).helperStaffId && (b as any).helperStaffId !== (b as any).assignedStaffId) {
+          participants.push({
+            id:   (b as any).helperStaffId,
+            name: (b as any).helperStaffName || (b as any).helperStaffId,
+            role: "helper",
+          });
+        }
+
+        participants.forEach(({ id: staffId, name: staffName }) => {
         const staff     = staffList.find(s => s.id === staffId);
         const payout    = calcPayout(b, staff);
         const revenue   = Number(b.totalCost || 0);
@@ -416,7 +431,8 @@ export default function AdminPanel({
           pendingJobs: isPaid ? existing.pendingJobs : [...existing.pendingJobs, b],
           paidJobs:    isPaid ? [...existing.paidJobs, b] : existing.paidJobs,
         });
-      });
+        }); // end participants.forEach
+      }); // end globalBookings.forEach
 
     return Array.from(rows.values()).sort((a, b) => b.payoutDue - a.payoutDue);
   }, [globalBookings, staffList, payrollPeriod]);
