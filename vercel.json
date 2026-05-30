@@ -1,5 +1,14 @@
 {
   "outputDirectory": "apps/app/.next",
+
+  "rewrites": [
+    {
+      "has": [{ "type": "host", "value": "control-room.grenbee.com" }],
+      "source": "/(.*)",
+      "destination": "/admin"
+    }
+  ],
+
   "headers": [
     {
       "source": "/(.*)",
