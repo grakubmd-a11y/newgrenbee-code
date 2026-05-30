@@ -940,7 +940,9 @@ export async function fetchPageContent(pageId: "faq"): Promise<FaqPageContent | 
 export async function fetchPageContent(pageId: "contact"): Promise<ContactPageContent | null>;
 export async function fetchPageContent(pageId: string): Promise<HomePageContent | FaqPageContent | ContactPageContent | null> {
   try {
-    const snap = await getDoc(doc(db, "pageContent", pageId));
+    // Always fetch from server (bypass IndexedDB cache) so CMS updates
+    // made in the admin reflect immediately without a hard refresh.
+    const snap = await getDocFromServer(doc(db, "pageContent", pageId));
     if (!snap.exists()) return null;
     return snap.data() as HomePageContent | FaqPageContent | ContactPageContent;
   } catch {
