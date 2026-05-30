@@ -1066,5 +1066,15 @@
       "toggleStart": "Iniciar",
       "hint": "Los técnicos simulan su avance cada 10-15s (Asignado → En camino → En progreso → Terminado)."
     }
+  },
+  "chat": {
+    "title": "Asistente Grenbee",
+    "subtitle": "¿Cómo puedo ayudarte hoy?",
+    "placeholder": "Escribe un mensaje...",
+    "send": "Enviar",
+    "typing": "Escribiendo...",
+    "escalated": "Tu solicitud fue enviada a nuestro equipo de soporte. Te contactaremos pronto.",
+    "open": "Chatear con nosotros",
+    "close": "Cerrar chat"
   }
 }

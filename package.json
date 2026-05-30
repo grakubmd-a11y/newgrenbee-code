@@ -27,6 +27,7 @@
     "@grenbee/types": "^0.0.0",
     "firebase-admin": "^13.10.0",
     "lucide-react": "^1.17.0",
+    "openai": "^4.104.0",
     "react": "^19.2.6",
     "react-i18next": "^17.0.8",
     "resend": "^4.0.0",

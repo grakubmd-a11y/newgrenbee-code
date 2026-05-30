@@ -1066,5 +1066,15 @@
       "toggleStart": "Start",
       "hint": "Technicians auto-advance every 10-15s (Assigned → On the way → On-site → Done)."
     }
+  },
+  "chat": {
+    "title": "Grenbee Assistant",
+    "subtitle": "How can I help you today?",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "typing": "Typing...",
+    "escalated": "Your request has been forwarded to our support team. We'll be in touch shortly.",
+    "open": "Chat with us",
+    "close": "Close chat"
   }
 }
