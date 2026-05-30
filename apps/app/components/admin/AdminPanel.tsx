@@ -908,18 +908,35 @@ export default function AdminPanel({
       });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) throw new Error(data.error || "Auto-asignación fallida.");
-      if (data.reason === "no_eligible_staff") {
-        triggerSuccess("No hay técnicos disponibles para este servicio en esa fecha.");
+
+      if (!data.ok) {
+        // No-op / manual review cases
+        if (data.reason === "no_eligible_staff") {
+          triggerSuccess("No hay técnicos disponibles para este servicio en esa fecha.");
+        } else if (data.reason === "insufficient_staff_for_two_tech") {
+          triggerSuccess("No hay suficientes técnicos para este trabajo de 2 personas. Reserva marcada como 'needs_assignment'.");
+          await loadDatabaseData();
+        } else if (data.reason === "already_assigned") {
+          triggerSuccess(`Ya asignado: ${data.assignedStaffName || data.assignedStaffId || "técnico"}`);
+        } else {
+          triggerSuccess(data.message || "Sin cambios en la asignación.");
+        }
       } else {
+        // Successful assignment (single-tech or two-tech)
+        const isTwoTech = !!data.primaryStaffId && !!data.helperStaffId;
+        const staffLabel = isTwoTech
+          ? `${data.primaryStaffName || data.primaryStaffId} + ${data.helperStaffName || data.helperStaffId}`
+          : (data.assignedStaffName || data.assignedStaffId || "técnico");
+
         await recordActivity({
           type: "booking_assigned",
           entityType: "booking",
           entityId: bookingId,
           title: "Auto-asignación de técnico",
-          detail: `Se asignó automáticamente ${data.assignedStaffName || data.assignedStaffId} a la reserva ${bookingId}.`,
+          detail: `Se asignó automáticamente ${staffLabel} a la reserva ${bookingId}.`,
           severity: "success",
         });
-        triggerSuccess(`Asignado: ${data.assignedStaffName || data.assignedStaffId}`);
+        triggerSuccess(`Asignado: ${staffLabel}`);
         await loadDatabaseData();
       }
     } catch (err: any) {

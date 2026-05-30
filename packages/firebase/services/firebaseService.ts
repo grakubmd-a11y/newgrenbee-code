@@ -350,7 +350,9 @@ export async function fetchStaffFromFirestore(): Promise<Staff[]> {
     const querySnapshot = await getDocs(collection(db, "staff"));
     const staffList: Staff[] = [];
     querySnapshot.forEach((docSnap) => {
-      staffList.push(docSnap.data() as Staff);
+      // Always spread docSnap.id first so the Firestore doc ID wins over any
+      // stale/missing `id` field that may be stored in the document data.
+      staffList.push({ id: docSnap.id, ...docSnap.data() } as Staff);
     });
 
     return staffList;
