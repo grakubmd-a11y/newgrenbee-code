@@ -206,41 +206,41 @@
     },
     "plans": {
       "eyebrow": "Ahorra Más",
-      "title": "Planes de Membresía para el Césped",
-      "subtitle": "Únete a un plan y recibe cuidado profesional y consistente — con precios fijos y sin complicaciones.",
+      "title": "Planes de Membresía para tu Hogar",
+      "subtitle": "Ancla el cuidado de tu hogar con limpieza profesional. Césped, lavado a presión y más a precios de miembro.",
       "mostPopular": "Más Popular",
       "perMonth": "/mes",
       "viewPlans": "Ver Planes",
-      "viewAll": "Ver todos los detalles de membresía, precios y guía de tamaño de jardín",
+      "viewAll": "Ver todos los planes, precios y condiciones →",
       "items": [
         {
-          "name": "Básico",
-          "freq": "1 visita / mes",
-          "price": "$59–$179",
+          "name": "Esencial",
+          "freq": "1 limpieza / mes",
+          "price": "$129",
           "features": [
-            "Corte y perfilado de césped",
-            "Soplado y limpieza",
-            "Recordatorios por correo"
+            "1 limpieza completa / mes",
+            "10% de descuento en todos los servicios",
+            "Programación flexible"
           ]
         },
         {
-          "name": "Estándar",
-          "freq": "2 visitas / mes",
-          "price": "$109–$329",
+          "name": "Completo",
+          "freq": "2 limpiezas + 1 césped / mes",
+          "price": "$219",
           "features": [
-            "Todo lo del Básico",
-            "Programación prioritaria",
-            "Consistencia quincenal"
+            "2 limpiezas + 1 corte de césped / mes",
+            "15% de descuento en servicios adicionales",
+            "Sin cargo por reprogramación"
           ]
         },
         {
           "name": "Premium",
-          "freq": "4 visitas / mes",
-          "price": "$199–$599",
+          "freq": "Limpieza semanal + césped quincenal",
+          "price": "$349",
           "features": [
-            "Todo lo del Estándar",
-            "Cortes semanales",
-            "$100 crédito de servicio/mes"
+            "Limpieza semanal + césped quincenal",
+            "1 lavado a presión gratis / año",
+            "20% de descuento · Agendamiento prioritario"
           ]
         }
       ]
@@ -697,61 +697,61 @@
     "bookService": "Reservar Servicio"
   },
   "plans": {
+    "pageTitle": "Planes de Membresía | Grenbee",
+    "metaDescription": "Elige una membresía de cuidado del hogar Grenbee. Limpieza profesional, corte de césped y más — todo en un plan mensual simple.",
     "bookOneTime": "Reservar visita única →",
     "hero": {
-      "badge": "Membresías de Limpieza del Hogar",
-      "title": "Un hogar limpio, en cada visita.",
-      "subtitle": "Elige un plan que se adapte al tamaño de tu hogar. Llegamos puntualmente — tú solo disfruta de un espacio impecable."
+      "badge": "Membresías de Cuidado del Hogar",
+      "title": "Tu hogar, siempre bien cuidado.",
+      "subtitle": "Ancla el cuidado de tu hogar con limpieza profesional. Corte de césped y servicios adicionales a precios de miembro."
     },
-    "yardSize": {
-      "label": "Selecciona el tamaño de tu hogar",
-      "xlWarning": "Casas grandes y residencias se cotizan individualmente. Selecciona cualquier plan a continuación para solicitar una cotización personalizada.",
-      "tiers": [
-        {
-          "tier": "small",
-          "label": "Pequeño",
-          "description": "Estudio o casa de 1 dormitorio",
-          "examples": "Hasta ~1,000 pies²"
-        },
-        {
-          "tier": "medium",
-          "label": "Mediano",
-          "description": "Casa de 2–3 dormitorios",
-          "examples": "~1,000–2,000 pies²"
-        },
-        {
-          "tier": "large",
-          "label": "Grande",
-          "description": "Casa de 3–4 dormitorios",
-          "examples": "~2,000–3,500 pies²"
-        },
-        {
-          "tier": "xl",
-          "label": "XL",
-          "description": "4+ dormitorios o residencia amplia",
-          "examples": "3,500+ pies²"
-        }
-      ]
-    },
+    "perMonth": "/mes",
     "card": {
       "mostPopular": "Más Popular",
-      "custom": "Personalizado",
-      "customQuote": "cotización",
-      "perMonth": "/mes",
-      "letsTalk": "Hablemos",
-      "notIncluded": "No incluido",
-      "firstCutReset": "Limpieza Inicial de Arranque requerida",
-      "firstCutCustom": "La cotización personalizada incluye evaluación de limpieza profunda inicial.",
-      "contactForQuote": "Contáctanos para Cotización",
-      "requestCustomQuote": "Solicitar Cotización Personalizada",
       "getStarted": "Comenzar",
-      "creditsLabel": "Créditos de Servicio",
-      "creditsNote": "${{amount}}/mes · máx ${{max}} · vence a los 60 días"
+      "commitment": "Mínimo {{months}} meses",
+      "discount": "{{pct}}% de descuento en servicios adicionales"
     },
-    "customCard": {
-      "title": "Casas grandes y propiedades personalizadas",
-      "subtitle": "4+ dormitorios, residencias amplias o necesidades especiales. Evaluaremos tu hogar y te daremos una cotización a medida.",
-      "button": "Solicitar Cotización"
+    "tiers": {
+      "essential": {
+        "name": "Esencial",
+        "tagline": "Limpieza profesional, con puntualidad.",
+        "freq": "1 limpieza / mes",
+        "features": [
+          "1 limpieza completa del hogar al mes",
+          "10% de descuento en tu limpieza mensual",
+          "10% de descuento en césped y servicios adicionales",
+          "Programación flexible",
+          "Equipo consistente (cuando disponible)"
+        ]
+      },
+      "complete": {
+        "name": "Completo",
+        "tagline": "Cuidado total del hogar — por dentro y por fuera.",
+        "freq": "2 limpiezas + 1 césped / mes",
+        "features": [
+          "2 limpiezas completas del hogar al mes",
+          "1 corte de césped al mes incluido",
+          "15% de descuento en todos los servicios adicionales",
+          "Sin cargo por reprogramación",
+          "Equipo consistente",
+          "Acceso a programación prioritaria"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "tagline": "Tu hogar se cuida solo.",
+        "freq": "Limpieza semanal + césped quincenal",
+        "features": [
+          "4 limpiezas al mes (semanales)",
+          "2 cortes de césped al mes (quincenales)",
+          "1 lavado a presión gratis al año",
+          "20% de descuento en todos los servicios adicionales",
+          "Sin cargo por reprogramación",
+          "Máxima prioridad de agendamiento",
+          "Equipo dedicado asignado a tu hogar"
+        ]
+      }
     },
     "included": {
       "sectionTitle": "Qué siempre incluimos",
@@ -774,43 +774,42 @@
         "Lavado de alfombras",
         "Organización o desordenamiento"
       ],
-      "addOnsNote": "Servicios adicionales disponibles como reservas únicas o mediante créditos en planes Home Care y Premium Care."
+      "addOnsNote": "Servicios adicionales disponibles como reservas únicas a precios de miembro."
     },
     "policies": {
       "title": "Políticas del plan",
       "items": [
         {
-          "q": "¿Hay una tarifa de Limpieza Inicial de Arranque?",
-          "a": "Si tu hogar no ha sido limpiado profesionalmente recientemente o requiere atención extra, se aplica una tarifa única de Limpieza Inicial de Arranque. Esta cubre el tiempo y esfuerzo adicional para llevarlo a un estado base consistente. Los precios regulares de membresía comienzan después de la primera visita."
+          "q": "¿Hay un compromiso mínimo?",
+          "a": "Los planes Esencial y Completo requieren un mínimo de 2 meses. El Premium requiere 3 meses. Después del período mínimo, puedes cancelar con 7 días de aviso antes de tu próxima fecha de facturación."
+        },
+        {
+          "q": "¿Hay una tarifa de Primera Limpieza?",
+          "a": "Si tu hogar no ha sido limpiado profesionalmente recientemente, puede aplicarse una tarifa única de Primera Limpieza para llevarlo a un estado base consistente. Los precios regulares de membresía comienzan después de la primera visita."
         },
         {
           "q": "¿Puedo pausar mi membresía?",
-          "a": "Sí — los miembros pueden pausar hasta 4 semanas por año con al menos 7 días de aviso. La facturación se reanuda automáticamente cuando termina la pausa. Los créditos de servicio no se acumulan durante la pausa. Tu horario preferido no está garantizado después de una pausa."
+          "a": "Sí — los miembros pueden pausar hasta 4 semanas por año con al menos 7 días de aviso. La facturación se reanuda automáticamente cuando termina la pausa."
         },
         {
-          "q": "¿Puedo cancelar en cualquier momento?",
-          "a": "Puedes cancelar con al menos 7 días de aviso antes de tu próxima fecha de facturación. Las cancelaciones dentro de las 48 horas de una visita programada pueden estar sujetas a una tarifa de cancelación de último momento."
+          "q": "¿Cómo funciona el lavado a presión gratuito?",
+          "a": "Los miembros Premium reciben un lavado a presión estándar complementario por año calendario (hasta 1,500 pies²). La programación está sujeta a disponibilidad y debe usarse dentro del año de membresía."
         },
         {
-          "q": "¿Cómo funcionan los créditos de servicio?",
-          "a": "Los miembros de Home Care acumulan $50/mes y los de Premium Care $100/mes en créditos de servicio. Los créditos pueden aplicarse a cualquier servicio adicional. El saldo máximo es $100 (Home Care) o $200 (Premium Care), y los créditos vencen 60 días después de su emisión."
-        },
-        {
-          "q": "¿Obtengo el mismo equipo de limpieza cada vez?",
+          "q": "¿Obtengo el mismo equipo cada vez?",
           "a": "Asignamos el mismo equipo de manera tan consistente como sea posible. Esto no puede garantizarse después de pausas, cambios de horario o disponibilidad del personal."
         }
       ]
     },
     "bottomCta": {
-      "title": "¿Listo para un hogar más limpio?",
-      "subtitle": "Selecciona un plan arriba o reserva una limpieza profunda única primero para conocer cómo trabajamos.",
+      "title": "¿Listo para un hogar siempre limpio?",
+      "subtitle": "Elige un plan o reserva una visita única primero — sin compromiso.",
       "button": "Reservar limpieza única →"
     },
     "modal": {
-      "sizeYard": "hogar",
-      "customQuoteLabel": "Cotización personalizada",
+      "title": "Comenzar con {{planName}}",
       "successTitle": "¡Nos pondremos en contacto!",
-      "successBody": "¡Gracias! Recibimos tu interés en el plan <strong>{{planName}}</strong> para un hogar de tamaño <strong>{{sizeLabel}}</strong>. Alguien del equipo Grenbee te contactará dentro de 24 horas.",
+      "successBody": "¡Gracias! Recibimos tu interés en el plan <strong>{{planName}}</strong>. Alguien del equipo Grenbee te contactará dentro de 24 horas para confirmar los detalles.",
       "close": "Cerrar",
       "fullName": "Nombre Completo *",
       "namePlaceholder": "Jane Smith",
@@ -820,7 +819,6 @@
       "phonePlaceholder": "(555) 000-0000",
       "addressLabel": "Dirección del Servicio",
       "addressPlaceholder": "123 Calle Principal, Ciudad, Estado",
-      "requestCustomQuote": "Solicitar Cotización Personalizada",
       "getStarted": "Comenzar",
       "noPaymentNote": "No se requiere pago ahora. Un miembro del equipo Grenbee te contactará para confirmar los detalles y programar tu primera visita."
     }

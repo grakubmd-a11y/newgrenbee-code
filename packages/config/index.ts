@@ -568,6 +568,42 @@ export const INITIAL_REVIEWS: Review[] = [
   }
 ];
 
+// ── Home Care Plans ───────────────────────────────────────────────────────────
+
+export const HOME_PLANS = [
+  {
+    id: 'essential' as const,
+    priceMonthly: 129,
+    priceLabel: '$129',
+    cleaningsPerMonth: 1,
+    lawnPerMonth: 0,
+    discountPct: 10,
+    highlight: false,
+    minCommitmentMonths: 2,
+  },
+  {
+    id: 'complete' as const,
+    priceMonthly: 219,
+    priceLabel: '$219',
+    cleaningsPerMonth: 2,
+    lawnPerMonth: 1,
+    discountPct: 15,
+    highlight: true,
+    minCommitmentMonths: 2,
+  },
+  {
+    id: 'premium' as const,
+    priceMonthly: 349,
+    priceLabel: '$349',
+    cleaningsPerMonth: 4,
+    lawnPerMonth: 2,
+    discountPct: 20,
+    highlight: false,
+    includesPressureWashing: true,
+    minCommitmentMonths: 3,
+  },
+];
+
 export const INITIAL_BOOKINGS: Booking[] = [
   {
     id: "BK-4912",

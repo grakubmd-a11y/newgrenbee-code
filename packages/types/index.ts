@@ -403,6 +403,22 @@ export interface MediaItem {
   uploadedBy: string;     // admin email
 }
 
+// ── Home Care Plans (static, 3-tier) ─────────────────────────────────────────
+
+export type HomePlanId = 'essential' | 'complete' | 'premium';
+
+export interface HomePlan {
+  id: HomePlanId;
+  priceMonthly: number;
+  priceLabel: string;
+  cleaningsPerMonth: number;
+  lawnPerMonth: number;
+  discountPct: number;
+  highlight: boolean;
+  includesPressureWashing?: boolean;
+  minCommitmentMonths: number;
+}
+
 // ── Contact Submissions ────────────────────────────────────────────────────────
 
 export interface ContactSubmission {

@@ -206,41 +206,41 @@
     },
     "plans": {
       "eyebrow": "Save More",
-      "title": "Lawn Care Membership Plans",
-      "subtitle": "Join a plan and get consistent, professional care — with pricing locked in and zero hassle.",
+      "title": "Home Care Membership Plans",
+      "subtitle": "Anchor your care with professional cleaning. Lawn, pressure washing, and more at member prices.",
       "mostPopular": "Most Popular",
       "perMonth": "/mo",
       "viewPlans": "View Plans",
-      "viewAll": "See all membership details, pricing, and yard size guide",
+      "viewAll": "See all plans, pricing, and policies →",
       "items": [
         {
-          "name": "Basic",
-          "freq": "1 visit / month",
-          "price": "$59–$179",
+          "name": "Essential",
+          "freq": "1 cleaning / month",
+          "price": "$129",
           "features": [
-            "Lawn mowing & edging",
-            "Blowing & cleanup",
-            "Email reminders"
+            "1 full home cleaning / mo",
+            "10% off all services",
+            "Flexible scheduling"
           ]
         },
         {
-          "name": "Standard",
-          "freq": "2 visits / month",
-          "price": "$109–$329",
+          "name": "Complete",
+          "freq": "2 cleanings + 1 lawn / month",
+          "price": "$219",
           "features": [
-            "Everything in Basic",
-            "Priority scheduling",
-            "Bi-weekly consistency"
+            "2 cleanings + 1 lawn / mo",
+            "15% off add-on services",
+            "No rescheduling fee"
           ]
         },
         {
           "name": "Premium",
-          "freq": "4 visits / month",
-          "price": "$199–$599",
+          "freq": "Weekly cleaning + biweekly lawn",
+          "price": "$349",
           "features": [
-            "Everything in Standard",
-            "Weekly cuts",
-            "$100 service credit/mo"
+            "Weekly cleaning + biweekly lawn",
+            "1 free pressure washing / year",
+            "20% off · Priority scheduling"
           ]
         }
       ]
@@ -697,61 +697,61 @@
     "bookService": "Book Service"
   },
   "plans": {
+    "pageTitle": "Membership Plans | Grenbee",
+    "metaDescription": "Choose a Grenbee home care membership. Professional cleaning, lawn care, and more — bundled into one simple monthly plan.",
     "bookOneTime": "Book a one-time visit →",
     "hero": {
-      "badge": "Home Cleaning Memberships",
-      "title": "A clean home, every visit.",
-      "subtitle": "Choose a plan that fits your home size. We show up on schedule — you just enjoy a consistently clean space."
+      "badge": "Home Care Memberships",
+      "title": "Your home, always taken care of.",
+      "subtitle": "Anchor your home care with professional cleaning. Lawn mowing and extra services at member prices."
     },
-    "yardSize": {
-      "label": "Select your home size",
-      "xlWarning": "Large homes and estates are priced individually. Select any plan below to request a custom quote.",
-      "tiers": [
-        {
-          "tier": "small",
-          "label": "Small",
-          "description": "Studio or 1-bedroom home",
-          "examples": "Up to ~1,000 sqft"
-        },
-        {
-          "tier": "medium",
-          "label": "Medium",
-          "description": "2–3 bedroom home",
-          "examples": "~1,000–2,000 sqft"
-        },
-        {
-          "tier": "large",
-          "label": "Large",
-          "description": "3–4 bedroom home",
-          "examples": "~2,000–3,500 sqft"
-        },
-        {
-          "tier": "xl",
-          "label": "XL",
-          "description": "4+ bedrooms or large estate",
-          "examples": "3,500+ sqft"
-        }
-      ]
-    },
+    "perMonth": "/mo",
     "card": {
       "mostPopular": "Most Popular",
-      "custom": "Custom",
-      "customQuote": "quote",
-      "perMonth": "/mo",
-      "letsTalk": "Let's talk",
-      "notIncluded": "Not included",
-      "firstCutReset": "First Clean Reset required",
-      "firstCutCustom": "Custom quote includes initial deep-clean evaluation.",
-      "contactForQuote": "Contact Us for a Quote",
-      "requestCustomQuote": "Request a Custom Quote",
       "getStarted": "Get Started",
-      "creditsLabel": "Service Credits",
-      "creditsNote": "${{amount}}/mo · max ${{max}} · 60-day expiry"
+      "commitment": "{{months}}-month minimum",
+      "discount": "{{pct}}% off all additional services"
     },
-    "customCard": {
-      "title": "Large homes & custom properties",
-      "subtitle": "4+ bedrooms, large estates, or unique needs. We'll evaluate your home and give you a tailored quote.",
-      "button": "Request a Quote"
+    "tiers": {
+      "essential": {
+        "name": "Essential",
+        "tagline": "Professional cleaning, on schedule.",
+        "freq": "1 cleaning / month",
+        "features": [
+          "1 full home cleaning per month",
+          "10% off your monthly cleaning",
+          "10% off lawn mowing & add-on services",
+          "Flexible scheduling",
+          "Consistent team (when available)"
+        ]
+      },
+      "complete": {
+        "name": "Complete",
+        "tagline": "Full home care — inside and out.",
+        "freq": "2 cleanings + 1 lawn / month",
+        "features": [
+          "2 full home cleanings per month",
+          "1 lawn mowing per month included",
+          "15% off all additional services",
+          "No rescheduling fee",
+          "Consistent team",
+          "Priority scheduling access"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "tagline": "Your home runs itself.",
+        "freq": "Weekly cleaning + biweekly lawn",
+        "features": [
+          "4 cleanings per month (weekly)",
+          "2 lawn mowings per month (biweekly)",
+          "1 free pressure washing per year",
+          "20% off all additional services",
+          "No rescheduling fee",
+          "Maximum priority scheduling",
+          "Dedicated team assigned to your home"
+        ]
+      }
     },
     "included": {
       "sectionTitle": "What's always included",
@@ -774,43 +774,42 @@
         "Carpet shampooing",
         "Organization or decluttering"
       ],
-      "addOnsNote": "Add-ons available as one-time bookings or via service credits on Home Care & Premium Care plans."
+      "addOnsNote": "Add-ons available as one-time bookings at member discount prices."
     },
     "policies": {
       "title": "Plan policies",
       "items": [
         {
-          "q": "Is there a First Clean Reset fee?",
-          "a": "If your home hasn't been professionally cleaned recently or requires extra attention, a one-time First Clean Reset fee applies. This covers the additional time and effort to bring it to a consistent baseline. Regular membership pricing begins after the first visit."
+          "q": "Is there a minimum commitment?",
+          "a": "Essential and Complete plans require a 2-month minimum. Premium requires 3 months. After the minimum period, you can cancel with 7 days' notice before your next billing date."
+        },
+        {
+          "q": "Is there a First Clean fee?",
+          "a": "If your home hasn't been professionally cleaned recently, a one-time First Clean fee may apply to bring it to a consistent baseline. Regular membership pricing begins after the first visit."
         },
         {
           "q": "Can I pause my membership?",
-          "a": "Yes — members can pause up to 4 weeks per year with at least 7 days' notice. Billing resumes automatically when the pause ends. Service credits do not accrue during a pause. Your preferred schedule is not guaranteed to be available after a pause."
+          "a": "Yes — members can pause up to 4 weeks per year with at least 7 days' notice. Billing resumes automatically when the pause ends."
         },
         {
-          "q": "Can I cancel at any time?",
-          "a": "You can cancel with at least 7 days' notice before your next billing date. Cancellations made within 48 hours of a scheduled visit may be subject to a last-minute cancellation fee."
+          "q": "How does the free pressure washing work?",
+          "a": "Premium members receive one complimentary standard pressure washing per calendar year (up to 1,500 sq ft). Scheduling is subject to availability and must be used within the membership year."
         },
         {
-          "q": "How do service credits work?",
-          "a": "Home Care members earn $50/month and Premium Care members earn $100/month in service credits. Credits can be applied to any add-on service. Maximum balance is $100 (Home Care) or $200 (Premium Care), and credits expire 60 days after issuance."
-        },
-        {
-          "q": "Do I get the same cleaning team every time?",
+          "q": "Do I get the same team every time?",
           "a": "We assign the same team as consistently as possible. This cannot be guaranteed after pauses, schedule changes, or staff availability shifts."
         }
       ]
     },
     "bottomCta": {
-      "title": "Ready for a cleaner home?",
-      "subtitle": "Select a plan above or book a one-time deep clean first to see how we work.",
+      "title": "Ready for a consistently clean home?",
+      "subtitle": "Select a plan or book a one-time visit first — no commitment required.",
       "button": "Book a one-time clean →"
     },
     "modal": {
-      "sizeYard": "home",
-      "customQuoteLabel": "Custom quote",
+      "title": "Get started with {{planName}}",
       "successTitle": "We'll be in touch!",
-      "successBody": "Thanks! We received your interest in the <strong>{{planName}}</strong> plan for a <strong>{{sizeLabel}}</strong> home. Someone from the Grenbee team will contact you within 24 hours.",
+      "successBody": "Thanks! We received your interest in the <strong>{{planName}}</strong> plan. Someone from the Grenbee team will contact you within 24 hours to confirm details.",
       "close": "Close",
       "fullName": "Full Name *",
       "namePlaceholder": "Jane Smith",
@@ -820,7 +819,6 @@
       "phonePlaceholder": "(555) 000-0000",
       "addressLabel": "Service Address",
       "addressPlaceholder": "123 Main St, City, State",
-      "requestCustomQuote": "Request a Custom Quote",
       "getStarted": "Get Started",
       "noPaymentNote": "No payment required now. A Grenbee team member will contact you to confirm details and schedule your first visit."
     }
