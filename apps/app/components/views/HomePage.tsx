@@ -22,7 +22,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SiteNavbar from "@/components/layout/SiteNavbar";
@@ -109,6 +109,8 @@ const SERVICE_DESCRIPTION_KEYS: Record<string, string> = {
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function HomePage() {
   const { t, i18n } = useTranslation();
+  const params = useParams();
+  const base = `/${(params?.country as string) ?? "us"}`;
   const { phone, activeServiceIds } = useSiteSettings();
   const [services, setServices]   = useState<Service[]>(SERVICES_DATA);
   const [reviews,  setReviews]    = useState<Review[]>([]);
@@ -303,7 +305,7 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 mb-4">
                     {t("home.coverage.miamidade.description")}
                   </p>
-                  <Link href="/us/areas"
+                  <Link href={`${base}/areas`}
                     className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700"
                   >
                     {t("home.coverage.miamidade.link")} <Icons.ArrowRight className="w-3.5 h-3.5" />
@@ -319,7 +321,7 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 mb-4">
                     {t("home.coverage.broward.description")}
                   </p>
-                  <Link href="/us/areas"
+                  <Link href={`${base}/areas`}
                     className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700"
                   >
                     {t("home.coverage.broward.link")} <Icons.ArrowRight className="w-3.5 h-3.5" />
@@ -503,7 +505,7 @@ export default function HomePage() {
                 <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">Utah County</h3>
                 <div className="flex flex-wrap gap-2">
                   {UTAH_COUNTY_CITIES.map(({ city, slug }) => (
-                    <Link key={slug} href={`/us/areas/${slug}`}
+                    <Link key={slug} href={`${base}/areas/${slug}`}
                       className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors">
                       {city}
                     </Link>
@@ -515,7 +517,7 @@ export default function HomePage() {
                 <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">Wasatch Back</h3>
                 <div className="flex flex-wrap gap-2">
                   {WASATCH_BACK_CITIES.map(({ city, slug }) => (
-                    <Link key={slug} href={`/us/areas/${slug}`}
+                    <Link key={slug} href={`${base}/areas/${slug}`}
                       className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors">
                       {city}
                     </Link>
@@ -527,7 +529,7 @@ export default function HomePage() {
                 <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">Salt Lake County</h3>
                 <div className="flex flex-wrap gap-2">
                   {SL_COUNTY_CITIES.map(({ city, slug }) => (
-                    <Link key={slug} href={`/us/areas/${slug}`}
+                    <Link key={slug} href={`${base}/areas/${slug}`}
                       className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors">
                       {city}
                     </Link>
@@ -537,7 +539,7 @@ export default function HomePage() {
             </div>
 
             <div className="mt-6">
-              <Link href="/us/areas"
+              <Link href={`${base}/areas`}
                 className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
               >
                 <Icons.MapPin className="w-4 h-4" />
@@ -664,7 +666,7 @@ export default function HomePage() {
               <ul className="space-y-2 text-sm">
                 {UTAH_COUNTY_CITIES.map(({ city, slug }) => (
                   <li key={slug}>
-                    <Link href={`/us/areas/${slug}`} className="hover:text-emerald-400 transition-colors">{city}</Link>
+                    <Link href={`${base}/areas/${slug}`} className="hover:text-emerald-400 transition-colors">{city}</Link>
                   </li>
                 ))}
               </ul>
@@ -672,7 +674,7 @@ export default function HomePage() {
               <ul className="space-y-2 text-sm">
                 {WASATCH_BACK_CITIES.map(({ city, slug }) => (
                   <li key={slug}>
-                    <Link href={`/us/areas/${slug}`} className="hover:text-emerald-400 transition-colors">{city}</Link>
+                    <Link href={`${base}/areas/${slug}`} className="hover:text-emerald-400 transition-colors">{city}</Link>
                   </li>
                 ))}
               </ul>
@@ -682,18 +684,18 @@ export default function HomePage() {
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">{t("home.footer.companyTitle")}</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/us/plans"   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
-                <li><Link href="/us/areas"   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
-                <li><Link href="/us/hosts"   className="hover:text-emerald-400 transition-colors">For Hosts</Link></li>
-                <li><Link href="/us/faq"     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
-                <li><Link href="/us/contact" className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
+                <li><Link href={`${base}/plans`}   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
+                <li><Link href={`${base}/areas`}   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
+                <li><Link href={`${base}/hosts`}   className="hover:text-emerald-400 transition-colors">For Hosts</Link></li>
+                <li><Link href={`${base}/faq`}     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
+                <li><Link href={`${base}/contact`} className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
               </ul>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">{t("home.footer.legalTitle")}</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/us/terms"        className="hover:text-emerald-400 transition-colors">{t("home.footer.termsOfService")}</Link></li>
-                <li><Link href="/us/privacy"      className="hover:text-emerald-400 transition-colors">{t("home.footer.privacyPolicy")}</Link></li>
-                <li><Link href="/us/cancellation" className="hover:text-emerald-400 transition-colors">{t("home.footer.cancellationPolicy")}</Link></li>
-                <li><Link href="/us/guarantee"    className="hover:text-emerald-400 transition-colors">{t("home.footer.satisfactionGuarantee")}</Link></li>
+                <li><Link href={`${base}/terms`}        className="hover:text-emerald-400 transition-colors">{t("home.footer.termsOfService")}</Link></li>
+                <li><Link href={`${base}/privacy`}      className="hover:text-emerald-400 transition-colors">{t("home.footer.privacyPolicy")}</Link></li>
+                <li><Link href={`${base}/cancellation`} className="hover:text-emerald-400 transition-colors">{t("home.footer.cancellationPolicy")}</Link></li>
+                <li><Link href={`${base}/guarantee`}    className="hover:text-emerald-400 transition-colors">{t("home.footer.satisfactionGuarantee")}</Link></li>
               </ul>
             </div>
           </div>
