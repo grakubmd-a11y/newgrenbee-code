@@ -273,7 +273,12 @@ export function buildStatusUpdateEmail(booking) {
       booking.assignedStaffName ? detailRow("Technician", booking.assignedStaffName) : "",
     ].filter(Boolean))}
     ${booking.status === "completed"
-      ? p("We'd love to hear about your experience! Leave a review on our website.", "background:#f0fdf4;padding:12px 16px;border-radius:10px;")
+      ? `<div style="text-align:center;margin:20px 0;">
+          <a href="https://grenbee.com/bookings"
+             style="background:${GREEN};color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:800;font-size:13px;display:inline-block;">
+            ⭐ Leave a Review
+          </a>
+         </div>`
       : ""}
     ${divider()}
     ${p("Questions? Contact us through the website.", "color:#888;font-size:12px;")}
@@ -295,7 +300,12 @@ export function buildAbandonedCheckoutEmail(lead, opts = {}) {
   const name    = lead.customerName?.split(" ")[0] || "there";
   const service = lead.serviceName  || "our service";
   const value   = lead.estimatedValue > 0 ? `$${Number(lead.estimatedValue).toFixed(0)}` : null;
-  const bookingUrl = opts.bookingUrl || "https://grenbee.com/#booking";
+  // Deep-link to the specific service so the user lands with context
+  const serviceSlug = lead.serviceId || "";
+  const defaultUrl  = serviceSlug
+    ? `https://grenbee.com/book?service=${serviceSlug}`
+    : "https://grenbee.com/book";
+  const bookingUrl = opts.bookingUrl || defaultUrl;
 
   const body = `
     ${p(`Hi ${name} 👋`)}

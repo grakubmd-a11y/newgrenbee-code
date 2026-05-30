@@ -5,15 +5,41 @@ import Providers from "./providers";
 
 export const metadata: Metadata = {
   title: {
-    default: "Grenbee — Home Cleaning Services",
+    default: "Grenbee — Home Cleaning & Home Services in Utah",
     template: "%s | Grenbee",
   },
-  description: "Professional home cleaning services in Utah. Book online in minutes.",
+  description:
+    "Professional home cleaning, lawn mowing, TV installation and more in Utah County. Book vetted, insured technicians online in minutes. Transparent pricing.",
   metadataBase: new URL("https://grenbee.com"),
   openGraph: {
-    type: "website",
-    siteName: "Grenbee",
+    type:      "website",
+    siteName:  "Grenbee",
+    title:     "Grenbee — Home Services in Utah",
+    description:
+      "Book professional home cleaning, lawn care, TV installation and more. Vetted pros, instant pricing, same-week availability.",
+    images: [
+      {
+        url:    "/og-image.jpg",   // place a 1200×630 image at apps/app/public/og-image.jpg
+        width:  1200,
+        height: 630,
+        alt:    "Grenbee — Professional Home Services in Utah",
+      },
+    ],
   },
+  twitter: {
+    card:        "summary_large_image",
+    title:       "Grenbee — Home Services in Utah",
+    description: "Book vetted, insured home service pros online. Instant pricing, same-week availability.",
+    images:      ["/og-image.jpg"],
+  },
+  keywords: [
+    "home cleaning Utah",
+    "house cleaning Utah County",
+    "lawn mowing Utah",
+    "TV installation Utah",
+    "home services Utah",
+    "Grenbee",
+  ],
 };
 
 // GA4 Measurement ID — set NEXT_PUBLIC_GA_MEASUREMENT_ID in Vercel env vars.

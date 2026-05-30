@@ -47,8 +47,51 @@ export async function AreaPage(areaSlug: string, lang: Lang) {
   const content = await getAreaBySlug(areaSlug);
   if (!content || !content.active) notFound();
   const phone = await getBusinessPhone();
+
+  // LocalBusiness JSON-LD — helps Google associate this page with a real business
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "Grenbee Home Services",
+    description: content.seoDescription,
+    url: `https://grenbee.com/us/areas/${content.slug}`,
+    telephone: phone,
+    areaServed: {
+      "@type": "City",
+      name: content.city,
+      addressRegion: content.state,
+      addressCountry: "US",
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: content.city,
+      addressRegion: content.state,
+      addressCountry: "US",
+    },
+    priceRange: "$$",
+    image: content.heroPhotoUrl || "https://grenbee.com/og-image.jpg",
+    ...(content.testimonials.length > 0 && {
+      review: content.testimonials.slice(0, 3).map((t) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: t.name },
+        reviewRating: { "@type": "Rating", ratingValue: t.rating, bestRating: 5 },
+        reviewBody: t.text,
+      })),
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.9",
+        bestRating: "5",
+        reviewCount: String(content.testimonials.length),
+      },
+    }),
+  };
+
   return (
     <PageShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <AreaLandingView content={content} copy={AREA_COPY[lang]} lang={lang} phone={phone} />
     </PageShell>
   );
@@ -88,8 +131,38 @@ export async function ServicePage(areaSlug: string, serviceSlug: string, lang: L
   const service = content.serviceBlocks.find((s) => s.serviceId === serviceSlug);
   if (!service) notFound();
   const phone = await getBusinessPhone();
+
+  const serviceTitle = `${service.serviceName} in ${content.city}, ${content.state}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: serviceTitle,
+    description: service.localDescription,
+    provider: {
+      "@type": "LocalBusiness",
+      name: "Grenbee Home Services",
+      telephone: phone,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: content.city,
+        addressRegion: content.state,
+        addressCountry: "US",
+      },
+    },
+    areaServed: {
+      "@type": "City",
+      name: content.city,
+      addressRegion: content.state,
+    },
+    url: `https://grenbee.com/us/areas/${content.slug}/${serviceSlug}`,
+  };
+
   return (
     <PageShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <AreaLandingView content={content} copy={AREA_COPY[lang]} lang={lang} phone={phone} service={service} />
     </PageShell>
   );
