@@ -77,32 +77,39 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-// Utah County city lists for the directory and footer
-const UTAH_COUNTY = [
-  "Mapleton", "Spanish Fork", "Springville", "Payson", "Salem",
+// Active city landing pages — matches launchAreas.ts exactly
+// Grouped by region for the footer/directory section
+const UTAH_COUNTY_CITIES = [
+  { city: "Mapleton",     slug: "mapleton" },
+  { city: "Spanish Fork", slug: "spanish-fork" },
+  { city: "Springville",  slug: "springville" },
+  { city: "Salem",        slug: "salem" },
 ];
-const SALT_LAKE = [
-  "Salt Lake City", "Draper", "Sandy",
+const WASATCH_BACK_CITIES = [
+  { city: "Heber City", slug: "heber" },
+  { city: "Midway",     slug: "midway" },
+  { city: "Park City",  slug: "park-city" },
+];
+const SL_COUNTY_CITIES = [
+  { city: "Draper",       slug: "draper" },
+  { city: "South Jordan", slug: "south-jordan" },
+  { city: "Riverton",     slug: "riverton" },
 ];
 
-// City → slug map (simple kebab-case)
-function toSlug(city: string) {
-  return city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-}
-
-// ─── SERVICE ICONS mapping ────────────────────────────────────────────────────
+// ─── Service description mapping (all active services) ───────────────────────
 const SERVICE_DESCRIPTION_KEYS: Record<string, string> = {
-  "lawn-mowing":        "home.serviceDescriptions.lawnMowing",
-  "house-cleaning":     "home.serviceDescriptions.houseCleaning",
-  "pressure-washing":   "home.serviceDescriptions.pressureWashing",
-  "tv-installation":    "home.serviceDescriptions.tvInstallation",
-  "furniture-assembly": "home.serviceDescriptions.furnitureAssembly",
+  "house-cleaning":           "home.serviceDescriptions.houseCleaning",
+  "lawn-mowing":              "home.serviceDescriptions.lawnMowing",
+  "tv-installation":          "home.serviceDescriptions.tvInstallation",
+  "vacation-rental-turnover": "home.serviceDescriptions.vacationRental",
+  "pressure-washing":         "home.serviceDescriptions.pressureWashing",
+  "furniture-assembly":       "home.serviceDescriptions.furnitureAssembly",
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function HomePage() {
   const { t, i18n } = useTranslation();
-  const { phone } = useSiteSettings();
+  const { phone, activeServiceIds } = useSiteSettings();
   const [services, setServices]   = useState<Service[]>(SERVICES_DATA);
   const [reviews,  setReviews]    = useState<Review[]>([]);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -115,7 +122,7 @@ export default function HomePage() {
   const standardPillars = t("home.standard.pillars", { returnObjects: true }) as { title: string; desc: string }[];
   const plansItems = t("home.plans.items", { returnObjects: true }) as { name: string; freq: string; price: string; features: string[] }[];
   const defaultTestimonials = t("home.testimonials.defaultItems", { returnObjects: true }) as { name: string; location: string; text: string }[];
-  const footerServiceLinks = t("home.footer.serviceLinks", { returnObjects: true }) as string[];
+  // footerServiceLinks no longer used — footer uses dynamic visibleServices
   const statsItems = [
     { value: "Utah County",  label: t("home.stats.happyHomeowners"),  icon: Icons.MapPin },
     { value: "5-Star",       label: t("home.stats.fiveStarReviews"),  icon: Icons.Star },
@@ -129,6 +136,9 @@ export default function HomePage() {
   const heroHeadline = (lang === "es" ? cms?.heroHeadlineEs : cms?.heroHeadlineEn) || t("home.hero.title");
   const heroSubtitle = (lang === "es" ? cms?.heroSubtitleEs : cms?.heroSubtitleEn) || t("home.hero.subtitle");
   const heroCta      = (lang === "es" ? cms?.heroCtaEs      : cms?.heroCtaEn)      || t("home.hero.ctaPrimary");
+
+  // Active services filtered by admin settings — consistent with estimator/booking
+  const visibleServices = services.filter(s => activeServiceIds.includes(s.id));
 
   useEffect(() => {
     fetchServicesFromFirestore()
@@ -254,7 +264,7 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.slice(0, 6).map((service) => {
+              {visibleServices.map((service) => {
                 const svcReviews = reviews.filter((r) => r.serviceId === service.id);
                 const avgRating = svcReviews.length
                   ? svcReviews.reduce((s, r) => s + r.rating, 0) / svcReviews.length
@@ -487,45 +497,47 @@ export default function HomePage() {
             <h2 className="text-xl font-black text-gray-950 mb-8">
               {t("home.directory.title")}
             </h2>
-            <div className="grid md:grid-cols-2 gap-10">
+            <div className="grid md:grid-cols-3 gap-8">
               {/* Utah County */}
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">
-                  {t("home.directory.miamidadeTitle")}
-                </h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">Utah County</h3>
                 <div className="flex flex-wrap gap-2">
-                  {UTAH_COUNTY.map((city) => (
-                    <Link
-                      key={city}
-                      href={`/areas/${toSlug(city)}`}
-                      className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors"
-                    >
+                  {UTAH_COUNTY_CITIES.map(({ city, slug }) => (
+                    <Link key={slug} href={`/us/areas/${slug}`}
+                      className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors">
                       {city}
                     </Link>
                   ))}
                 </div>
               </div>
-
-              {/* Salt Lake County — coming soon */}
+              {/* Wasatch Back */}
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">
-                  {t("home.directory.browardTitle")}
-                </h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">Wasatch Back</h3>
                 <div className="flex flex-wrap gap-2">
-                  {SALT_LAKE.map((city) => (
-                    <span key={city} className="text-sm text-gray-400 cursor-default">
+                  {WASATCH_BACK_CITIES.map(({ city, slug }) => (
+                    <Link key={slug} href={`/us/areas/${slug}`}
+                      className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors">
                       {city}
-                    </span>
+                    </Link>
                   ))}
-                  <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">
-                    Coming soon
-                  </span>
+                </div>
+              </div>
+              {/* Salt Lake County */}
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-600 mb-4">Salt Lake County</h3>
+                <div className="flex flex-wrap gap-2">
+                  {SL_COUNTY_CITIES.map(({ city, slug }) => (
+                    <Link key={slug} href={`/us/areas/${slug}`}
+                      className="text-sm text-gray-600 hover:text-emerald-600 hover:underline transition-colors">
+                      {city}
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
 
             <div className="mt-6">
-              <Link href="/areas"
+              <Link href="/us/areas"
                 className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
               >
                 <Icons.MapPin className="w-4 h-4" />
@@ -629,62 +641,59 @@ export default function HomePage() {
               <p className="text-xs text-gray-600">© {new Date().getFullYear()} Grenbee. {t("home.footer.rights")}</p>
             </div>
 
-            {/* Services */}
+            {/* Services — dynamic from admin */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">{t("home.footer.servicesTitle")}</h4>
               <ul className="space-y-2 text-sm">
-                {footerServiceLinks.map((s) => (
-                  <li key={s}>
+                {visibleServices.map((svc) => (
+                  <li key={svc.id}>
                     <button
-                      onClick={() => scrollToEstimator()}
+                      onClick={() => scrollToEstimator(svc.id)}
                       className="hover:text-emerald-400 transition-colors cursor-pointer text-left"
                     >
-                      {s}
+                      {svc.name}
                     </button>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Areas */}
+            {/* Areas — all active cities */}
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
-                {t("home.footer.miamidadeTitle")}
-              </h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Utah County</h4>
               <ul className="space-y-2 text-sm">
-                {UTAH_COUNTY.map((c) => (
-                  <li key={c}>
-                    <Link href={`/areas/${toSlug(c)}`} className="hover:text-emerald-400 transition-colors">
-                      {c}
-                    </Link>
+                {UTAH_COUNTY_CITIES.map(({ city, slug }) => (
+                  <li key={slug}>
+                    <Link href={`/us/areas/${slug}`} className="hover:text-emerald-400 transition-colors">{city}</Link>
                   </li>
                 ))}
               </ul>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">{t("home.footer.browardTitle")}</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">Wasatch Back</h4>
               <ul className="space-y-2 text-sm">
-                {SALT_LAKE.map((c) => (
-                  <li key={c} className="text-gray-500">
-                    {c} <span className="text-[10px] text-amber-500 font-semibold">soon</span>
+                {WASATCH_BACK_CITIES.map(({ city, slug }) => (
+                  <li key={slug}>
+                    <Link href={`/us/areas/${slug}`} className="hover:text-emerald-400 transition-colors">{city}</Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Company */}
+            {/* Company — with correct /us/ prefix */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">{t("home.footer.companyTitle")}</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/plans"   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
-                <li><Link href="/areas"   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
-                <li><Link href="/faq"     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
-                <li><Link href="/contact" className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
+                <li><Link href="/us/plans"   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
+                <li><Link href="/us/areas"   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
+                <li><Link href="/us/hosts"   className="hover:text-emerald-400 transition-colors">For Hosts</Link></li>
+                <li><Link href="/us/faq"     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
+                <li><Link href="/us/contact" className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
               </ul>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">{t("home.footer.legalTitle")}</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/terms"          className="hover:text-emerald-400 transition-colors">{t("home.footer.termsOfService")}</Link></li>
-                <li><Link href="/privacy"        className="hover:text-emerald-400 transition-colors">{t("home.footer.privacyPolicy")}</Link></li>
-                <li><Link href="/cancellation"   className="hover:text-emerald-400 transition-colors">{t("home.footer.cancellationPolicy")}</Link></li>
-                <li><Link href="/guarantee"      className="hover:text-emerald-400 transition-colors">{t("home.footer.satisfactionGuarantee")}</Link></li>
+                <li><Link href="/us/terms"        className="hover:text-emerald-400 transition-colors">{t("home.footer.termsOfService")}</Link></li>
+                <li><Link href="/us/privacy"      className="hover:text-emerald-400 transition-colors">{t("home.footer.privacyPolicy")}</Link></li>
+                <li><Link href="/us/cancellation" className="hover:text-emerald-400 transition-colors">{t("home.footer.cancellationPolicy")}</Link></li>
+                <li><Link href="/us/guarantee"    className="hover:text-emerald-400 transition-colors">{t("home.footer.satisfactionGuarantee")}</Link></li>
               </ul>
             </div>
           </div>

@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 import { getAllAreaSlugs } from "@/lib/areaContent.server";
 
 const BASE = "https://grenbee.com";
-const SERVICE_SLUGS = ["house-cleaning", "lawn-mowing"];
+// Service slugs that have city+service landing pages (local services only)
+const SERVICE_SLUGS = ["house-cleaning", "lawn-mowing", "tv-installation"];
 
 // Top-level marketing routes worth indexing.
 const STATIC_PATHS = ["", "/areas", "/hosts", "/plans", "/faq", "/contact"];

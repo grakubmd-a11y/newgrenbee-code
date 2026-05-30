@@ -159,10 +159,11 @@
       "getQuote": "Get a quote"
     },
     "serviceDescriptions": {
-      "lawnMowing": "Precision lawn cuts, edging, and cleanup to keep your yard looking its best all season.",
       "houseCleaning": "Professional deep cleaning using eco-friendly products for a spotless, fresh home.",
-      "pressureWashing": "High-pressure washing for driveways, patios, and exterior surfaces — like new again.",
+      "lawnMowing": "Precision lawn cuts, edging, and cleanup to keep your yard looking its best all season.",
       "tvInstallation": "Safe, level TV mounting with cable management on any wall type.",
+      "vacationRental": "Full-service turnover cleaning for Airbnb & VRBO hosts — ready for the next guest.",
+      "pressureWashing": "High-pressure washing for driveways, patios, and exterior surfaces — like new again.",
       "furnitureAssembly": "Fast, accurate assembly of any flat-pack furniture — we handle the instructions."
     },
     "coverage": {

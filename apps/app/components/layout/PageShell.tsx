@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "next/navigation";
 import SiteNavbar from "./SiteNavbar";
 import { useSiteSettings } from "@grenbee/firebase/contexts";
+import { SERVICES_DATA } from "@grenbee/config";
 
 interface SEOMeta {
   title: string;
@@ -22,14 +23,15 @@ interface PageShellProps {
 
 export default function PageShell({ children, seo }: PageShellProps) {
   const { t } = useTranslation();
-  const { phone, email } = useSiteSettings();
+  const { phone, email, activeServiceIds } = useSiteSettings();
   const params = useParams();
   const base = `/${(params?.country as string) ?? "us"}`;
   const canonicalUrl =
     seo?.canonical ??
     `https://grenbee.com${typeof window !== "undefined" ? window.location.pathname : ""}`;
 
-  const footerServiceLinks = t("home.footer.serviceLinks", { returnObjects: true }) as string[];
+  // Dynamic service list from admin-controlled activeServiceIds
+  const activeServices = SERVICES_DATA.filter(s => activeServiceIds.includes(s.id));
 
   return (
     <>
@@ -81,16 +83,16 @@ export default function PageShell({ children, seo }: PageShellProps) {
               </p>
             </div>
 
-            {/* Services */}
+            {/* Services — dynamic from admin */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">
                 {t("home.footer.servicesTitle")}
               </h4>
               <ul className="space-y-2 text-sm">
-                {footerServiceLinks.map((label) => (
-                  <li key={label}>
-                    <Link href="/#services" className="hover:text-emerald-400 transition-colors">
-                      {label}
+                {activeServices.map((svc) => (
+                  <li key={svc.id}>
+                    <Link href={`/book?service=${svc.id}`} className="hover:text-emerald-400 transition-colors">
+                      {svc.name}
                     </Link>
                   </li>
                 ))}

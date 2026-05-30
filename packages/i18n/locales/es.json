@@ -159,10 +159,11 @@
       "getQuote": "Obtener cotización"
     },
     "serviceDescriptions": {
-      "lawnMowing": "Cortes de césped precisos, perfilado y limpieza para que tu jardín luzca espectacular toda la temporada.",
       "houseCleaning": "Limpieza profunda profesional con productos ecológicos para un hogar impecable y fresco.",
-      "pressureWashing": "Lavado a presión para entradas, patios y superficies exteriores — como nuevo.",
+      "lawnMowing": "Cortes de césped precisos, perfilado y limpieza para que tu jardín luzca espectacular toda la temporada.",
       "tvInstallation": "Montaje seguro y nivelado de televisores con organización de cables en cualquier tipo de pared.",
+      "vacationRental": "Servicio completo de limpieza entre huéspedes para anfitriones de Airbnb y VRBO.",
+      "pressureWashing": "Lavado a presión para entradas, patios y superficies exteriores — como nuevo.",
       "furnitureAssembly": "Ensamblaje rápido y preciso de cualquier mueble — nosotros nos encargamos de las instrucciones."
     },
     "coverage": {
