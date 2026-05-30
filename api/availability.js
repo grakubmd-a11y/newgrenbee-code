@@ -168,20 +168,30 @@ function getFirestore() {
  * where slots maps each KNOWN_SLOT to { available, slotsRemaining }.
  */
 async function computeDayAvailability(db, date) {
-  // ── 1. Real staff capacity ─────────────────────────────────────────────────
-  const staffSnap = await db
-    .collection("staff")
-    .where("active", "==", true)
-    .get();
+  const nowIso = new Date().toISOString();
+
+  // ── 1. Real staff capacity + bookings + active slot holds (parallel) ───────
+  const [staffSnap, bookingSnap, holdSnap] = await Promise.all([
+    db.collection("staff").where("active", "==", true).get(),
+    db.collection("bookings")
+      .where("bookingDate", "==", date)
+      .where("status", "in", ACTIVE_STATUSES)
+      .get(),
+    // Count non-expired holds for this date — holds act as soft reservations
+    db.collection("slotHolds")
+      .where("date",      "==", date)
+      .where("expiresAt", ">",  nowIso)
+      .get().catch(() => ({ docs: [] })), // fail-open if collection missing
+  ]);
 
   const staffCapacity = staffSnap.size > 0 ? staffSnap.size : FALLBACK_CAPACITY;
 
-  // ── 2. Active bookings for this date ───────────────────────────────────────
-  const bookingSnap = await db
-    .collection("bookings")
-    .where("bookingDate", "==", date)
-    .where("status", "in", ACTIVE_STATUSES)
-    .get();
+  // ── 2. Tally holds per time slot (each hold consumes 1 staff unit) ─────────
+  const holdsBySlot = {};
+  for (const doc of holdSnap.docs) {
+    const { timeSlot } = doc.data();
+    if (timeSlot) holdsBySlot[timeSlot] = (holdsBySlot[timeSlot] || 0) + 1;
+  }
 
   // ── 3. Build per-staff block windows and per-slot unassigned counts ─────────
   //
@@ -235,8 +245,8 @@ async function computeDayAvailability(db, date) {
       if (blocked) staffBlocked++;
     }
 
-    // Add unassigned bookings for this exact slot
-    const unassignedUnits = unassigned[slot] || 0;
+    // Add unassigned bookings + active slot holds for this exact slot
+    const unassignedUnits = (unassigned[slot] || 0) + (holdsBySlot[slot] || 0);
 
     // Total consumed (capped at staffCapacity to avoid negative remaining)
     const consumed      = Math.min(staffBlocked + unassignedUnits, staffCapacity);

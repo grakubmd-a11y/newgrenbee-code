@@ -1020,6 +1020,16 @@
       "cancel": "Free cancellation up to 24 h before service",
       "hold": "Card is authorized now — charged only after job is complete",
       "insured": "All technicians are background-checked and insured"
+    },
+    "manualReview": {
+      "badge": "Requires Team Review",
+      "title": "We'll confirm your booking personally",
+      "body": "This service requires our team to review details before we dispatch. We'll contact you within 2 hours to confirm availability, answer questions, and lock in your time slot.",
+      "step3Sub": "One more step — our team will reach out to confirm.",
+      "submitBtn": "Submit Request",
+      "submitting": "Submitting…",
+      "successTitle": "Request received!",
+      "successBody": "Our team will contact you at {email} within 2 hours to confirm your booking."
     }
   },
   "bookings": {

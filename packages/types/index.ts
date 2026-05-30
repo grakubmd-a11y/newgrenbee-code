@@ -34,6 +34,12 @@ export interface Service {
   popularUnitValue: number;
   /** false = hidden from estimator and booking; defaults to true if omitted */
   active?: boolean;
+  /**
+   * When true the booking wizard skips Stripe and shows a "manual review"
+   * screen instead. The team contacts the customer to confirm before charging.
+   * Useful for large commercial jobs, vacation-rental portfolios, etc.
+   */
+  requiresManualReview?: boolean;
 }
 
 export type BookingStatus = 'scheduled' | 'dispatched' | 'in-progress' | 'completed' | 'cancelled' | 'needs_assignment';

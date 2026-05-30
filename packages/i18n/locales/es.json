@@ -1020,6 +1020,16 @@
       "cancel": "Cancelación gratuita hasta 24 h antes del servicio",
       "hold": "Se autoriza el cargo ahora — se cobra solo después de completar el trabajo",
       "insured": "Todos los técnicos tienen verificación de antecedentes y seguro"
+    },
+    "manualReview": {
+      "badge": "Requiere Revisión del Equipo",
+      "title": "Confirmamos tu reserva personalmente",
+      "body": "Este servicio requiere que nuestro equipo revise los detalles antes de despachar. Te contactaremos en menos de 2 horas para confirmar disponibilidad y bloquear tu horario.",
+      "step3Sub": "Un paso más — nuestro equipo se comunicará contigo para confirmar.",
+      "submitBtn": "Enviar Solicitud",
+      "submitting": "Enviando…",
+      "successTitle": "¡Solicitud recibida!",
+      "successBody": "Nuestro equipo te contactará a {email} en menos de 2 horas para confirmar tu reserva."
     }
   },
   "bookings": {

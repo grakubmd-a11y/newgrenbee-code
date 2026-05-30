@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { trackFunnelEvent } from "@/lib/analytics";
 import {
   Calendar, Clock, User, MapPin, CreditCard, ArrowLeft, ArrowRight,
   CheckCircle2, AlertTriangle, Loader, ShieldCheck, MapPinOff, HelpCircle,
@@ -425,6 +426,86 @@ function DetailRow({ icon, label, value, valueClass = "" }: {
   );
 }
 
+// ─── Manual Review Panel ──────────────────────────────────────────────────────
+
+function ManualReviewPanel({
+  email, fullName, service, bookingParams, selectedDate, selectedSlot, onSubmitted,
+}: {
+  email: string; fullName: string; phone: string; address: string;
+  service: import("@grenbee/types").Service;
+  bookingParams: WizardBookingParams;
+  selectedDate: string; selectedSlot: string;
+  onSubmitted: () => void;
+}) {
+  const { t } = useTranslation();
+  const [submitted,   setSubmitted]   = useState(false);
+  const [submitting,  setSubmitting]  = useState(false);
+
+  async function handleSubmit() {
+    setSubmitting(true);
+    // Small delay to feel like something is happening
+    await new Promise(r => setTimeout(r, 800));
+    onSubmitted();
+    setSubmitted(true);
+    setSubmitting(false);
+  }
+
+  if (submitted) {
+    return (
+      <div className="rounded-2xl bg-brand/5 border border-brand/20 p-6 text-center space-y-3 animate-in fade-in duration-300">
+        <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center mx-auto">
+          <CheckCircle2 size={24} className="text-brand" />
+        </div>
+        <p className="font-black text-gray-900">{t("wizard.manualReview.successTitle")}</p>
+        <p className="text-sm text-gray-500">
+          {t("wizard.manualReview.successBody", { email })}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Badge */}
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black uppercase tracking-wider">
+          <AlertTriangle size={11} /> {t("wizard.manualReview.badge")}
+        </span>
+      </div>
+
+      {/* Explanation */}
+      <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-4 space-y-2">
+        <p className="text-sm font-bold text-gray-900">{t("wizard.manualReview.title")}</p>
+        <p className="text-xs text-gray-600 leading-relaxed">{t("wizard.manualReview.body")}</p>
+      </div>
+
+      {/* Quick summary */}
+      <div className="bg-gray-50 rounded-xl p-3 text-xs space-y-1.5 text-gray-600">
+        <div className="flex justify-between"><span className="text-gray-400">Service</span><span className="font-semibold">{service.name}</span></div>
+        <div className="flex justify-between"><span className="text-gray-400">Date</span><span className="font-semibold">{selectedDate}</span></div>
+        <div className="flex justify-between"><span className="text-gray-400">Time</span><span className="font-semibold">{formatTimeSlot(selectedSlot)}</span></div>
+        <div className="flex justify-between"><span className="text-gray-400">Contact</span><span className="font-semibold truncate ml-2">{fullName} · {email}</span></div>
+        <div className="flex justify-between font-bold text-gray-900 border-t border-gray-100 pt-1.5 mt-1.5">
+          <span>Estimated Total</span>
+          <span className="text-brand">${bookingParams.totalCost.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-brand hover:bg-brand-hover disabled:opacity-60 text-white text-sm font-bold shadow-md shadow-brand/10 transition-all cursor-pointer"
+      >
+        {submitting
+          ? <><Loader size={14} className="animate-spin" /> {t("wizard.manualReview.submitting")}</>
+          : t("wizard.manualReview.submitBtn")
+        }
+      </button>
+    </div>
+  );
+}
+
 // ─── Main Wizard ──────────────────────────────────────────────────────────────
 
 export default function BookingWizard({
@@ -501,6 +582,33 @@ export default function BookingWizard({
   // ── Step 4: Confirmation ──
   const [confirmedDraft,     setConfirmedDraft]     = useState<BookingDraft | null>(null);
   const [confirmedBookingId, setConfirmedBookingId] = useState<string | undefined>();
+
+  // ── Slot hold ── 20-minute soft reservation placed when slot is confirmed ──
+  const [holdId, setHoldId] = useState<string | null>(null);
+  const holdIdRef = useRef<string | null>(null);
+  holdIdRef.current = holdId;
+
+  // Release hold on wizard unmount (user navigated away without booking)
+  useEffect(() => {
+    return () => {
+      const id = holdIdRef.current;
+      if (id) {
+        fetch("/api/release-hold", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ holdId: id }),
+          keepalive: true, // fires even after page unload
+        }).catch(() => {});
+      }
+    };
+  }, []);
+
+  // Analytics: funnel start + step 1 on mount
+  useEffect(() => {
+    trackFunnelEvent("booking_funnel_start", { serviceId: bookingParams.serviceId });
+    trackFunnelEvent("booking_step_schedule", { serviceId: bookingParams.serviceId, step: 1 });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load Maps settings + same-day fee
   useEffect(() => {
@@ -666,17 +774,32 @@ export default function BookingWizard({
 
   async function goNext() {
     if (!validate()) return;
+
     if (step === 1) {
       const cached = slotsMap[selectedSlot];
       if (cached && !cached.available) { setAvailabilityStatus("full"); return; }
       const ok = await checkAvailability();
       if (!ok) return;
+
+      // ── Place a 20-min slot hold so this slot appears busy to other users ──
+      fetch("/api/hold-slot", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: selectedDate, timeSlot: selectedSlot, serviceId: bookingParams.serviceId }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d.ok && d.holdId) setHoldId(d.holdId); })
+        .catch(() => {});
+
+      trackFunnelEvent("booking_step_details", { serviceId: bookingParams.serviceId, step: 2 });
     }
+
     if (step === 2 && coverageStatus === "not-covered" && !coverageConfirmed) {
       setShowCoveragePrompt(true);
       return;
     }
-    // Capture lead on move to payment
+
+    // ── Capture lead (fire-and-forget) when moving to payment ────────────────
     if (step === 2) {
       fetch("/api/capture-lead", {
         method:  "POST",
@@ -687,13 +810,29 @@ export default function BookingWizard({
           address, estimatedValue: bookingParams.totalCost,
         }),
       }).catch(() => {});
+
+      trackFunnelEvent("booking_step_payment", { serviceId: bookingParams.serviceId, step: 3 });
     }
+
     setStep((s) => (s + 1) as WizardStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function goBack() {
-    if (step === 1) { onBack(); return; }
+    if (step === 1) {
+      trackFunnelEvent("booking_abandon", { serviceId: bookingParams.serviceId, step: 1 });
+      onBack();
+      return;
+    }
+    // Release slot hold if going back to step 1 (user may change date/time)
+    if (step === 2 && holdId) {
+      fetch("/api/release-hold", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holdId }),
+      }).catch(() => {});
+      setHoldId(null);
+    }
     setStep((s) => (s - 1) as WizardStep);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -921,7 +1060,7 @@ export default function BookingWizard({
               {/* ── STEP 3: REVIEW & PAY ── */}
               {step === 3 && (
                 <>
-                  {/* Inline recap */}
+                  {/* Inline recap — always visible */}
                   <div className="bg-gray-50 rounded-xl p-4 grid sm:grid-cols-2 gap-2 text-xs">
                     {[
                       { l: t("wizard.recap.service"),  v: service.name },
@@ -944,60 +1083,88 @@ export default function BookingWizard({
                     </div>
                   )}
 
-                  <div className="rounded-xl border border-brand/20 bg-brand/5 p-3.5 flex gap-2.5 text-xs text-brand leading-relaxed">
-                    <ShieldCheck size={15} className="shrink-0 mt-0.5" />
-                    <span>{t("wizard.payment.holdNote")} <strong>{t("wizard.payment.holdNoteStrong")}</strong>.</span>
-                  </div>
-
-                  {/* Terms */}
-                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 space-y-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t("wizard.terms.sectionTitle")}</p>
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input type="checkbox" checked={termsAccepted}
-                        onChange={(e) => { setTermsAccepted(e.target.checked); setTermsError(""); }}
-                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
-                      <span className="text-xs text-gray-700 leading-relaxed">
-                        {t("wizard.terms.agree")}{" "}
-                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
-                          {t("wizard.terms.termsLink")} <ExternalLink size={10} />
-                        </a>{" "}{t("wizard.terms.and")}{" "}
-                        <a href="/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
-                          {t("wizard.terms.cancellationLink")} <ExternalLink size={10} />
-                        </a>. <span className="text-rose-500 font-bold">*</span>
-                      </span>
-                    </label>
-                    {needsRecurringConsent && (
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input type="checkbox" checked={recurringConsent}
-                          onChange={(e) => { setRecurringConsent(e.target.checked); setTermsError(""); }}
-                          className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
-                        <span className="text-xs text-gray-700 leading-relaxed">
-                          I authorize recurring <strong className="capitalize">{bookingParams.frequency}</strong> charges until I cancel.{" "}
-                          <span className="text-rose-500 font-bold">*</span>
-                        </span>
-                      </label>
-                    )}
-                    {termsError && (
-                      <div className="flex items-center gap-2 text-xs text-rose-600 font-semibold">
-                        <AlertTriangle size={13} /> {termsError}
+                  {/* ── MANUAL REVIEW — no Stripe, team will contact ── */}
+                  {service.requiresManualReview ? (
+                    <ManualReviewPanel
+                      email={email}
+                      fullName={fullName}
+                      phone={phone}
+                      address={address}
+                      service={service}
+                      bookingParams={bookingParams}
+                      selectedDate={selectedDate}
+                      selectedSlot={selectedSlot}
+                      onSubmitted={() => {
+                        fetch("/api/capture-lead", {
+                          method:  "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            email, customerName: fullName, phone,
+                            serviceId: bookingParams.serviceId, serviceName: service.name,
+                            address, estimatedValue: bookingParams.totalCost,
+                            source: "manual_review",
+                          }),
+                        }).catch(() => {});
+                        trackFunnelEvent("booking_complete", { serviceId: bookingParams.serviceId, step: 4 });
+                      }}
+                    />
+                  ) : (
+                    <>
+                      {/* Hold note */}
+                      <div className="rounded-xl border border-brand/20 bg-brand/5 p-3.5 flex gap-2.5 text-xs text-brand leading-relaxed">
+                        <ShieldCheck size={15} className="shrink-0 mt-0.5" />
+                        <span>{t("wizard.payment.holdNote")} <strong>{t("wizard.payment.holdNoteStrong")}</strong>.</span>
                       </div>
-                    )}
-                  </div>
 
-                  {/* ── Trust badges — concentrated before the pay button ── */}
-                  <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 space-y-2.5">
-                    {[
-                      { icon: <ShieldCheck size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.secure") },
-                      { icon: <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.cancel") },
-                      { icon: <CreditCard size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.hold") },
-                      { icon: <Users size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.insured") },
-                    ].map(({ icon, text }, i) => (
-                      <div key={i} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
-                        {icon}
-                        <span>{text}</span>
+                      {/* Terms */}
+                      <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 space-y-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t("wizard.terms.sectionTitle")}</p>
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input type="checkbox" checked={termsAccepted}
+                            onChange={(e) => { setTermsAccepted(e.target.checked); setTermsError(""); }}
+                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
+                          <span className="text-xs text-gray-700 leading-relaxed">
+                            {t("wizard.terms.agree")}{" "}
+                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                              {t("wizard.terms.termsLink")} <ExternalLink size={10} />
+                            </a>{" "}{t("wizard.terms.and")}{" "}
+                            <a href="/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                              {t("wizard.terms.cancellationLink")} <ExternalLink size={10} />
+                            </a>. <span className="text-rose-500 font-bold">*</span>
+                          </span>
+                        </label>
+                        {needsRecurringConsent && (
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" checked={recurringConsent}
+                              onChange={(e) => { setRecurringConsent(e.target.checked); setTermsError(""); }}
+                              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
+                            <span className="text-xs text-gray-700 leading-relaxed">
+                              I authorize recurring <strong className="capitalize">{bookingParams.frequency}</strong> charges until I cancel.{" "}
+                              <span className="text-rose-500 font-bold">*</span>
+                            </span>
+                          </label>
+                        )}
+                        {termsError && (
+                          <div className="flex items-center gap-2 text-xs text-rose-600 font-semibold">
+                            <AlertTriangle size={13} /> {termsError}
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
+
+                      {/* ── Trust badges — concentrated before the pay button ── */}
+                      <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 space-y-2.5">
+                        {[
+                          { icon: <ShieldCheck size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.secure") },
+                          { icon: <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.cancel") },
+                          { icon: <CreditCard size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.hold") },
+                          { icon: <Users size={13} className="text-emerald-500 shrink-0" />, text: t("wizard.trust.insured") },
+                        ].map(({ icon, text }, i) => (
+                          <div key={i} className="flex items-center gap-2.5 text-xs text-gray-600 font-medium">
+                            {icon}
+                            <span>{text}</span>
+                          </div>
+                        ))}
+                      </div>
 
                   <StripePaymentPanel
                     bookingParams={{
@@ -1027,17 +1194,55 @@ export default function BookingWizard({
                       // Extract the pre-generated booking ID set by StripePaymentPanel
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       const ext = draft as any;
-                      setConfirmedBookingId(ext._bookingId);
+                      const completedBookingId: string = ext._bookingId || "";
+
+                      setConfirmedBookingId(completedBookingId);
                       setConfirmedDraft(draft);
                       setStep(4);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                       onSubmitBooking(draft); // triggers Firestore save, emails, etc.
+
+                      // Analytics: booking complete
+                      trackFunnelEvent("booking_complete", {
+                        serviceId:   bookingParams.serviceId,
+                        serviceName: service.name,
+                        totalCost:   bookingParams.totalCost,
+                        step:        4,
+                      });
+
+                      // Release slot hold (real booking now owns the slot)
+                      if (holdId) {
+                        fetch("/api/release-hold", {
+                          method:  "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ holdId }),
+                          keepalive: true,
+                        }).catch(() => {});
+                        setHoldId(null);
+                      }
+
+                      // Mark the abandoned-checkout lead as recovered
+                      if (email && completedBookingId) {
+                        fetch("/api/capture-lead", {
+                          method:  "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            email,
+                            customerName: fullName,
+                            _recovered:   true,
+                            _bookingId:   completedBookingId,
+                          }),
+                          keepalive: true,
+                        }).catch(() => {});
+                      }
                     }}
                     buildBookingDraft={({ paymentIntentId, paymentIntentStatus, paymentStatus }) =>
                       buildDraft({ paymentMethod: "card", paymentStatus, stripePaymentIntentId: paymentIntentId, stripePaymentStatus: paymentIntentStatus })
                     }
                     isProcessing={isProcessing}
                   />
+                    </> /* end !requiresManualReview else branch */
+                  )}
                 </>
               )}
             </div>
