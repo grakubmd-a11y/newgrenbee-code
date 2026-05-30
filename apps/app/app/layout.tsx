@@ -2,51 +2,65 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "@/index.css";
 import Providers from "./providers";
+import { getAdminDb } from "@/lib/firebaseAdmin";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Grenbee — Home Cleaning & Home Services in Utah",
-    template: "%s | Grenbee",
-  },
-  description:
-    "Professional home cleaning, lawn mowing, TV installation and more in Utah County. Book vetted, insured technicians online in minutes. Transparent pricing.",
-  metadataBase: new URL("https://grenbee.com"),
-  openGraph: {
-    type:      "website",
-    siteName:  "Grenbee",
-    title:     "Grenbee — Home Services in Utah",
-    description:
-      "Book professional home cleaning, lawn care, TV installation and more. Vetted pros, instant pricing, same-week availability.",
-    images: [
-      {
-        url:    "/og-image.jpg",   // place a 1200×630 image at apps/app/public/og-image.jpg
-        width:  1200,
-        height: 630,
-        alt:    "Grenbee — Professional Home Services in Utah",
-      },
-    ],
-  },
-  twitter: {
-    card:        "summary_large_image",
-    title:       "Grenbee — Home Services in Utah",
-    description: "Book vetted, insured home service pros online. Instant pricing, same-week availability.",
-    images:      ["/og-image.jpg"],
-  },
-  keywords: [
-    "home cleaning Utah",
-    "house cleaning Utah County",
-    "lawn mowing Utah",
-    "TV installation Utah",
-    "home services Utah",
-    "Grenbee",
-  ],
-};
+// Revalidate every hour so og:image / tagline changes in admin are reflected.
+export const revalidate = 3600;
+
 
 // GA4 Measurement ID — set NEXT_PUBLIC_GA_MEASUREMENT_ID in Vercel env vars.
 // The script is only injected when the var is present so local dev stays clean.
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/** Fetch og:image URL and tagline from Firestore settings (server-side, cached 1h). */
+async function getSiteSettings(): Promise<{ ogImageUrl?: string; siteTagline?: string }> {
+  try {
+    const db = getAdminDb();
+    if (!db) return {};
+    const snap = await db.collection("settings").doc("business").get();
+    const data = snap.data() ?? {};
+    return {
+      ogImageUrl:  data.ogImageUrl  ?? undefined,
+      siteTagline: data.siteTagline ?? undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { ogImageUrl, siteTagline } = await getSiteSettings();
+
+  const description = siteTagline ??
+    "Professional home cleaning, lawn mowing, TV installation and more in Utah County. Book vetted, insured technicians online in minutes. Transparent pricing.";
+
+  const ogImage = ogImageUrl ?? "/og-image.jpg";
+
+  return {
+    title: {
+      default:  "Grenbee — Home Cleaning & Home Services in Utah",
+      template: "%s | Grenbee",
+    },
+    description,
+    metadataBase: new URL("https://grenbee.com"),
+    openGraph: {
+      type:        "website",
+      siteName:    "Grenbee",
+      title:       "Grenbee — Home Services in Utah",
+      description,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: "Grenbee — Professional Home Services in Utah" }],
+    },
+    twitter: {
+      card:        "summary_large_image",
+      title:       "Grenbee — Home Services in Utah",
+      description,
+      images:      [ogImage],
+    },
+    keywords: ["home cleaning Utah", "house cleaning Utah County", "lawn mowing Utah", "TV installation Utah", "home services Utah", "Grenbee"],
+  };
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>

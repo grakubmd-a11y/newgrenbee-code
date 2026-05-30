@@ -174,6 +174,10 @@ export interface BusinessSettings {
   sameDayFee?: number;
   /** Service IDs currently enabled on the public estimator. If absent, falls back to SERVICES_DATA active flags. */
   activeServiceIds?: string[];
+  /** URL of the Open Graph / social sharing image (1200×630). Set from Media Library in admin. */
+  ogImageUrl?: string;
+  /** Short site tagline shown in meta description and social cards. */
+  siteTagline?: string;
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────────

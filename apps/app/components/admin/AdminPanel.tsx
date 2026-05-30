@@ -4035,6 +4035,39 @@ export default function AdminPanel({
               </p>
             </div>
 
+            {/* ── Social / OG Image ── */}
+            <div className="space-y-2">
+              <span className="font-extrabold text-stone-900 block text-xs">Imagen para Redes Sociales (og:image)</span>
+              <p className="text-[10px] text-gray-400 leading-normal">
+                Se muestra cuando alguien comparte el sitio en WhatsApp, Twitter, iMessage, etc. Ideal: 1200 × 630 px.
+                Sube la imagen en la pestaña <strong>Media</strong> y pega la URL aquí.
+              </p>
+              <div className="flex gap-2 items-start">
+                <input
+                  type="url"
+                  placeholder="https://firebasestorage.googleapis.com/…"
+                  value={businessSettings.ogImageUrl || ""}
+                  onChange={(e) => setBusinessSettings({ ...businessSettings, ogImageUrl: e.target.value.trim() || undefined })}
+                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono"
+                />
+                {businessSettings.ogImageUrl && (
+                  <img
+                    src={businessSettings.ogImageUrl}
+                    alt="og preview"
+                    className="h-14 rounded-lg border border-gray-200 object-cover shrink-0"
+                  />
+                )}
+              </div>
+              <span className="font-extrabold text-stone-900 block text-xs mt-3">Tagline / Meta Descripción del Sitio</span>
+              <textarea
+                rows={2}
+                placeholder="Professional home cleaning and lawn care in Utah. Book online in minutes."
+                value={businessSettings.siteTagline || ""}
+                onChange={(e) => setBusinessSettings({ ...businessSettings, siteTagline: e.target.value || undefined })}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs resize-none"
+              />
+            </div>
+
             <div className="bg-amber-50/30 border border-amber-900/10 p-4 rounded-xl flex items-center justify-between">
               <div className="space-y-0.5 text-left max-w-md">
                 <span className="font-extrabold text-stone-900 block text-xs">Activar Motor de Cotizaciones y Reservas</span>
