@@ -31,12 +31,15 @@ export default function ServiceCard({ service: rawService, onBookClick, avgRatin
   return (
     <div
       id={`service-card-${service.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-[2.5rem] border border-slate-100/90 bg-white p-4 pb-6 shadow-[0_10px_45px_rgba(0,0,0,0.012)] transition-all duration-300 hover:border-brand/35 hover:shadow-[0_24px_60px_-15px_rgba(14,173,107,0.15)] hover:-translate-y-2"
+      className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-white p-4 pb-6 ring-1 ring-slate-900/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:ring-brand/25 hover:shadow-[0_24px_60px_-12px_rgba(14,173,107,0.18)] hover:-translate-y-2"
     >
+      {/* Top accent gradient stripe */}
+      <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-brand/60 via-emerald-400/80 to-brand/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
       <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-[0.02] transition-opacity duration-500 pointer-events-none" />
 
-      {/* Photo — negative margins bleed to card edges; card's overflow-hidden clips */}
-      <div className="relative h-48 -mx-4 -mt-4 overflow-hidden bg-slate-50">
+      {/* Photo — slightly wider than the card padding (-mx-1) for a subtle bleed effect */}
+      <div className="relative h-48 -mx-1 -mt-1 overflow-hidden rounded-[2rem] bg-slate-50 shadow-inner">
         <img
           src={cardImage}
           alt={service.name}
