@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import dynamic from "next/dynamic";
 import "@/index.css";
 import Providers from "./providers";
 import { getAdminDb } from "@/lib/firebaseAdmin";
-
-const ChatWidget = dynamic(() => import("@/components/chat/ChatWidget"), { ssr: false });
+import ChatWidgetLoader from "@/components/chat/ChatWidgetLoader";
 
 // Revalidate every hour so og:image / tagline changes in admin are reflected.
 export const revalidate = 3600;
@@ -93,7 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </>
         )}
         <Providers>{children}</Providers>
-        <ChatWidget />
+        <ChatWidgetLoader />
       </body>
     </html>
   );
