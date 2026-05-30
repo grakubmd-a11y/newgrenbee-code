@@ -187,12 +187,14 @@ export default function HomePage() {
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
+              referrerPolicy="no-referrer"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
-          ) : (
-            <div className="absolute inset-0 bg-gray-900" />
-          )}
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gray-950/65" />
+          ) : null}
+          {/* Fallback gradient — shows when no photo or photo fails to load */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-emerald-950/40 to-gray-950" />
+          {/* Dark overlay — lighter when photo is set */}
+          <div className={`absolute inset-0 ${cms?.heroPhotoUrl ? "bg-gray-950/55" : "bg-gray-950/20"}`} />
 
           <div className="relative z-10 w-full px-6 sm:px-10 lg:px-16 py-10 md:py-14">
             <div className="max-w-2xl">
