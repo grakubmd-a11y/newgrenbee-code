@@ -303,7 +303,7 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 mb-4">
                     {t("home.coverage.miamidade.description")}
                   </p>
-                  <Link href="/areas"
+                  <Link href="/us/areas"
                     className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700"
                   >
                     {t("home.coverage.miamidade.link")} <Icons.ArrowRight className="w-3.5 h-3.5" />
@@ -319,7 +319,7 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 mb-4">
                     {t("home.coverage.broward.description")}
                   </p>
-                  <Link href="/areas"
+                  <Link href="/us/areas"
                     className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-600 hover:text-emerald-700"
                   >
                     {t("home.coverage.broward.link")} <Icons.ArrowRight className="w-3.5 h-3.5" />
