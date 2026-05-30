@@ -263,13 +263,44 @@ function LineItem({ label, value, valueClass = "text-white" }: { label: string; 
 }
 
 /** Mobile floating price bar */
-function MobileTotal({ total, isSameDay, isTwoTech, sameDayFee }: { total: number; isSameDay: boolean; isTwoTech: boolean; sameDayFee: number }) {
+function MobileTotal({
+  total, isSameDay, isTwoTech, sameDayFee, step, onContinue, isLoading,
+}: {
+  total: number; isSameDay: boolean; isTwoTech: boolean; sameDayFee: number;
+  step: WizardStep; onContinue?: () => void; isLoading?: boolean;
+}) {
   const { t } = useTranslation();
   const grand = total + (isSameDay ? sameDayFee : 0) + (isTwoTech ? TWO_TECH_FEE : 0);
+  // Only show on steps 1–2 (step 3 has Stripe's own UI, step 4 is confirmation)
+  if (step >= 3) return null;
   return (
-    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur border-t border-gray-100 px-4 py-3 flex items-center justify-between shadow-2xl">
-      <span className="text-xs text-gray-500 font-medium">{t("wizard.sidebar.estimatedTotal")}</span>
-      <span className="text-lg font-extrabold text-gray-900">${grand.toFixed(2)}</span>
+    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="flex items-center gap-3">
+        {/* Price */}
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">
+            {t("wizard.sidebar.estimatedTotal")}
+          </p>
+          <p className="text-xl font-black text-gray-900 leading-tight">
+            ${grand.toFixed(2)}
+            {isSameDay && <span className="text-xs font-semibold text-amber-500 ml-1">+same-day</span>}
+          </p>
+        </div>
+        {/* Continue button */}
+        {onContinue && (
+          <button
+            type="button"
+            onClick={onContinue}
+            disabled={isLoading}
+            className="shrink-0 flex items-center gap-2 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white text-sm font-bold px-5 py-3 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer border-none"
+          >
+            {isLoading
+              ? <><Loader size={14} className="animate-spin" /> Checking…</>
+              : <>{step === 1 ? t("wizard.steps_header.step1Title").split(" ")[0] === "Schedule" ? "Continue" : "Continue" : "Continue"} <ArrowRight size={14} /></>
+            }
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -447,6 +478,12 @@ export default function BookingWizard({
   const [showCoveragePrompt,setShowCoveragePrompt]= useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // (C) Track whether address was selected from autocomplete dropdown
+  // vs typed manually — used for validation feedback
+  const [addrFromAutocomplete, setAddrFromAutocomplete] = useState(false);
+  // (B) Show brief feedback when ZIP is auto-filled from address components
+  const [zipAutoFilled, setZipAutoFilled] = useState(false);
+
   // ── Google Maps autocomplete ──
   const addressInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
@@ -498,11 +535,27 @@ export default function BookingWizard({
         });
         ac.addListener("place_changed", () => {
           const place = ac.getPlace();
-          const addr = place?.formatted_address || addressInputRef.current?.value || "";
+          if (!place?.formatted_address) return; // user didn't pick from list
+          const addr = place.formatted_address;
           const parsed = parseAddressComponents(place?.address_components || []);
+          const extractedZip = parsed.zip || extractZip(addr);
+
           setAddress(addr);
-          // Prefer component ZIP; fall back to regex extraction
-          setZip(parsed.zip || extractZip(addr));
+          setAddrFromAutocomplete(true); // (C) mark as autocomplete-selected
+
+          // (B) ZIP mismatch feedback — if ZIP changed, briefly show confirmation
+          if (extractedZip && extractedZip !== zip) {
+            setZipAutoFilled(true);
+            setTimeout(() => setZipAutoFilled(false), 3000);
+          }
+          setZip(extractedZip);
+
+          // (D) Trigger coverage check immediately when address selected
+          // (the useEffect on [zip] will also fire, but this makes the UX
+          //  feel more responsive by clearing the prompt right away)
+          setShowCoveragePrompt(false);
+          setCoverageConfirmed(false);
+
           setErrors((prev) => {
             const next = { ...prev };
             delete next.address;
@@ -773,6 +826,7 @@ export default function BookingWizard({
                         value={address}
                         onChange={(e) => {
                           setAddress(e.target.value);
+                          setAddrFromAutocomplete(false); // (C) user typed manually
                           setErrors((prev) => { const { address: _a, ...rest } = prev; return rest; });
                         }}
                         placeholder="123 Main St, Mapleton, UT 84664"
@@ -781,9 +835,15 @@ export default function BookingWizard({
                         }`}
                       />
                     </div>
-                    {mapsReady && !errors.address && (
+                    {mapsReady && !errors.address && !addrFromAutocomplete && (
                       <p className="text-[10px] text-emerald-600 mt-1 font-medium">
                         {t("wizard.form.addressAutoComplete")}
+                      </p>
+                    )}
+                    {/* (C) Confirmed autocomplete selection */}
+                    {addrFromAutocomplete && !errors.address && (
+                      <p className="text-[10px] text-emerald-600 mt-1 font-medium flex items-center gap-1">
+                        <CheckCircle2 size={10} /> Address confirmed from Google Maps
                       </p>
                     )}
                   </FormField>
@@ -795,14 +855,23 @@ export default function BookingWizard({
                         value={zip}
                         onChange={(e) => {
                           setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+                          setAddrFromAutocomplete(false);
                           setErrors((prev) => { const { zip: _z, ...rest } = prev; return rest; });
                         }}
-                        placeholder="33139"
+                        placeholder="84664"
                         maxLength={5}
                         className={`w-full border rounded-xl px-3.5 py-3 text-sm font-mono focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none transition-all ${
-                          errors.zip ? "border-rose-400 bg-rose-50/20" : "border-gray-200"
+                          errors.zip ? "border-rose-400 bg-rose-50/20"
+                          : zipAutoFilled ? "border-emerald-400 bg-emerald-50/30"
+                          : "border-gray-200"
                         }`}
                       />
+                      {/* (B) Brief feedback when ZIP was auto-filled from address */}
+                      {zipAutoFilled && (
+                        <p className="text-[10px] text-emerald-600 mt-1 font-medium flex items-center gap-1">
+                          <CheckCircle2 size={10} /> ZIP auto-filled from address
+                        </p>
+                      )}
                       <CoverageBadge status={coverageStatus} />
                     </FormField>
                     <div className="pb-0.5">
@@ -993,8 +1062,16 @@ export default function BookingWizard({
         />
       </div>
 
-      {/* Mobile floating total */}
-      <MobileTotal total={bookingParams.totalCost} isSameDay={isSameDay} isTwoTech={isTwoTech} sameDayFee={sameDayFee} />
+      {/* Mobile sticky bottom bar — price + Continue button (steps 1-2 only) */}
+      <MobileTotal
+        total={bookingParams.totalCost}
+        isSameDay={isSameDay}
+        isTwoTech={isTwoTech}
+        sameDayFee={sameDayFee}
+        step={step}
+        onContinue={step < 3 ? goNext : undefined}
+        isLoading={availabilityStatus === "checking"}
+      />
     </div>
   );
 }

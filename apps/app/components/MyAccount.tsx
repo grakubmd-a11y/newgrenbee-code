@@ -239,13 +239,14 @@ export default function MyAccount({
           window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
         }
         const ac = new window.google.maps.places.Autocomplete(addressInputRef.current, {
-          fields: ["formatted_address", "name"],
+          fields: ["formatted_address", "address_components"],
           types: ["address"],
+          componentRestrictions: { country: "us" },
         });
         ac.addListener("place_changed", () => {
           const place = ac.getPlace();
-          const next = place?.formatted_address || place?.name || addressInputRef.current?.value || "";
-          setProfileAddress(next);
+          if (!place?.formatted_address) return;
+          setProfileAddress(place.formatted_address);
         });
         autocompleteRef.current = ac;
         if (!cancelled) setIsAddressAutocompleteReady(true);
