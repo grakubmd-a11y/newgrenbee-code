@@ -64,6 +64,26 @@ function extractZip(address: string): string {
   return m ? m[1] : "";
 }
 
+/** Parse Google address_components to extract ZIP, city and state reliably. */
+function parseAddressComponents(components: any[]): { zip: string; city: string; state: string } {
+  let zip = "", city = "", state = "";
+  for (const c of components || []) {
+    const types: string[] = c.types || [];
+    if (types.includes("postal_code"))                       zip   = c.long_name || "";
+    if (types.includes("locality") || types.includes("sublocality")) city  = c.long_name || "";
+    if (types.includes("administrative_area_level_1"))       state = c.short_name || "";
+  }
+  return { zip, city, state };
+}
+
+/** Scroll smoothly to the first element with [data-field-error] attribute. */
+function scrollToFirstError() {
+  requestAnimationFrame(() => {
+    const el = document.querySelector<HTMLElement>("[data-field-error]");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
+
 function isUsableKey(v: string) {
   const t = v.trim();
   return t.length > 0 && t.startsWith("AIza") && !t.includes("REPLACE_ME");
@@ -459,7 +479,8 @@ export default function BookingWizard({
     return () => { cancelled = true; };
   }, []);
 
-  // Setup autocomplete
+  // Setup autocomplete — re-runs when step changes so it can attach to the
+  // address input that only exists when step === 2.
   useEffect(() => {
     let cancelled = false;
     async function setup() {
@@ -470,14 +491,24 @@ export default function BookingWizard({
         if (cancelled || !addressInputRef.current || !(window as any).google?.maps?.places?.Autocomplete) return;
         if (autocompleteRef.current) (window as any).google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
         const ac = new (window as any).google.maps.places.Autocomplete(addressInputRef.current, {
-          fields: ["formatted_address"], types: ["address"],
+          // Request address_components for reliable ZIP/city/state extraction
+          fields: ["formatted_address", "address_components"],
+          types: ["address"],
+          componentRestrictions: { country: "us" },
         });
         ac.addListener("place_changed", () => {
           const place = ac.getPlace();
           const addr = place?.formatted_address || addressInputRef.current?.value || "";
+          const parsed = parseAddressComponents(place?.address_components || []);
           setAddress(addr);
-          setZip(extractZip(addr));
-          setErrors((prev) => { const { address: _a, ...rest } = prev; return rest; });
+          // Prefer component ZIP; fall back to regex extraction
+          setZip(parsed.zip || extractZip(addr));
+          setErrors((prev) => {
+            const next = { ...prev };
+            delete next.address;
+            delete next.zip;
+            return next;
+          });
         });
         autocompleteRef.current = ac;
         setMapsReady(true);
@@ -485,7 +516,8 @@ export default function BookingWizard({
     }
     setup();
     return () => { cancelled = true; };
-  }, [mapsKey, mapsEnabled]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapsKey, mapsEnabled, step]);
 
   // Auto-extract zip from address
   useEffect(() => {
@@ -557,6 +589,7 @@ export default function BookingWizard({
     if (!address.trim()) e.address = t("wizard.form.errorAddress");
     if (!zip || zip.length < 5) e.zip = t("wizard.form.errorZip");
     setErrors(e);
+    if (Object.keys(e).length > 0) scrollToFirstError();
     return Object.keys(e).length === 0;
   }
 
@@ -970,10 +1003,14 @@ export default function BookingWizard({
 
 function FormField({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" {...(error ? { "data-field-error": "true" } : {})}>
       <label className="block text-xs font-bold text-gray-700 tracking-wide">{label}</label>
       {children}
-      {error && <p className="text-[11px] text-rose-500 font-semibold">{error}</p>}
+      {error && (
+        <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
+          <span aria-hidden>⚠</span> {error}
+        </p>
+      )}
     </div>
   );
 }
