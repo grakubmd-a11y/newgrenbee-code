@@ -77,15 +77,20 @@ export default function AdminRoute() {
   };
 
   useEffect(() => {
-    // Safety timeout: Firebase's onAuthStateChanged waits for any pending
-    // signInWithRedirect to finish before firing. On custom domains this can
-    // hang indefinitely due to cross-origin IndexedDB issues. After 6 s we
-    // force the page out of the loading state so the login form shows.
+    // Safety timeout: if Firebase auth state takes too long, show the login form.
     const safetyTimer = setTimeout(() => setCheckingAuth(false), 6000);
 
-    getGoogleRedirectResult().catch((error) => {
-      setAuthError(getFirebaseAuthErrorMessage(error));
-    });
+    // Only call getGoogleRedirectResult() when we KNOW we triggered a redirect.
+    // Calling it unconditionally causes Firebase to throw:
+    // "INTERNAL ASSERTION FAILED: Pending promise was never set"
+    // when no redirect was pending (especially when signInWithPopup is also used).
+    const hadPendingRedirect = sessionStorage.getItem("admin_pending_redirect");
+    if (hadPendingRedirect) {
+      sessionStorage.removeItem("admin_pending_redirect");
+      getGoogleRedirectResult().catch((err) => {
+        setAuthError(getFirebaseAuthErrorMessage(err));
+      });
+    }
 
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
       clearTimeout(safetyTimer);
@@ -147,19 +152,28 @@ export default function AdminRoute() {
     setAuthError("");
     setLoginBusy(true);
     try {
+      // Try popup first — no COOP issues on most browsers.
       await signInWithGooglePopup();
     } catch (error: any) {
-      if (error?.code === "auth/popup-blocked" || error?.code === "auth/popup-closed-by-user") {
-        // Popup was blocked — ask the user to allow popups rather than
-        // falling back to signInWithRedirect, which causes onAuthStateChanged
-        // to hang indefinitely on custom domains (cross-origin IndexedDB issue).
-        setAuthError(
-          "Tu navegador bloqueó la ventana de login. Permite los popups para control-room.grenbee.com en la barra de URL y vuelve a intentar."
-        );
+      if (error?.code === "auth/popup-blocked") {
+        // Popup was blocked — fall back to redirect and mark it so we can
+        // call getRedirectResult() when the user returns to this page.
+        try {
+          sessionStorage.setItem("admin_pending_redirect", "1");
+          await signInWithGoogleRedirect();
+          // Page reloads after redirect — auth picked up in subscribeToAuthChanges.
+        } catch (redirectError: any) {
+          sessionStorage.removeItem("admin_pending_redirect");
+          setAuthError(getFirebaseAuthErrorMessage(redirectError));
+          setLoginBusy(false);
+        }
+      } else if (error?.code === "auth/popup-closed-by-user") {
+        // User closed the popup voluntarily — just reset the button state.
+        setLoginBusy(false);
       } else {
         setAuthError(getFirebaseAuthErrorMessage(error));
+        setLoginBusy(false);
       }
-      setLoginBusy(false);
     }
   };
 
