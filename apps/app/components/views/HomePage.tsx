@@ -405,7 +405,7 @@ export default function HomePage() {
                         </li>
                       ))}
                     </ul>
-                    <Link href="/plans"
+                    <Link href={`${base}/plans`}
                       className={`block text-center text-sm font-bold py-2.5 rounded-xl transition-colors ${
                         highlight
                           ? "bg-white text-emerald-700 hover:bg-gray-100"
@@ -420,7 +420,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <Link href="/plans"
+              <Link href={`${base}/plans`}
                 className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-bold text-sm transition-colors"
               >
                 {t("home.plans.viewAll")}
@@ -610,7 +610,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center mt-10">
-              <Link href="/faq"
+              <Link href={`${base}/faq`}
                 className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-bold text-sm transition-colors"
               >
                 {t("home.faq.viewAll")}
