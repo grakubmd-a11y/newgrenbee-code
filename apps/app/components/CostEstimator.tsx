@@ -4,6 +4,7 @@ import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CouponRule, Service, ServiceFactor, ServiceFactorOption } from "@grenbee/types";
 import { SERVICES_DATA } from "@grenbee/config";
+import { useTranslatedServices } from "@/hooks/useTranslatedService";
 import { fetchPublicCouponByCode } from "@grenbee/firebase/services";
 import {
   calculateQuote,
@@ -32,7 +33,9 @@ export default function CostEstimator({
   services = SERVICES_DATA
 }: CostEstimatorProps) {
   const { t } = useTranslation();
-  const activeServices = useMemo(() => services.filter((s) => s.active !== false), [services]);
+  // Translate service text (name, tagline, factor labels) for current language
+  const translatedServices = useTranslatedServices(services);
+  const activeServices = useMemo(() => translatedServices.filter((s) => s.active !== false), [translatedServices]);
 
   // 1. Core State
   const [activeServiceId, setActiveServiceId] = useState<string>(initialServiceId);

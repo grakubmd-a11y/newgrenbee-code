@@ -3,6 +3,7 @@ import React from "react";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Service } from "@grenbee/types";
+import { useTranslatedService } from "@/hooks/useTranslatedService";
 
 interface ServiceCardProps {
   service: Service;
@@ -21,8 +22,9 @@ const DEFAULT_SERVICE_IMAGES: Record<string, string> = {
 
 const GENERIC_SERVICE_IMAGE = "https://images.unsplash.com/photo-1502005229762-fc1b2d812ca5?auto=format&fit=crop&w=600&q=80";
 
-export default function ServiceCard({ service, onBookClick, avgRating = 4.8, reviewsCount = 0 }: ServiceCardProps) {
+export default function ServiceCard({ service: rawService, onBookClick, avgRating = 4.8, reviewsCount = 0 }: ServiceCardProps) {
   const { t } = useTranslation();
+  const service = useTranslatedService(rawService);
   const IconComponent = (Icons as any)[service.iconName] || Icons.HelpCircle;
   const cardImage = DEFAULT_SERVICE_IMAGES[service.id] || GENERIC_SERVICE_IMAGE;
 

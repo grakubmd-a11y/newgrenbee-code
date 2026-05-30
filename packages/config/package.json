@@ -6,7 +6,8 @@
     "@grenbee/types": "*"
   },
   "exports": {
-    ".": "./index.ts"
+    ".":              "./index.ts",
+    "./servicesI18n": "./servicesI18n.ts"
   },
   "main": "./index.ts",
   "types": "./index.ts"

@@ -263,7 +263,7 @@ export default function BookingsTracker({
                 : "bg-white text-stone-700 border border-gray-200 hover:bg-gray-50"
             }`}
           >
-            {autoProgress ? "Pausar" : "Iniciar"}
+            {autoProgress ? t("bookings.sim.toggle") : t("bookings.sim.toggleStart")}
           </button>
         </div>
       </div>
@@ -272,7 +272,7 @@ export default function BookingsTracker({
         <div className="bg-emerald-50 border border-emerald-100/60 p-3.5 rounded-xl flex items-center justify-between text-emerald-850 gap-3 text-xs animate-pulse select-none">
           <div className="flex items-center gap-2 font-medium leading-normal">
             <Icons.RefreshCw size={13} className="animate-spin text-emerald-600 shrink-0" />
-            <span>Los técnicos simulan su avance automáticamente cada 10-15s (Asignado ➔ Camino ➔ En Progreso ➔ Terminado). ¡Solo espera a que terminen!</span>
+            <span>{t("bookings.sim.hint")}</span>
           </div>
         </div>
       )}
@@ -283,9 +283,9 @@ export default function BookingsTracker({
             <Icons.CalendarCheck size={24} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900">No active bookings found</h3>
+            <h3 className="text-base font-bold text-gray-900">{t("bookings.empty.title")}</h3>
             <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1">
-              Configure parameters on the estimate simulator and book your session to see live operative routing updates here!
+              {t("bookings.empty.subtitle")}
             </p>
           </div>
         </div>
@@ -409,7 +409,7 @@ export default function BookingsTracker({
                     ) : (
                       <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl text-rose-800 text-xs flex gap-2 font-medium">
                         <Icons.AlertCircle className="text-rose-600 mt-0.5 shrink-0" size={16} />
-                        <span>This appointment was cancelled. No charges were made. You can book an alternative slot coordinates instantly under the Estimator page.</span>
+                        <span>{t("bookings.cancelledNote")}</span>
                       </div>
                     )}
 
@@ -420,14 +420,14 @@ export default function BookingsTracker({
                           <div className="flex items-center gap-1.5">
                             <Icons.Activity size={14} className="text-brand shrink-0 animate-pulse" />
                             <span className="text-[10px] text-gray-800 font-extrabold uppercase tracking-widest block font-sans">
-                              Estado de la Cuadrilla de Trabajo
+                              {t("bookings.sim.title")}
                             </span>
                           </div>
                           <span className="text-[10px] bg-brand-light text-brand font-bold px-2 py-0.5 rounded">
-                            {booking.status === 'scheduled' && "Asignado y programado"}
-                            {booking.status === 'dispatched' && "Técnico en camino"}
-                            {booking.status === 'in-progress' && "Trabajando en la locación"}
-                            {booking.status === 'completed' && "Servicio completado"}
+                            {booking.status === 'scheduled' && t("bookings.sim.scheduled")}
+                            {booking.status === 'dispatched' && t("bookings.sim.dispatched")}
+                            {booking.status === 'in-progress' && t("bookings.sim.inProgress")}
+                            {booking.status === 'completed' && t("bookings.sim.completed")}
                           </span>
                         </div>
 
@@ -435,18 +435,18 @@ export default function BookingsTracker({
                           <div className="bg-emerald-50 border border-emerald-100 p-3.5 rounded-xl text-emerald-850 text-xs flex gap-2 font-medium animate-in zoom-in-95 duration-200">
                             <Icons.CheckCircle className="text-emerald-600 shrink-0 mt-0.5" size={16} />
                             <div>
-                              <strong>¡Servicio Listo!</strong> La cuadrilla de técnicos ha enviado su firma de finalización y el estatus se ha marcado como <b>Completado</b>. Por favor, confirma si todo se realizó a tu entera satisfacción en el cuadro de acciones inferiores.
+                              {t("bookings.sim.done")}
                             </div>
                           </div>
                         ) : autoProgress ? (
                           <p className="text-[11px] text-gray-500 font-semibold leading-relaxed flex items-center gap-1.5">
                             <Icons.Info size={13} className="text-brand shrink-0" />
-                            <span>La cuadrilla está coordinada. Su estatus avanzará de manera autónoma en tiempo real (Simulando la llegada de técnicos).</span>
+                            <span>{t("bookings.sim.autoNote")}</span>
                           </p>
                         ) : (
                           <div className="space-y-2">
                             <p className="text-[11px] text-gray-500 leading-normal">
-                              La simulación automática está pausada. Puedes simular el rol del técnico manualmente aquí:
+                              {t("bookings.sim.paused")}
                             </p>
                             <div className="flex flex-wrap gap-2">
                               <button
@@ -455,7 +455,7 @@ export default function BookingsTracker({
                                 onClick={() => onUpdateStatus(booking.id, "dispatched")}
                                 className="bg-white hover:bg-brand hover:text-white text-gray-750 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-gray-700 border border-gray-200 px-3 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                               >
-                                <span>Despachar Técnico ➔</span>
+                                <span>{t("bookings.sim.dispatch")}</span>
                               </button>
                               
                               <button
@@ -464,7 +464,7 @@ export default function BookingsTracker({
                                 onClick={() => onUpdateStatus(booking.id, "in-progress")}
                                 className="bg-white hover:bg-brand hover:text-white text-gray-755 disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-gray-700 border border-gray-200 px-3 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                               >
-                                <span>Iniciar Trabajo ➔</span>
+                                <span>{t("bookings.sim.start")}</span>
                               </button>
                               
                               <button
@@ -473,7 +473,7 @@ export default function BookingsTracker({
                                 onClick={() => onUpdateStatus(booking.id, "completed")}
                                 className="bg-brand text-white hover:bg-brand-hover disabled:opacity-40 border border-brand px-3 px-3.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                               >
-                                <span>Marcar Completado ✅</span>
+                                <span>{t("bookings.sim.markDone")}</span>
                               </button>
                             </div>
                           </div>
@@ -533,24 +533,24 @@ export default function BookingsTracker({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-gray-100">
                       <div>
                         <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-2">
-                          Contact & Location Coordinates
+                          {t("bookings.client")}
                         </span>
                         <div className="space-y-1.5 text-xs text-gray-600 font-medium">
                           <p className="flex items-center gap-2">
                             <Icons.User size={13} className="text-gray-400" />
-                            <span>Client: <strong>{booking.customerName}</strong></span>
+                            <strong>{booking.customerName}</strong>
                           </p>
                           <p className="flex items-center gap-2">
                             <Icons.Mail size={13} className="text-gray-400" />
-                            <span>Email: <a href={`mailto:${booking.email}`} className="text-gray-900 font-semibold underline">{booking.email}</a></span>
+                            <a href={`mailto:${booking.email}`} className="text-gray-900 font-semibold underline">{booking.email}</a>
                           </p>
                           <p className="flex items-center gap-2">
                             <Icons.Phone size={13} className="text-gray-400" />
-                            <span>Cell: <b className="text-gray-900">{booking.phone}</b></span>
+                            <b className="text-gray-900">{booking.phone}</b>
                           </p>
                           <p className="flex items-center gap-2">
                             <Icons.MapPin size={13} className="text-gray-400" />
-                            <span>Address: <b className="text-gray-900">{booking.address}</b></span>
+                            <b className="text-gray-900">{booking.address}</b>
                           </p>
                         </div>
                       </div>
@@ -569,7 +569,7 @@ export default function BookingsTracker({
                           ))}
                           {booking.notes && (
                             <div className="mt-3 bg-brand-light/30 border border-brand/5 p-2.5 rounded-lg text-[11px] text-gray-600 leading-normal">
-                              <strong>Entry instructions:</strong> "{booking.notes}"
+                              <strong>{t("bookings.entryNote")}:</strong> "{booking.notes}"
                             </div>
                           )}
                         </div>
@@ -587,7 +587,7 @@ export default function BookingsTracker({
                             className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold hover:scale-[1.01] px-3.5 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-emerald-500/10"
                           >
                             <Icons.CreditCard size={13} />
-                            <span>Pay Invoice Online</span>
+                            <span>{t("bookings.payInvoice")}</span>
                           </button>
                         )}
 
@@ -609,7 +609,7 @@ export default function BookingsTracker({
                               className="bg-white border border-gray-200 hover:border-brand text-gray-700 hover:text-brand px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                               <Icons.Receipt size={14} />
-                              <span>View Receipt</span>
+                              <span>{t("bookings.viewReceipt")}</span>
                             </button>
                             <button
                               onClick={() => onWriteReview(booking.serviceId)}
@@ -626,7 +626,7 @@ export default function BookingsTracker({
                               className="bg-white border border-gray-200 hover:border-brand text-gray-700 hover:text-brand px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                               <Icons.CalendarCog size={14} />
-                              <span>Reschedule</span>
+                              <span>{t("bookings.reschedule")}</span>
                             </button>
 
                             <button
@@ -638,7 +638,7 @@ export default function BookingsTracker({
                               className="bg-white border border-gray-200 hover:border-rose-500 text-gray-600 hover:text-rose-600 px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                               <Icons.Trash2 size={13} />
-                              <span>Cancel Booking</span>
+                              <span>{t("bookings.cancel")}</span>
                             </button>
                           </>
                         ) : (
@@ -649,7 +649,7 @@ export default function BookingsTracker({
                       {booking.status !== "cancelled" && booking.status !== "completed" && (
                         <div className="text-[11px] font-medium text-amber-600 flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
                           <Icons.Clock size={12} />
-                          <span>Dispatch slot: {booking.timeSlot}</span>
+                          <span>{t("bookings.dispatchSlot")}: {booking.timeSlot}</span>
                         </div>
                       )}
                     </div>

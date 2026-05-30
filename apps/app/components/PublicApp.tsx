@@ -318,10 +318,10 @@ export default function PublicApp() {
           <div className="space-y-8">
             <div className="text-center space-y-2 mb-12">
               <h2 className="text-3xl md:text-4xl font-black text-gray-950">
-                Instant Cost Calculator
+                {t("estimator.pageTitle")}
               </h2>
               <p className="text-gray-600 text-lg">
-                Get accurate pricing for your home service needs
+                {t("estimator.pageSubtitle")}
               </p>
             </div>
             <CostEstimator

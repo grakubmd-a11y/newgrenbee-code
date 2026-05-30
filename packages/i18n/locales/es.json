@@ -893,7 +893,9 @@
       "proceed": "Continuar a Programación",
       "trust": "Sin pago previo. Cancela cuando quieras."
     },
-    "included": "Incluido en Esta Cotización:"
+    "included": "Incluido en Esta Cotización:",
+    "pageTitle": "Calculadora de Precios",
+    "pageSubtitle": "Obtén el precio exacto para tu servicio en minutos"
   },
   "serviceCard": {
     "premiumBadge": "Servicio Premium",
@@ -1035,6 +1037,34 @@
   "bookings": {
     "bookAgain": "Reservar de Nuevo",
     "bookAgainTitle": "Reservar este servicio de nuevo",
-    "writeReview": "Escribir Reseña"
+    "writeReview": "Escribir Reseña",
+    "reschedule": "Reprogramar",
+    "cancel": "Cancelar Reserva",
+    "payInvoice": "Pagar Factura en Línea",
+    "viewReceipt": "Ver Recibo",
+    "dispatchSlot": "Horario de despacho",
+    "client": "Cliente",
+    "entryNote": "Instrucciones de acceso",
+    "cancelledNote": "Esta cita fue cancelada. No se realizaron cargos. Puedes reservar una nueva fecha desde el estimador.",
+    "empty": {
+      "title": "Sin reservas activas",
+      "subtitle": "Usa el estimador para obtener un presupuesto y reservar tu primer servicio."
+    },
+    "sim": {
+      "title": "Estado del Trabajo en Vivo",
+      "scheduled": "Asignado y Programado",
+      "dispatched": "Técnico en Camino",
+      "inProgress": "Trabajando en la Locación",
+      "completed": "Servicio Completado",
+      "done": "¡Servicio Listo! El técnico ha finalizado y marcó el trabajo como completado. Confirma si todo se realizó a tu entera satisfacción.",
+      "autoNote": "La cuadrilla está coordinada. El estado avanzará automáticamente en tiempo real.",
+      "paused": "Simulación pausada. Puedes avanzar el estado del trabajo manualmente:",
+      "dispatch": "Despachar Técnico →",
+      "start": "Iniciar Trabajo →",
+      "markDone": "Marcar Completado ✅",
+      "toggle": "Pausar",
+      "toggleStart": "Iniciar",
+      "hint": "Los técnicos simulan su avance cada 10-15s (Asignado → En camino → En progreso → Terminado)."
+    }
   }
 }

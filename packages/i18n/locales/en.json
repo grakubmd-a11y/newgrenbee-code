@@ -893,7 +893,9 @@
       "proceed": "Proceed to Scheduling",
       "trust": "No pre-payment. Cancel anytime."
     },
-    "included": "Included In This Service Quote:"
+    "included": "Included In This Service Quote:",
+    "pageTitle": "Instant Cost Calculator",
+    "pageSubtitle": "Get accurate pricing for your home service needs"
   },
   "serviceCard": {
     "premiumBadge": "Premium Service",
@@ -1035,6 +1037,34 @@
   "bookings": {
     "bookAgain": "Book Again",
     "bookAgainTitle": "Book this service again",
-    "writeReview": "Write Review"
+    "writeReview": "Write Review",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel Booking",
+    "payInvoice": "Pay Invoice Online",
+    "viewReceipt": "View Receipt",
+    "dispatchSlot": "Dispatch slot",
+    "client": "Client",
+    "entryNote": "Entry instructions",
+    "cancelledNote": "This appointment was cancelled. No charges were made. You can book a new slot from the estimator.",
+    "empty": {
+      "title": "No active bookings",
+      "subtitle": "Use the estimator to get a quote and book your first service."
+    },
+    "sim": {
+      "title": "Live Job Status",
+      "scheduled": "Assigned & Scheduled",
+      "dispatched": "Technician on the way",
+      "inProgress": "Working on-site",
+      "completed": "Service completed",
+      "done": "Service Complete! The technician has finished and marked the job as completed. Please confirm everything was done to your satisfaction.",
+      "autoNote": "The crew is coordinated. Status will advance automatically in real time.",
+      "paused": "Auto-simulation paused. You can manually advance the job status:",
+      "dispatch": "Dispatch Technician →",
+      "start": "Start Job →",
+      "markDone": "Mark Completed ✅",
+      "toggle": "Pause",
+      "toggleStart": "Start",
+      "hint": "Technicians auto-advance every 10-15s (Assigned → On the way → On-site → Done)."
+    }
   }
 }
