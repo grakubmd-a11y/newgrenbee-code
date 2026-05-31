@@ -1,3 +1,5 @@
+Ignore everything inside the docs/ folder.
+
 # Grenbee — Guía para Agentes de IA
 
 Lee este archivo COMPLETO antes de tocar cualquier código.
