@@ -16,6 +16,19 @@ export function middleware(request: NextRequest) {
   // Normalise: strip port suffix so local dev (localhost:3001) doesn't break
   const hostname = (request.headers.get("host") || "").split(":")[0];
   const pathname = request.nextUrl.pathname;
+  const ROOT_MARKETING_SEGMENTS = [
+    "/areas",
+    "/cancellation",
+    "/contact",
+    "/faq",
+    "/guarantee",
+    "/hosts",
+    "/payment-policy",
+    "/plans",
+    "/privacy",
+    "/services",
+    "/terms",
+  ];
 
   // Skip Next.js internals, static assets, and API routes
   const isInternal =
@@ -23,6 +36,14 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/favicon.ico");
 
   if (isInternal) return NextResponse.next();
+
+  // Canonicalize legacy/rootless marketing URLs. Without this, the dynamic
+  // [country] route treats "/contact" as country="contact" and renders home.
+  if (ROOT_MARKETING_SEGMENTS.some((segment) => pathname === segment || pathname.startsWith(`${segment}/`))) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/us${pathname}`;
+    return NextResponse.redirect(url, 308);
+  }
 
   // ── staff.grenbee.com ── only /staff/* ──────────────────────────────────
   if (hostname === "staff.grenbee.com") {

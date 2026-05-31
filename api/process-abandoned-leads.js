@@ -42,7 +42,7 @@ export default async function handler(req, res) {
   // ── Load CRM webhook URL from settings ────────────────────────────────────
   const settingsSnap = await db.collection("settings").doc("business").get().catch(() => null);
   const crmWebhookUrl = settingsSnap?.data()?.crmWebhookUrl || null;
-  const bookingUrl    = settingsSnap?.data()?.siteUrl || "https://grenbee.com/#booking";
+  const bookingUrl    = settingsSnap?.data()?.siteUrl || "https://grenbee.com/book?service=house-cleaning";
 
   // ── Query: new leads, older than 30 min, no recovery email yet ───────────
   const cutoff = new Date(Date.now() - RECOVERY_DELAY_MS).toISOString();

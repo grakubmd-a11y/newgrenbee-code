@@ -7,8 +7,9 @@ const BASE = "https://grenbee.com";
 // All service slugs (individual service landing pages)
 const ALL_SERVICE_SLUGS = SERVICES_DATA.map((s) => s.id);
 
-// Service slugs that have city+service landing pages
-const SERVICE_SLUGS = ["house-cleaning", "lawn-mowing", "tv-installation"];
+// Service slugs that have city+service landing pages.
+// Keep this aligned with apps/app/lib/areaRender.tsx.
+const SERVICE_SLUGS = ["house-cleaning", "lawn-mowing"];
 
 // Top-level routes for each language variant
 const STATIC_PATHS = ["", "/areas", "/hosts", "/plans", "/faq", "/contact", "/services"];

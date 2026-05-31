@@ -12,6 +12,15 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { fetchPublicSettingsFromFirestore } from "@grenbee/firebase/services";
 import StripePaymentPanel from "./StripePaymentPanel";
 import SchedulePicker, { HOUR_SLOTS, SlotInfo } from "./SchedulePicker";
+import {
+  createGoogleAutocompleteSessionToken,
+  fetchGoogleAddressSuggestions,
+  isUsableGoogleMapsKey,
+  loadGooglePlacesLibrary,
+  resolveGoogleAddressSuggestion,
+  type GoogleAddressComponent,
+  type GoogleAddressSuggestion,
+} from "@/lib/googleMapsPlaces";
 
 type BookingDraft = Omit<Booking, "id" | "status" | "createdAt">;
 type WizardStep = 1 | 2 | 3 | 4;
@@ -66,13 +75,15 @@ function extractZip(address: string): string {
 }
 
 /** Parse Google address_components to extract ZIP, city and state reliably. */
-function parseAddressComponents(components: any[]): { zip: string; city: string; state: string } {
+function parseAddressComponents(components: GoogleAddressComponent[]): { zip: string; city: string; state: string } {
   let zip = "", city = "", state = "";
   for (const c of components || []) {
     const types: string[] = c.types || [];
-    if (types.includes("postal_code"))                       zip   = c.long_name || "";
-    if (types.includes("locality") || types.includes("sublocality")) city  = c.long_name || "";
-    if (types.includes("administrative_area_level_1"))       state = c.short_name || "";
+    const longName = c.long_name || c.longText || "";
+    const shortName = c.short_name || c.shortText || longName;
+    if (types.includes("postal_code"))                       zip   = longName;
+    if (types.includes("locality") || types.includes("sublocality")) city  = longName;
+    if (types.includes("administrative_area_level_1"))       state = shortName;
   }
   return { zip, city, state };
 }
@@ -83,29 +94,6 @@ function scrollToFirstError() {
     const el = document.querySelector<HTMLElement>("[data-field-error]");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
   });
-}
-
-function isUsableKey(v: string) {
-  const t = v.trim();
-  return t.length > 0 && t.startsWith("AIza") && !t.includes("REPLACE_ME");
-}
-
-async function loadMapsScript(apiKey: string): Promise<void> {
-  if ((window as any).google?.maps?.places && (window as any).__gbMapsKey === apiKey) return;
-  if (!(window as any).__gbMapsLoader || (window as any).__gbMapsKey !== apiKey) {
-    (window as any).__gbMapsKey = apiKey;
-    (window as any).__gbMapsLoader = new Promise<void>((resolve, reject) => {
-      document.querySelector('script[data-gb-maps="true"]')?.remove();
-      const s = document.createElement("script");
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&v=weekly`;
-      s.async = s.defer = true;
-      s.dataset.gbMaps = "true";
-      s.onload = () => resolve();
-      s.onerror = () => reject();
-      document.head.appendChild(s);
-    });
-  }
-  return (window as any).__gbMapsLoader;
 }
 
 async function checkZipCoverage(zip: string): Promise<CoverageStatus> {
@@ -579,10 +567,14 @@ export default function BookingWizard({
 
   // ── Google Maps autocomplete ──
   const addressInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<any>(null);
+  const mapsSessionTokenRef = useRef<any>(null);
+  const addressSuggestionRequestRef = useRef(0);
   const [mapsKey,     setMapsKey]     = useState(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "");
   const [mapsEnabled, setMapsEnabled] = useState(false);
   const [mapsReady,   setMapsReady]   = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState<GoogleAddressSuggestion[]>([]);
+  const [addressSuggestionsOpen, setAddressSuggestionsOpen] = useState(false);
+  const [isResolvingAddress, setIsResolvingAddress] = useState(false);
 
   // ── Step 3: Pay ──
   const [isProcessing,     setIsProcessing]     = useState(false);
@@ -627,7 +619,7 @@ export default function BookingWizard({
     let cancelled = false;
     fetchPublicSettingsFromFirestore().then((settings) => {
       if (cancelled || !settings) return;
-      if (settings.googleMapsApiKey && isUsableKey(settings.googleMapsApiKey)) {
+      if (settings.googleMapsApiKey && isUsableGoogleMapsKey(settings.googleMapsApiKey)) {
         setMapsKey(settings.googleMapsApiKey.trim());
       }
       setMapsEnabled(settings.googleMapsEnabled === true && settings.googleMapsAutocompleteEnabled !== false);
@@ -636,61 +628,100 @@ export default function BookingWizard({
     return () => { cancelled = true; };
   }, []);
 
-  // Setup autocomplete — re-runs when step changes so it can attach to the
-  // address input that only exists when step === 2.
+  // Load the new Places library. Google no longer exposes the legacy
+  // Autocomplete widget for new customers, so suggestions are rendered locally.
   useEffect(() => {
     let cancelled = false;
     async function setup() {
-      const input = addressInputRef.current;
-      if (!input || !mapsEnabled || !isUsableKey(mapsKey)) { setMapsReady(false); return; }
+      if (step !== 2 || !mapsEnabled || !isUsableGoogleMapsKey(mapsKey)) {
+        setMapsReady(false);
+        setAddressSuggestions([]);
+        return;
+      }
       try {
-        await loadMapsScript(mapsKey);
-        if (cancelled || !addressInputRef.current || !(window as any).google?.maps?.places?.Autocomplete) return;
-        if (autocompleteRef.current) (window as any).google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
-        const ac = new (window as any).google.maps.places.Autocomplete(addressInputRef.current, {
-          // Request address_components for reliable ZIP/city/state extraction
-          fields: ["formatted_address", "address_components"],
-          types: ["address"],
-          componentRestrictions: { country: "us" },
-        });
-        ac.addListener("place_changed", () => {
-          const place = ac.getPlace();
-          if (!place?.formatted_address) return; // user didn't pick from list
-          const addr = place.formatted_address;
-          const parsed = parseAddressComponents(place?.address_components || []);
-          const extractedZip = parsed.zip || extractZip(addr);
-
-          setAddress(addr);
-          setAddrFromAutocomplete(true); // (C) mark as autocomplete-selected
-
-          // (B) ZIP mismatch feedback — if ZIP changed, briefly show confirmation
-          if (extractedZip && extractedZip !== zip) {
-            setZipAutoFilled(true);
-            setTimeout(() => setZipAutoFilled(false), 3000);
-          }
-          setZip(extractedZip);
-
-          // (D) Trigger coverage check immediately when address selected
-          // (the useEffect on [zip] will also fire, but this makes the UX
-          //  feel more responsive by clearing the prompt right away)
-          setShowCoveragePrompt(false);
-          setCoverageConfirmed(false);
-
-          setErrors((prev) => {
-            const next = { ...prev };
-            delete next.address;
-            delete next.zip;
-            return next;
-          });
-        });
-        autocompleteRef.current = ac;
-        setMapsReady(true);
-      } catch { setMapsReady(false); }
+        await loadGooglePlacesLibrary(mapsKey);
+        if (!cancelled) setMapsReady(true);
+      } catch {
+        if (!cancelled) setMapsReady(false);
+      }
     }
     setup();
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapsKey, mapsEnabled, step]);
+
+  useEffect(() => {
+    if (step !== 2 || !mapsReady || !mapsEnabled || !isUsableGoogleMapsKey(mapsKey) || addrFromAutocomplete) {
+      setAddressSuggestions([]);
+      setAddressSuggestionsOpen(false);
+      return;
+    }
+
+    const input = address.trim();
+    if (input.length < 3) {
+      setAddressSuggestions([]);
+      setAddressSuggestionsOpen(false);
+      return;
+    }
+
+    let cancelled = false;
+    const requestId = ++addressSuggestionRequestRef.current;
+    const timer = window.setTimeout(async () => {
+      try {
+        if (!mapsSessionTokenRef.current) {
+          mapsSessionTokenRef.current = createGoogleAutocompleteSessionToken();
+        }
+        const suggestions = await fetchGoogleAddressSuggestions(mapsKey, input, mapsSessionTokenRef.current);
+        if (!cancelled && requestId === addressSuggestionRequestRef.current) {
+          setAddressSuggestions(suggestions);
+          setAddressSuggestionsOpen(suggestions.length > 0);
+        }
+      } catch {
+        if (!cancelled && requestId === addressSuggestionRequestRef.current) {
+          setAddressSuggestions([]);
+          setAddressSuggestionsOpen(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [address, addrFromAutocomplete, mapsEnabled, mapsKey, mapsReady, step]);
+
+  const handleAddressSuggestionSelect = async (suggestion: GoogleAddressSuggestion) => {
+    setIsResolvingAddress(true);
+    try {
+      const place = await resolveGoogleAddressSuggestion(suggestion);
+      const nextAddress = place.formattedAddress || suggestion.fullText;
+      const parsed = parseAddressComponents(place.addressComponents || []);
+      const extractedZip = parsed.zip || extractZip(nextAddress);
+
+      setAddress(nextAddress);
+      setAddrFromAutocomplete(true);
+      setAddressSuggestions([]);
+      setAddressSuggestionsOpen(false);
+      mapsSessionTokenRef.current = createGoogleAutocompleteSessionToken();
+
+      if (extractedZip && extractedZip !== zip) {
+        setZipAutoFilled(true);
+        window.setTimeout(() => setZipAutoFilled(false), 3000);
+      }
+      setZip(extractedZip);
+      setShowCoveragePrompt(false);
+      setCoverageConfirmed(false);
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.address;
+        delete next.zip;
+        return next;
+      });
+    } catch {
+      setAddrFromAutocomplete(false);
+    } finally {
+      setIsResolvingAddress(false);
+    }
+  };
 
   // Auto-extract zip from address
   useEffect(() => {
@@ -983,11 +1014,37 @@ export default function BookingWizard({
                           setAddrFromAutocomplete(false); // (C) user typed manually
                           setErrors((prev) => { const { address: _a, ...rest } = prev; return rest; });
                         }}
+                        onFocus={() => {
+                          if (addressSuggestions.length > 0) setAddressSuggestionsOpen(true);
+                        }}
+                        onBlur={() => {
+                          window.setTimeout(() => setAddressSuggestionsOpen(false), 150);
+                        }}
                         placeholder="123 Main St, Mapleton, UT 84664"
+                        autoComplete="street-address"
                         className={`pl-9 w-full rounded-xl border py-3 px-3.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none transition-all ${
                           errors.address ? "border-rose-400 bg-rose-50/20" : "border-gray-200"
                         }`}
                       />
+                      {addressSuggestionsOpen && addressSuggestions.length > 0 && (
+                        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl shadow-gray-900/10">
+                          {addressSuggestions.map((suggestion) => (
+                            <button
+                              key={suggestion.id}
+                              type="button"
+                              disabled={isResolvingAddress}
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => handleAddressSuggestionSelect(suggestion)}
+                              className="w-full px-3.5 py-3 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none disabled:opacity-60 transition-colors"
+                            >
+                              <span className="block text-sm font-semibold text-gray-900">{suggestion.mainText || suggestion.fullText}</span>
+                              {suggestion.secondaryText && (
+                                <span className="block text-xs text-gray-500 mt-0.5">{suggestion.secondaryText}</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     {mapsReady && !errors.address && !addrFromAutocomplete && (
                       <p className="text-[10px] text-emerald-600 mt-1 font-medium">
@@ -997,7 +1054,7 @@ export default function BookingWizard({
                     {/* (C) Confirmed autocomplete selection */}
                     {addrFromAutocomplete && !errors.address && (
                       <p className="text-[10px] text-emerald-600 mt-1 font-medium flex items-center gap-1">
-                        <CheckCircle2 size={10} /> Address confirmed from Google Maps
+                        <CheckCircle2 size={10} /> {t("wizard.form.addressConfirmed")}
                       </p>
                     )}
                   </FormField>
@@ -1137,10 +1194,10 @@ export default function BookingWizard({
                             className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 accent-brand cursor-pointer" />
                           <span className="text-xs text-gray-700 leading-relaxed">
                             {t("wizard.terms.agree")}{" "}
-                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                            <a href="/us/terms" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
                               {t("wizard.terms.termsLink")} <ExternalLink size={10} />
                             </a>{" "}{t("wizard.terms.and")}{" "}
-                            <a href="/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
+                            <a href="/us/cancellation" target="_blank" rel="noopener noreferrer" className="text-brand font-semibold hover:underline inline-flex items-center gap-0.5">
                               {t("wizard.terms.cancellationLink")} <ExternalLink size={10} />
                             </a>. <span className="text-rose-500 font-bold">*</span>
                           </span>

@@ -150,7 +150,7 @@ export default function ServiceCard({ service: rawService, href, onBookClick, av
               In select mode it's a <button> with the callback. */}
           {isLinkMode ? (
             <span className="flex-grow flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 group-hover:bg-brand text-white py-3 px-4 text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.3)]">
-              <span>{t("serviceCard.book")}</span>
+              <span>{t("serviceCard.viewService")}</span>
               <Icons.ChevronRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.5} />
             </span>
           ) : (

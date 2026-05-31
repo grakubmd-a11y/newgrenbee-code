@@ -274,12 +274,12 @@ function PlanEditor({
           Cancel
         </button>
         <a
-          href="/plans"
+          href="/us/plans"
           target="_blank"
           rel="noopener noreferrer"
           className="ml-auto flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-brand bg-brand/8 rounded-xl hover:bg-brand/15 transition-colors no-underline"
         >
-          <Icons.ExternalLink size={12} /> Preview /plans
+          <Icons.ExternalLink size={12} /> Preview /us/plans
         </a>
       </div>
     </div>
@@ -344,13 +344,13 @@ export default function PlansAdminTab() {
           <h3 className="font-black text-lg text-gray-900">Membership Plans</h3>
           <p className="text-xs text-gray-500 mt-0.5">
             Edit prices, features, and plan details. Changes reflect immediately on{" "}
-            <a href="/plans" target="_blank" rel="noopener noreferrer" className="text-brand font-bold hover:underline">
-              grenbee.com/plans
+            <a href="/us/plans" target="_blank" rel="noopener noreferrer" className="text-brand font-bold hover:underline">
+              grenbee.com/us/plans
             </a>
           </p>
         </div>
         <a
-          href="/plans"
+          href="/us/plans"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-xs font-bold text-brand bg-brand/8 px-3 py-2 rounded-xl hover:bg-brand/15 transition-colors no-underline"

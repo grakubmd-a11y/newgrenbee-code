@@ -924,7 +924,8 @@
     "moreSpecs": "+{{count}} more specs",
     "basePrice": "Base Price",
     "currency": "USD",
-    "book": "Book"
+    "book": "Book",
+    "viewService": "View Service"
   },
   "schedule": {
     "occupied": "Fully booked",
@@ -996,6 +997,7 @@
       "notes": "Access Notes (optional)",
       "notesPlaceholder": "Gate code, lockbox location, parking instructions, pets…",
       "addressAutoComplete": "✓ Address autocomplete active",
+      "addressConfirmed": "Address confirmed from Google Maps",
       "errorRequired": "Required",
       "errorEmail": "Valid email required",
       "errorPhone": "10-digit phone required",

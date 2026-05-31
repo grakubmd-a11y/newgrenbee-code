@@ -924,7 +924,8 @@
     "moreSpecs": "+{{count}} especificaciones más",
     "basePrice": "Precio Base",
     "currency": "USD",
-    "book": "Reservar"
+    "book": "Reservar",
+    "viewService": "Ver Servicio"
   },
   "schedule": {
     "occupied": "Sin disponibilidad",
@@ -996,6 +997,7 @@
       "notes": "Notas de Acceso (opcional)",
       "notesPlaceholder": "Código de puerta, caja de llaves, instrucciones de estacionamiento, mascotas…",
       "addressAutoComplete": "✓ Autocompletado de dirección activo",
+      "addressConfirmed": "Dirección confirmada con Google Maps",
       "errorRequired": "Requerido",
       "errorEmail": "Correo electrónico válido requerido",
       "errorPhone": "Teléfono de 10 dígitos requerido",

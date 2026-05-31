@@ -54,41 +54,14 @@ import {
   HOME_SIZE_LABELS,
 } from "@grenbee/firebase/services";
 import { auth } from "@grenbee/firebase";
-
-declare global {
-  interface Window {
-    google?: any;
-    __grenbeeGoogleMapsLoader?: Promise<void>;
-    __grenbeeGoogleMapsApiKey?: string;
-  }
-}
-
-// ── Google Maps helpers (shared with BookingForm via window globals) ───────────
-
-function isUsableGoogleMapsKey(value: string) {
-  const t = value.trim();
-  return t.length > 0 && t.startsWith("AIza") && !t.includes("REPLACE_ME");
-}
-
-async function loadGoogleMapsPlacesScript(apiKey: string): Promise<void> {
-  if (window.google?.maps?.places && window.__grenbeeGoogleMapsApiKey === apiKey) return;
-  if (!window.__grenbeeGoogleMapsLoader || window.__grenbeeGoogleMapsApiKey !== apiKey) {
-    window.__grenbeeGoogleMapsApiKey = apiKey;
-    window.__grenbeeGoogleMapsLoader = new Promise<void>((resolve, reject) => {
-      const existing = document.querySelector('script[data-grenbee-google-maps="true"]');
-      if (existing) existing.remove();
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&v=weekly`;
-      script.async = true;
-      script.defer = true;
-      script.dataset.grenbeeGoogleMaps = "true";
-      script.onload  = () => resolve();
-      script.onerror = () => reject(new Error("Google Maps script could not be loaded."));
-      document.head.appendChild(script);
-    });
-  }
-  return window.__grenbeeGoogleMapsLoader;
-}
+import {
+  createGoogleAutocompleteSessionToken,
+  fetchGoogleAddressSuggestions,
+  isUsableGoogleMapsKey,
+  loadGooglePlacesLibrary,
+  resolveGoogleAddressSuggestion,
+  type GoogleAddressSuggestion,
+} from "@/lib/googleMapsPlaces";
 
 type AppUser = UserProfile & { isAdmin?: boolean };
 
@@ -208,7 +181,11 @@ export default function MyAccount({
   const [isAddressAutocompleteEnabled, setIsAddressAutocompleteEnabled] = useState(false);
   const [isAddressAutocompleteReady,   setIsAddressAutocompleteReady]   = useState(false);
   const addressInputRef  = useRef<HTMLInputElement | null>(null);
-  const autocompleteRef  = useRef<any>(null);
+  const addressSessionTokenRef = useRef<any>(null);
+  const addressSuggestionRequestRef = useRef(0);
+  const [addressSuggestions, setAddressSuggestions] = useState<GoogleAddressSuggestion[]>([]);
+  const [addressSuggestionsOpen, setAddressSuggestionsOpen] = useState(false);
+  const [isResolvingAddress, setIsResolvingAddress] = useState(false);
 
   // Load Maps settings once
   useEffect(() => {
@@ -225,32 +202,18 @@ export default function MyAccount({
     return () => { cancelled = true; };
   }, []);
 
-  // Setup autocomplete when profile page is open and key is ready
+  // Load Places when profile page is open and key is ready.
   useEffect(() => {
     let cancelled = false;
     async function setup() {
-      const input = addressInputRef.current;
-      if (!input || !isAddressAutocompleteEnabled || !isUsableGoogleMapsKey(googleMapsKey) || activePage !== "profile") {
+      if (!isAddressAutocompleteEnabled || !isUsableGoogleMapsKey(googleMapsKey) || activePage !== "profile") {
         setIsAddressAutocompleteReady(false);
+        setAddressSuggestions([]);
+        setAddressSuggestionsOpen(false);
         return;
       }
       try {
-        await loadGoogleMapsPlacesScript(googleMapsKey);
-        if (cancelled || !addressInputRef.current || !window.google?.maps?.places?.Autocomplete) return;
-        if (autocompleteRef.current && window.google?.maps?.event) {
-          window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
-        }
-        const ac = new window.google.maps.places.Autocomplete(addressInputRef.current, {
-          fields: ["formatted_address", "address_components"],
-          types: ["address"],
-          componentRestrictions: { country: "us" },
-        });
-        ac.addListener("place_changed", () => {
-          const place = ac.getPlace();
-          if (!place?.formatted_address) return;
-          setProfileAddress(place.formatted_address);
-        });
-        autocompleteRef.current = ac;
+        await loadGooglePlacesLibrary(googleMapsKey);
         if (!cancelled) setIsAddressAutocompleteReady(true);
       } catch {
         if (!cancelled) setIsAddressAutocompleteReady(false);
@@ -259,6 +222,59 @@ export default function MyAccount({
     setup();
     return () => { cancelled = true; };
   }, [googleMapsKey, isAddressAutocompleteEnabled, activePage]);
+
+  useEffect(() => {
+    if (!isAddressAutocompleteReady || activePage !== "profile") {
+      setAddressSuggestions([]);
+      setAddressSuggestionsOpen(false);
+      return;
+    }
+
+    const input = profileAddress.trim();
+    if (input.length < 3) {
+      setAddressSuggestions([]);
+      setAddressSuggestionsOpen(false);
+      return;
+    }
+
+    let cancelled = false;
+    const requestId = ++addressSuggestionRequestRef.current;
+    const timer = window.setTimeout(async () => {
+      try {
+        if (!addressSessionTokenRef.current) {
+          addressSessionTokenRef.current = createGoogleAutocompleteSessionToken();
+        }
+        const suggestions = await fetchGoogleAddressSuggestions(googleMapsKey, input, addressSessionTokenRef.current);
+        if (!cancelled && requestId === addressSuggestionRequestRef.current) {
+          setAddressSuggestions(suggestions);
+          setAddressSuggestionsOpen(suggestions.length > 0);
+        }
+      } catch {
+        if (!cancelled && requestId === addressSuggestionRequestRef.current) {
+          setAddressSuggestions([]);
+          setAddressSuggestionsOpen(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [activePage, googleMapsKey, isAddressAutocompleteReady, profileAddress]);
+
+  const handleProfileAddressSuggestionSelect = async (suggestion: GoogleAddressSuggestion) => {
+    setIsResolvingAddress(true);
+    try {
+      const place = await resolveGoogleAddressSuggestion(suggestion);
+      setProfileAddress(place.formattedAddress || suggestion.fullText);
+      setAddressSuggestions([]);
+      setAddressSuggestionsOpen(false);
+      addressSessionTokenRef.current = createGoogleAutocompleteSessionToken();
+    } finally {
+      setIsResolvingAddress(false);
+    }
+  };
 
   // Payment fields
   const [cardName, setCardName]         = useState(currentUser.cardName ?? currentUser.name ?? "");
@@ -609,9 +625,35 @@ export default function MyAccount({
                       type="text"
                       value={profileAddress}
                       onChange={(e) => setProfileAddress(e.target.value)}
+                      onFocus={() => {
+                        if (addressSuggestions.length > 0) setAddressSuggestionsOpen(true);
+                      }}
+                      onBlur={() => {
+                        window.setTimeout(() => setAddressSuggestionsOpen(false), 150);
+                      }}
                       placeholder={isAddressAutocompleteReady ? "Escribe para buscar dirección..." : ""}
+                      autoComplete="street-address"
                       className="w-full pl-9 pr-4 py-3 text-sm rounded-xl border border-zinc-200 outline-none focus:border-brand bg-zinc-50/50 focus:bg-white font-semibold text-zinc-800 transition-all"
                     />
+                    {addressSuggestionsOpen && addressSuggestions.length > 0 && (
+                      <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl shadow-zinc-900/10">
+                        {addressSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.id}
+                            type="button"
+                            disabled={isResolvingAddress}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => handleProfileAddressSuggestionSelect(suggestion)}
+                            className="w-full px-3.5 py-3 text-left hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none disabled:opacity-60 transition-colors"
+                          >
+                            <span className="block text-sm font-semibold text-zinc-900">{suggestion.mainText || suggestion.fullText}</span>
+                            {suggestion.secondaryText && (
+                              <span className="block text-xs text-zinc-500 mt-0.5">{suggestion.secondaryText}</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
@@ -895,7 +937,7 @@ export default function MyAccount({
                       Activa un plan de membresía para recibir visitas programadas cada mes.
                     </p>
                   </div>
-                  <a href="./plans"
+                  <a href="/us/plans"
                     className="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-sm font-bold rounded-xl transition-all flex items-center gap-1.5">
                     Ver planes <ArrowRight size={14} />
                   </a>

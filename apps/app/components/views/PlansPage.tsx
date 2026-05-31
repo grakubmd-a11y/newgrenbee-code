@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { HomePlan, MembershipPlan } from "@grenbee/types";
@@ -350,12 +351,12 @@ export default function PlansPage() {
           <div className="max-w-md mx-auto space-y-4">
             <h2 className="text-2xl font-black text-white">{t("plans.bottomCta.title")}</h2>
             <p className="text-white/50 text-sm">{t("plans.bottomCta.subtitle")}</p>
-            <a
-              href="/#booking"
+            <Link
+              href="/book?service=house-cleaning"
               className="inline-block bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
             >
               {t("plans.bottomCta.button")}
-            </a>
+            </Link>
           </div>
         </section>
 

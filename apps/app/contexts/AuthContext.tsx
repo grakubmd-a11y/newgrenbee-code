@@ -90,14 +90,7 @@ export function useAuth(): AuthContextValue | null {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ── Core state ───────────────────────────────────────────────────────────
 
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
-    try {
-      const saved = typeof localStorage !== "undefined" ? localStorage.getItem("hsh_user") : null;
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>(INITIAL_BOOKINGS);

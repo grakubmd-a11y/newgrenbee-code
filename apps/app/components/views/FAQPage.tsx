@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import PageShell from "../layout/PageShell";
@@ -11,6 +13,8 @@ interface FAQCategory { name: string; items: FAQItem[]; }
 
 export default function FAQPage() {
   const { t, i18n } = useTranslation();
+  const params = useParams();
+  const base = `/${(params?.country as string) ?? "us"}`;
   const [openKey, setOpenKey]   = useState<string | null>(null);
   const [cms, setCms]           = useState<FaqPageContent | null>(null);
 
@@ -86,12 +90,12 @@ export default function FAQPage() {
         <div className="mt-12 p-6 bg-emerald-50 rounded-2xl text-center">
           <p className="text-gray-700 font-medium mb-2">{t("faq.stillQuestion")}</p>
           <p className="text-sm text-gray-500 mb-4">{t("faq.teamAvailable")}</p>
-          <a
-            href="/contact"
+          <Link
+            href={`${base}/contact`}
             className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors"
           >
             {t("faq.contactUs")}
-          </a>
+          </Link>
         </div>
       </div>
     </PageShell>

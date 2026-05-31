@@ -356,11 +356,11 @@ export default function PlansPage() {
       {/* Nav bar */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 font-black text-[#0a2e1e] text-lg">
+          <a href="/us" className="flex items-center gap-2 font-black text-[#0a2e1e] text-lg">
             🌿 <span>Grenbee</span>
           </a>
           <a
-            href="/#booking"
+            href="/book?service=house-cleaning"
             className="text-xs font-bold text-brand border border-brand/30 rounded-full px-4 py-1.5 hover:bg-brand hover:text-white transition-colors"
           >
             {t("plans.bookOneTime")}
@@ -521,7 +521,7 @@ export default function PlansPage() {
           <h2 className="text-2xl font-black text-white">{t("plans.bottomCta.title")}</h2>
           <p className="text-white/50 text-sm">{t("plans.bottomCta.subtitle")}</p>
           <a
-            href="/#booking"
+            href="/book?service=house-cleaning"
             className="inline-block bg-brand text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors"
           >
             {t("plans.bottomCta.button")}

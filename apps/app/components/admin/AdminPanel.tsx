@@ -110,7 +110,7 @@ export default function AdminPanel({
     id: "business",
     name: "Grenbee Home Services Hub",
     phone: "(800) 555-GREE",
-    email: "hola@greenbee.com",
+    email: "hola@grenbee.com",
     timezone: "America/Denver",
     bookingEnabled: true,
     stripeMode: "test",
