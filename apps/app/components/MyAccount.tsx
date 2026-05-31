@@ -331,7 +331,12 @@ export default function MyAccount({
     for (let i = 1; i <= 8; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      dates.push(d.toISOString().split("T")[0]);
+      // Use local date components — toISOString() returns UTC and can give
+      // wrong date for users in Mountain Time during evening hours.
+      const y  = d.getFullYear();
+      const m  = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      dates.push(`${y}-${m}-${dd}`);
     }
     return dates;
   }, []);
@@ -1017,14 +1022,16 @@ export default function MyAccount({
               </div>
             )}
 
-            {/* Upcoming */}
+            {/* Upcoming — header solo visible cuando hay reservas activas */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wider">Próximas visitas</h2>
-                <span className="text-xs font-bold text-zinc-400">
-                  {upcomingBookings.length} activa{upcomingBookings.length !== 1 ? "s" : ""}
-                </span>
-              </div>
+              {upcomingBookings.length > 0 && (
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wider">Próximas visitas</h2>
+                  <span className="text-xs font-bold text-zinc-400">
+                    {upcomingBookings.length} activa{upcomingBookings.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
 
               {upcomingBookings.length > 0 ? (
                 <div className="space-y-3">
@@ -1208,9 +1215,20 @@ export default function MyAccount({
 
         {/* stats */}
         <div className="mt-5 grid grid-cols-2 gap-3 relative z-10">
-          <div className="bg-white border border-zinc-200/60 px-4 py-3 rounded-xl">
-            <span className="text-[10px] text-zinc-400 uppercase font-extrabold tracking-wider block">Pedidos activos</span>
-            <span className="text-lg font-extrabold text-zinc-900 mt-0.5 block">{upcomingBookings.length}</span>
+          <div
+            className="bg-white border border-zinc-200/60 px-4 py-3 rounded-xl cursor-pointer hover:border-brand/30 transition-colors"
+            onClick={() => setActivePage("bookings")}
+          >
+            <span className="text-[10px] text-zinc-400 uppercase font-extrabold tracking-wider block">
+              {upcomingBookings.length > 0 ? "Pedidos activos" : "Mis pedidos"}
+            </span>
+            {upcomingBookings.length > 0 ? (
+              <span className="text-lg font-extrabold text-brand mt-0.5 block">
+                {upcomingBookings.length} activa{upcomingBookings.length !== 1 ? "s" : ""}
+              </span>
+            ) : (
+              <span className="text-sm font-extrabold text-zinc-400 mt-0.5 block">Ver historial →</span>
+            )}
           </div>
           <div className="bg-white border border-zinc-200/60 px-4 py-3 rounded-xl">
             <span className="text-[10px] text-zinc-400 uppercase font-extrabold tracking-wider block">Membresía</span>
