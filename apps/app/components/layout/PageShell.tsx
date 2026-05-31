@@ -61,7 +61,7 @@ export default function PageShell({ children, seo }: PageShellProps) {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
             {/* Brand */}
             <div className="md:col-span-1 space-y-3">
-              <Link href="/" className="inline-block">
+              <Link href={base} className="inline-block">
                 <span className="text-lg font-extrabold text-white tracking-tight">
                   Gren<span className="text-emerald-400">bee</span>
                 </span>
@@ -140,8 +140,8 @@ export default function PageShell({ children, seo }: PageShellProps) {
               <ul className="space-y-2 text-sm">
                 <li><Link href={`${base}/plans`}   className="hover:text-emerald-400 transition-colors">{t("home.footer.membershipPlans")}</Link></li>
                 <li><Link href={`${base}/areas`}   className="hover:text-emerald-400 transition-colors">{t("home.footer.allServiceAreas")}</Link></li>
-                <li><Link href={`${base}/hosts`}   className="hover:text-emerald-400 transition-colors">For Hosts</Link></li>
-                <li><Link href={`${base}/faq`}     className="hover:text-emerald-400 transition-colors">FAQ</Link></li>
+                <li><Link href={`${base}/hosts`}   className="hover:text-emerald-400 transition-colors">{t("siteNav.forHosts")}</Link></li>
+                <li><Link href={`${base}/faq`}     className="hover:text-emerald-400 transition-colors">{t("siteNav.faq")}</Link></li>
                 <li><Link href={`${base}/contact`} className="hover:text-emerald-400 transition-colors">{t("home.footer.contactUs")}</Link></li>
               </ul>
               <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3 mt-5">

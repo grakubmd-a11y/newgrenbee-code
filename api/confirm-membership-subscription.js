@@ -10,6 +10,7 @@
 
 import Stripe from "stripe";
 import { getFirestore, verifyIdToken, sendJson, parseBody } from "./_recurring.js";
+import { sendEmail, buildMembershipConfirmationEmail } from "./_mailer.js";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const hasStripe =
@@ -145,5 +146,16 @@ export default async function handler(req, res) {
   }
 
   const subscription = { id: ref.id, ...subData };
+
+  // Send confirmation email (non-blocking — sendEmail resolves silently on error)
+  if (subscription.userEmail) {
+    try {
+      const { subject, html } = buildMembershipConfirmationEmail(subscription);
+      await sendEmail(subscription.userEmail, subject, html);
+    } catch (mailErr) {
+      console.error("membership confirmation email failed:", mailErr?.message);
+    }
+  }
+
   return sendJson(res, 200, { subscriptionId: ref.id, subscription });
 }

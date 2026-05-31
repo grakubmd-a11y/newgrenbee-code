@@ -37,7 +37,7 @@ import {
   ZoomIn,
   FileText,
 } from "lucide-react";
-import { Booking, JobPhoto, RecurringPlan, RecurringPlanAction, MembershipSubscription, MembershipSubscriptionAction } from "@grenbee/types";
+import { Booking, JobPhoto, RecurringPlan, RecurringPlanAction, MembershipSubscription, MembershipSubscriptionAction, MembershipPlan } from "@grenbee/types";
 import type { UserProfile } from "@grenbee/firebase/services";
 import { updateUserPassword, currentUserHasPasswordProvider, fetchPublicSettingsFromFirestore } from "@grenbee/firebase/services";
 import {
@@ -48,10 +48,12 @@ import {
   STATUS_COLORS,
   getUserMembershipSubscriptions,
   manageMembershipSubscription,
+  fetchMembershipPlans,
   MEMBERSHIP_STATUS_LABELS,
   MEMBERSHIP_STATUS_COLORS,
   HOME_SIZE_LABELS,
 } from "@grenbee/firebase/services";
+import { auth } from "@grenbee/firebase";
 
 declare global {
   interface Window {
@@ -401,6 +403,8 @@ export default function MyAccount({
   const [memberships, setMemberships]           = useState<MembershipSubscription[]>([]);
   const [membershipsLoading, setMembershipsLoading] = useState(false);
   const [membershipActioning, setMembershipActioning] = useState<string | null>(null);
+  const [membershipPlans, setMembershipPlans]   = useState<MembershipPlan[]>([]);
+  const [changePlanFor, setChangePlanFor]       = useState<MembershipSubscription | null>(null);
 
   // ── Recurring Plans state ─────────────────────────────────────────────────
   const [plans, setPlans]               = useState<RecurringPlan[]>([]);
@@ -427,6 +431,10 @@ export default function MyAccount({
       .catch(() => {})
       .finally(() => { if (!cancelled) setMembershipsLoading(false); });
 
+    fetchMembershipPlans()
+      .then((data) => { if (!cancelled) setMembershipPlans(data); })
+      .catch(() => {});
+
     return () => { cancelled = true; };
   }, [activePage, currentUser?.uid]);
 
@@ -446,6 +454,35 @@ export default function MyAccount({
       showSuccess(msgs[action]);
     } catch (err: any) {
       setSaveError(err?.message ?? "No se pudo actualizar la membresía.");
+    } finally {
+      setMembershipActioning(null);
+    }
+  };
+
+  const handleChangePlan = async (newPlanId: string) => {
+    if (!changePlanFor) return;
+    const subId = changePlanFor.id;
+    setMembershipActioning(subId);
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) throw new Error("Debes iniciar sesión.");
+      const idToken = await firebaseUser.getIdToken();
+      const resp = await fetch("/api/change-membership-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ subscriptionId: subId, newPlanId }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || "No se pudo cambiar el plan.");
+      const updated = data.subscription as MembershipSubscription;
+      setMemberships((prev) => prev.map((m) => (m.id === subId ? updated : m)));
+      setChangePlanFor(null);
+      showSuccess("Plan actualizado. El nuevo precio aplica en el próximo cobro.");
+    } catch (err: any) {
+      setSaveError(err?.message ?? "No se pudo cambiar el plan.");
     } finally {
       setMembershipActioning(null);
     }
@@ -866,9 +903,61 @@ export default function MyAccount({
                   subscription={m}
                   actioning={membershipActioning === m.id}
                   onAction={(action) => handleMembershipAction(m.id, action)}
+                  onChangePlan={() => setChangePlanFor(m)}
                 />
               ))}
             </div>
+
+            {/* ── Change plan modal ── */}
+            {changePlanFor && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+                onClick={(e) => { if (e.target === e.currentTarget) setChangePlanFor(null); }}
+              >
+                <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-extrabold text-zinc-900">Cambiar de plan</h3>
+                    <button
+                      type="button"
+                      onClick={() => setChangePlanFor(null)}
+                      className="text-zinc-400 hover:text-zinc-600 cursor-pointer"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-zinc-500 mb-4">
+                    El nuevo precio se aplicará en tu próximo cobro. No se realizará ningún cargo ahora.
+                  </p>
+                  <div className="space-y-3">
+                    {membershipPlans
+                      .filter((p) => p.id !== changePlanFor.planId)
+                      .map((p) => {
+                        const tier = p.pricing?.[changePlanFor.homeSize];
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            disabled={membershipActioning === changePlanFor.id || !tier?.price}
+                            onClick={() => handleChangePlan(p.id)}
+                            className="flex w-full items-center justify-between rounded-xl border border-zinc-200 px-4 py-3 text-left hover:border-brand transition-colors disabled:opacity-50 cursor-pointer"
+                          >
+                            <span>
+                              <span className="block font-bold text-zinc-900 text-sm">{p.name}</span>
+                              <span className="block text-xs text-zinc-500">{p.frequencyLabel}</span>
+                            </span>
+                            <span className="text-sm font-extrabold text-brand">
+                              {tier?.priceLabel ?? "Cotizar"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    {membershipPlans.filter((p) => p.id !== changePlanFor.planId).length === 0 && (
+                      <p className="text-sm text-zinc-400 text-center py-4">No hay otros planes disponibles.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ── Recurring service plans ── */}
             <div className="space-y-3">
@@ -1514,10 +1603,12 @@ function MembershipSubscriptionCard({
   subscription: sub,
   actioning,
   onAction,
+  onChangePlan,
 }: {
   subscription: MembershipSubscription;
   actioning: boolean;
   onAction: (action: MembershipSubscriptionAction) => void;
+  onChangePlan: () => void;
   key?: string;
 }) {
   const isActive    = sub.status === "active";
@@ -1611,6 +1702,13 @@ function MembershipSubscriptionCard({
                 className="border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100"
               />
             )}
+            <ActionButton
+              onClick={onChangePlan}
+              loading={false}
+              icon={<RefreshCw size={13} />}
+              label="Cambiar plan"
+              className="border border-zinc-200 text-zinc-700 bg-zinc-50 hover:bg-zinc-100"
+            />
             <ActionButton
               onClick={() => onAction("cancel")}
               loading={actioning}

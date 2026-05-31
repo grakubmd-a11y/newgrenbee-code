@@ -17,3 +17,4 @@ turbo-build.log
 # TypeScript build cache
 *.tsbuildinfo
 .env*
+.claude/worktrees/

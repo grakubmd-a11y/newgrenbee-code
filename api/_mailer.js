@@ -363,6 +363,32 @@ export function buildStaffInviteEmail(staff, opts = {}) {
   };
 }
 
+// ── Template: Membership Confirmation (→ customer) ───────────────────────────
+/**
+ * Sent after a customer successfully subscribes to a membership plan.
+ * @param {object} sub  membershipSubscriptions document
+ */
+export function buildMembershipConfirmationEmail(sub) {
+  const body = `
+    ${h1("Welcome to your Grenbee membership! 🌿")}
+    ${p(`Hi ${sub.userName || "there"}, your <strong>${sub.planName}</strong> membership is now active. Thanks for joining Grenbee!`)}
+    ${detailTable([
+      detailRow("Plan",            sub.planName),
+      detailRow("Monthly price",   usd(sub.pricePerMonth)),
+      detailRow("Visits / month",  String(sub.visitsPerMonth ?? "—")),
+      detailRow("Next billing",    friendlyDate(sub.nextBillingDate)),
+    ])}
+    ${p("You can pause, change, or cancel your membership at any time from <strong>My Account → My Plans</strong>.")}
+    ${divider()}
+    ${p("Questions? Reply to this email or contact us through the website.", "color:#888;font-size:12px;")}
+  `;
+
+  return {
+    subject: `Your Grenbee ${sub.planName} membership is active`,
+    html:    wrap(`Membership confirmed — ${sub.planName}`, body),
+  };
+}
+
 // ── Send helper ───────────────────────────────────────────────────────────────
 
 /**
