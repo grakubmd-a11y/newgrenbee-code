@@ -1,4 +1,12 @@
-Ignore everything inside the docs/ folder.
+<!-- [DOCS-FILTER: INACTIVE] Ignore everything inside the docs/ folder. -->
+
+<!--
+  TOGGLE DE LA CARPETA docs/
+  ──────────────────────────
+  • ACTIVAR   (agentes ignoran docs/): quitar los comentarios HTML de la línea de arriba
+  • DESACTIVAR (agentes leen docs/):   envolver la línea en: <!-- ... - ->
+  El dueño del proyecto puede pedirle a cualquier agente: "activa/desactiva el filtro de docs"
+-->
 
 # Grenbee — Guía para Agentes de IA
 
