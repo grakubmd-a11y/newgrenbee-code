@@ -19,7 +19,7 @@
  *   CRON_SECRET                    — optional; bearer token to restrict access
  */
 
-import { getFirestore, sendJson } from "./_recurring.js";
+import { getFirestore, sendJson, localDateMT } from "./_recurring.js";
 import { sendEmail, buildAppointmentReminderEmail } from "./_mailer.js";
 
 const MAX_PER_RUN = 50;
@@ -57,10 +57,12 @@ export default async function handler(req, res) {
     });
   }
 
-  // ── Compute "tomorrow" in YYYY-MM-DD ─────────────────────────────────────
-  const tomorrow = new Date();
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+  // ── Compute "tomorrow" in Mountain Time ──────────────────────────────────
+  // Using Intl with America/Denver so "tomorrow" is correct regardless of
+  // what UTC says (servers run in UTC, but our business is in Mountain Time).
+  const tomorrowDT = new Date();
+  tomorrowDT.setDate(tomorrowDT.getDate() + 1);
+  const tomorrowStr = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Denver" }).format(tomorrowDT);
 
   // ── Query bookings for tomorrow that haven't been reminded yet ───────────
   let snap;

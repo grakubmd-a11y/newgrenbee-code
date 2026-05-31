@@ -9,7 +9,7 @@
  */
 
 import Stripe from "stripe";
-import { getFirestore, sendJson } from "./_recurring.js";
+import { getFirestore, sendJson, localDateMT } from "./_recurring.js";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const cronSecret      = process.env.CRON_SECRET;
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     return sendJson(res, 503, { error: "Firebase Admin credentials are not configured." });
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = localDateMT(); // Mountain Time — avoids UTC off-by-one at night
   const results = { processed: 0, skipped: 0, failed: 0, errors: [] };
 
   try {

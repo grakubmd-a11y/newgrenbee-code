@@ -111,7 +111,7 @@ export default function AdminPanel({
     name: "Grenbee Home Services Hub",
     phone: "(800) 555-GREE",
     email: "hola@greenbee.com",
-    timezone: "Central Standard Time (CST)",
+    timezone: "America/Denver",
     bookingEnabled: true,
     stripeMode: "test",
     stripePublishableKey: "",
@@ -3998,9 +3998,10 @@ export default function AdminPanel({
                 onChange={(e) => setBusinessSettings({ ...businessSettings, timezone: e.target.value })}
                 className="w-full text-xs p-3 rounded-xl border border-gray-250 bg-gray-50 focus:bg-white focus:ring-1 focus:ring-brand outline-none font-bold text-gray-800"
               >
-                <option value="Central Standard Time (CST)">Central Standard Time (CST)</option>
-                <option value="Eastern Standard Time (EST)">Eastern Standard Time (EST)</option>
-                <option value="Pacific Standard Time (PST)">Pacific Standard Time (PST)</option>
+                <option value="America/Denver">Mountain Time — Utah / Denver (MDT/MST)</option>
+                <option value="America/Chicago">Central Time (CDT/CST)</option>
+                <option value="America/New_York">Eastern Time (EDT/EST)</option>
+                <option value="America/Los_Angeles">Pacific Time (PDT/PST)</option>
               </select>
             </div>
 

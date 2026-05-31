@@ -61,6 +61,20 @@ const RECURRENCE_INTERVALS = {
 };
 
 /**
+ * Returns today's date as "YYYY-MM-DD" in Mountain Time (America/Denver).
+ *
+ * Why not new Date().toISOString().split("T")[0]?
+ * toISOString() returns UTC. For users/servers in MDT (UTC-6) or MST (UTC-7),
+ * after 6pm / 5pm respectively, UTC is already "tomorrow". This causes
+ * same-day fee false positives, wrong billing dates, etc.
+ *
+ * en-CA locale formats dates as YYYY-MM-DD natively — no manual padding needed.
+ */
+export function localDateMT() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Denver" }).format(new Date());
+}
+
+/**
  * Advance fromDateStr (YYYY-MM-DD) by one recurrence interval.
  * Returns a YYYY-MM-DD string, or null if inputs are invalid.
  */

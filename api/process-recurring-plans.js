@@ -21,7 +21,7 @@
  */
 
 import Stripe from "stripe";
-import { getFirestore, calculateNextChargeDate, sendJson } from "./_recurring.js";
+import { getFirestore, calculateNextChargeDate, sendJson, localDateMT } from "./_recurring.js";
 import { sendEmail, buildRecurringReceiptEmail } from "./_mailer.js";
 import { assignStaffToBooking } from "./auto-assign-staff.js";
 
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = localDateMT(); // Mountain Time — avoids UTC off-by-one at night
 
   // ── Query due plans ───────────────────────────────────────────────────────
   let due;
