@@ -823,6 +823,26 @@
       "noPaymentNote": "No se requiere pago ahora. Un miembro del equipo Grenbee te contactará para confirmar los detalles y programar tu primera visita."
     }
   },
+  "serviceLanding": {
+    "backToServices": "← Todos los servicios",
+    "startingAt": "Desde",
+    "perVisit": "/ visita",
+    "bookNow": "Agendar ahora",
+    "bookNowSub": "Sin pago anticipado · Cancela cuando quieras",
+    "includedTitle": "Qué incluye",
+    "howItWorksTitle": "Cómo funciona",
+    "howItWorksSteps": [
+      { "title": "Obtén tu precio al instante", "body": "Ajusta tus opciones y ve tu precio exacto en tiempo real — sin costos ocultos." },
+      { "title": "Elige tu horario", "body": "Selecciona la fecha y hora que mejor te convenga. Disponibilidad en la misma semana." },
+      { "title": "Nosotros nos encargamos", "body": "Nuestros profesionales verificados y asegurados llegan puntual y hacen el trabajo bien." }
+    ],
+    "trustInsured": "Totalmente asegurado",
+    "trustVetted": "Profesionales con antecedentes verificados",
+    "trustGuarantee": "Satisfacción garantizada",
+    "ctaTitle": "¿Listo para empezar?",
+    "ctaSub": "Únete a cientos de familias satisfechas en Utah County.",
+    "relatedTitle": "Otros servicios que podrían interesarte"
+  },
   "legal": {
     "lastUpdated": "Última actualización:",
     "legalNotice": "Aviso Legal: "

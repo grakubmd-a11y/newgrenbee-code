@@ -823,6 +823,26 @@
       "noPaymentNote": "No payment required now. A Grenbee team member will contact you to confirm details and schedule your first visit."
     }
   },
+  "serviceLanding": {
+    "backToServices": "← All services",
+    "startingAt": "Starting at",
+    "perVisit": "/ visit",
+    "bookNow": "Book Now",
+    "bookNowSub": "No upfront payment · Cancel anytime",
+    "includedTitle": "What's included",
+    "howItWorksTitle": "How it works",
+    "howItWorksSteps": [
+      { "title": "Get an instant quote", "body": "Adjust your options below and see your exact price in real time — no hidden fees." },
+      { "title": "Pick your time", "body": "Choose the date and time that works best for you. Same-week availability in most areas." },
+      { "title": "We take care of the rest", "body": "Our vetted, insured pros arrive on time and get the job done right, every time." }
+    ],
+    "trustInsured": "Fully insured",
+    "trustVetted": "Background-checked pros",
+    "trustGuarantee": "Satisfaction guaranteed",
+    "ctaTitle": "Ready to get started?",
+    "ctaSub": "Join hundreds of happy homeowners in Utah County.",
+    "relatedTitle": "Other services you might like"
+  },
   "legal": {
     "lastUpdated": "Last updated:",
     "legalNotice": "Legal Notice: "

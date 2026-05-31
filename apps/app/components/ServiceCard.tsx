@@ -1,16 +1,28 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Service } from "@grenbee/types";
 import { useTranslatedService } from "@/hooks/useTranslatedService";
 
-interface ServiceCardProps {
+/**
+ * ServiceCard — two clear modes, no ambiguity:
+ *
+ * • href mode   (marketing pages): the whole card is a <Link>.
+ *   Use on ServicesPage, HomePage, ServiceLandingView "related" section.
+ *
+ * • select mode (booking flow):    the CTA triggers a callback.
+ *   Use inside PublicApp when the user is choosing a service to book.
+ */
+type ServiceCardProps = {
   service: Service;
-  onBookClick: (serviceId: string) => void;
   avgRating?: number;
   reviewsCount?: number;
-}
+} & (
+  | { href: string; onBookClick?: never }
+  | { href?: never; onBookClick: (serviceId: string) => void }
+);
 
 const DEFAULT_SERVICE_IMAGES: Record<string, string> = {
   "house-cleaning": "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80",
@@ -22,17 +34,17 @@ const DEFAULT_SERVICE_IMAGES: Record<string, string> = {
 
 const GENERIC_SERVICE_IMAGE = "https://images.unsplash.com/photo-1502005229762-fc1b2d812ca5?auto=format&fit=crop&w=600&q=80";
 
-export default function ServiceCard({ service: rawService, onBookClick, avgRating = 4.8, reviewsCount = 0 }: ServiceCardProps) {
+export default function ServiceCard({ service: rawService, href, onBookClick, avgRating = 4.8, reviewsCount = 0 }: ServiceCardProps) {
   const { t } = useTranslation();
   const service = useTranslatedService(rawService);
   const IconComponent = (Icons as any)[service.iconName] || Icons.HelpCircle;
   const cardImage = DEFAULT_SERVICE_IMAGES[service.id] || GENERIC_SERVICE_IMAGE;
+  const isLinkMode = Boolean(href);
 
-  return (
-    <div
-      id={`service-card-${service.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-white p-4 pb-6 ring-1 ring-slate-900/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:ring-brand/25 hover:shadow-[0_24px_60px_-12px_rgba(14,173,107,0.18)] hover:-translate-y-2"
-    >
+  const cardClassName = "group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-white p-4 pb-6 ring-1 ring-slate-900/[0.06] shadow-[0_8px_40px_rgba(0,0,0,0.05)] transition-all duration-300 hover:ring-brand/25 hover:shadow-[0_24px_60px_-12px_rgba(14,173,107,0.18)] hover:-translate-y-2 no-underline";
+
+  const cardContent = (
+    <React.Fragment>
       {/* Top accent gradient stripe */}
       <div className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-brand/60 via-emerald-400/80 to-brand/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
@@ -134,15 +146,40 @@ export default function ServiceCard({ service: rawService, onBookClick, avgRatin
             </span>
           </div>
 
-          <button
-            onClick={() => onBookClick(service.id)}
-            className="flex-grow cursor-pointer flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-brand text-white py-3 px-4 text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.25)] group-hover:bg-brand group-hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.3)] active:scale-[0.97]"
-          >
-            <span>{t("serviceCard.book")}</span>
-            <Icons.ChevronRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.5} />
-          </button>
+          {/* In link mode the CTA is a <span> — the parent <Link> handles navigation.
+              In select mode it's a <button> with the callback. */}
+          {isLinkMode ? (
+            <span className="flex-grow flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 group-hover:bg-brand text-white py-3 px-4 text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.3)]">
+              <span>{t("serviceCard.book")}</span>
+              <Icons.ChevronRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.5} />
+            </span>
+          ) : (
+            <button
+              onClick={() => onBookClick!(service.id)}
+              className="flex-grow cursor-pointer flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-brand text-white py-3 px-4 text-xs font-black uppercase tracking-widest transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.25)] group-hover:bg-brand group-hover:shadow-[0_8px_20px_-4px_rgba(14,173,107,0.3)] active:scale-[0.97]"
+            >
+              <span>{t("serviceCard.book")}</span>
+              <Icons.ChevronRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.5} />
+            </button>
+          )}
         </div>
       </div>
+    </React.Fragment>
+  );
+
+  // Link mode: entire card is a <Link> — no <button> inside = valid HTML
+  if (isLinkMode) {
+    return (
+      <Link href={href!} id={`service-card-${service.id}`} className={cardClassName}>
+        {cardContent}
+      </Link>
+    );
+  }
+
+  // Select mode: plain <div> — CTA button handles the interaction
+  return (
+    <div id={`service-card-${service.id}`} className={cardClassName}>
+      {cardContent}
     </div>
   );
 }

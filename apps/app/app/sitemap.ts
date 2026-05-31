@@ -1,7 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getAllAreaSlugs } from "@/lib/areaContent.server";
+import { SERVICES_DATA } from "@grenbee/config";
 
 const BASE = "https://grenbee.com";
+
+// All service slugs (individual service landing pages)
+const ALL_SERVICE_SLUGS = SERVICES_DATA.map((s) => s.id);
 
 // Service slugs that have city+service landing pages
 const SERVICE_SLUGS = ["house-cleaning", "lawn-mowing", "tv-installation"];
@@ -61,5 +65,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   );
 
-  return [...staticEN, ...cityEN, ...serviceEN, ...staticES, ...cityES, ...serviceES];
+  // ── Individual service landing pages ─────────────────────────────────────
+  const serviceLandingEN: MetadataRoute.Sitemap = ALL_SERVICE_SLUGS.map((slug) => ({
+    url: `${BASE}/us/services/${slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.85,
+  }));
+
+  const serviceLandingES: MetadataRoute.Sitemap = ALL_SERVICE_SLUGS.map((slug) => ({
+    url: `${BASE}/us/es/services/${slug}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
+  return [
+    ...staticEN, ...cityEN, ...serviceEN, ...serviceLandingEN,
+    ...staticES, ...cityES, ...serviceES, ...serviceLandingES,
+  ];
 }

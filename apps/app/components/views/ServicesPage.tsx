@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import PageShell from "@/components/layout/PageShell";
 import ServiceCard from "@/components/ServiceCard";
@@ -9,15 +9,11 @@ import { useSiteSettings } from "@grenbee/firebase/contexts";
 
 export default function ServicesPage() {
   const { t } = useTranslation();
-  const router = useRouter();
+  const params = useParams();
+  const base   = `/${(params?.country as string) ?? "us"}`;
   const { activeServiceIds } = useSiteSettings();
 
-  // Consistent with estimator, home page, and footer — all use admin-controlled list
   const activeServices = SERVICES_DATA.filter(s => activeServiceIds.includes(s.id));
-
-  function handleBookClick(serviceId: string) {
-    router.push(`/book?service=${serviceId}`);
-  }
 
   return (
     <PageShell>
@@ -41,7 +37,7 @@ export default function ServicesPage() {
               <ServiceCard
                 key={service.id}
                 service={service}
-                onBookClick={handleBookClick}
+                href={`${base}/services/${service.id}`}
               />
             ))}
           </div>

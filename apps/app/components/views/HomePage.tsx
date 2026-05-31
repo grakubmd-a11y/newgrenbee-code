@@ -277,7 +277,7 @@ export default function HomePage() {
                   <ServiceCard
                     key={service.id}
                     service={service}
-                    onBookClick={() => scrollToEstimator(service.id)}
+                    href={`${base}/services/${service.id}`}
                     avgRating={avgRating}
                     reviewsCount={svcReviews.length}
                   />
