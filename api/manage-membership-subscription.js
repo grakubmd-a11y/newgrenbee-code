@@ -72,7 +72,9 @@ export default async function handler(req, res) {
         d.setUTCMonth(d.getUTCMonth() + 1);
         nextBilling = d.toISOString().split("T")[0];
       }
-      update = { ...update, status: "active", pausedAt: null, nextBillingDate: nextBilling };
+      // Reset failureCount so a previously past_due / failed history doesn't
+      // immediately re-trigger the past_due threshold after reactivation.
+      update = { ...update, status: "active", pausedAt: null, nextBillingDate: nextBilling, failureCount: 0 };
       break;
 
     case "cancel":

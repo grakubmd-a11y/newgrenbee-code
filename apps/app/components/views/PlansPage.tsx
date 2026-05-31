@@ -1,10 +1,17 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as Icons from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { HomePlan } from "@grenbee/types";
+import type { HomePlan, MembershipPlan } from "@grenbee/types";
 import { HOME_PLANS } from "@grenbee/config";
+import { fetchMembershipPlans, HOME_SIZE_LABELS } from "@grenbee/firebase/services";
 import PageShell from "@/components/layout/PageShell";
+import MembershipCheckoutModal from "@/components/plans/MembershipCheckoutModal";
+
+// Default home size used when the user starts checkout straight from a plan
+// card (the marketing cards don't ask for home size). The checkout modal still
+// shows the resolved price and the server re-validates everything.
+const DEFAULT_HOME_SIZE = "medium" as const;
 
 // ─── Lead capture modal ────────────────────────────────────────────────────────
 function LeadModal({ plan, onClose }: { plan: HomePlan; onClose: () => void }) {
@@ -216,7 +223,30 @@ function PlanCard({ plan, onSelect }: { plan: HomePlan; onSelect: () => void }) 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 export default function PlansPage() {
   const { t } = useTranslation();
-  const [modalPlan, setModalPlan] = useState<HomePlan | null>(null);
+  const [modalPlan, setModalPlan]       = useState<HomePlan | null>(null);
+  const [checkoutPlan, setCheckoutPlan] = useState<MembershipPlan | null>(null);
+  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
+
+  // Load the real (Firestore-backed) membership plans so the "Get Started"
+  // button can open the live checkout. Falls back to the lead-capture modal
+  // when a matching plan hasn't been seeded.
+  useEffect(() => {
+    let cancelled = false;
+    fetchMembershipPlans()
+      .then((plans) => { if (!cancelled) setMembershipPlans(plans); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleSelect = (plan: HomePlan) => {
+    const match = membershipPlans.find((p) => p.id === plan.id);
+    if (match) {
+      setCheckoutPlan(match);
+    } else {
+      // Plan not available for self-serve checkout yet — capture the lead.
+      setModalPlan(plan);
+    }
+  };
 
   const alwaysItems  = t("plans.included.alwaysItems", { returnObjects: true }) as string[];
   const notItems     = t("plans.included.notItems",    { returnObjects: true }) as string[];
@@ -253,7 +283,7 @@ export default function PlansPage() {
               <PlanCard
                 key={plan.id}
                 plan={plan}
-                onSelect={() => setModalPlan(plan)}
+                onSelect={() => handleSelect(plan)}
               />
             ))}
           </div>
@@ -333,6 +363,15 @@ export default function PlansPage() {
 
       {modalPlan && (
         <LeadModal plan={modalPlan} onClose={() => setModalPlan(null)} />
+      )}
+
+      {checkoutPlan && (
+        <MembershipCheckoutModal
+          plan={checkoutPlan}
+          homeSize={DEFAULT_HOME_SIZE}
+          homeSizeLabel={HOME_SIZE_LABELS[DEFAULT_HOME_SIZE] ?? DEFAULT_HOME_SIZE}
+          onClose={() => setCheckoutPlan(null)}
+        />
       )}
     </PageShell>
   );

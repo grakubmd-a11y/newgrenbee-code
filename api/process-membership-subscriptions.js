@@ -68,27 +68,36 @@ export default async function handler(req, res) {
       }
 
       try {
-        // Charge the saved payment method
-        const intent = await stripe.paymentIntents.create({
-          amount:         Math.round(sub.pricePerMonth * 100),
-          currency:       "usd",
-          customer:       sub.stripeCustomerId,
-          payment_method: sub.stripePaymentMethodId,
-          off_session:    true,
-          confirm:        true,
-          description:    `Grenbee ${sub.planName} — ${sub.homeSize} home (monthly renewal)`,
-          metadata: {
-            type:           "membership_renewal",
-            subscriptionId: subId,
-            planId:         sub.planId,
-            userId:         sub.userId,
+        // Charge the saved payment method.
+        // Idempotency key prevents a duplicate charge if the daily cron runs
+        // more than once for the same subscription on the same day (network
+        // error / timeout / retry). Stripe returns the original PaymentIntent.
+        const intent = await stripe.paymentIntents.create(
+          {
+            amount:         Math.round(sub.pricePerMonth * 100),
+            currency:       "usd",
+            customer:       sub.stripeCustomerId,
+            payment_method: sub.stripePaymentMethodId,
+            off_session:    true,
+            confirm:        true,
+            description:    `Grenbee ${sub.planName} — ${sub.homeSize} home (monthly renewal)`,
+            metadata: {
+              type:           "membership_renewal",
+              subscriptionId: subId,
+              planId:         sub.planId,
+              userId:         sub.userId,
+            },
           },
-        });
+          {
+            idempotencyKey: `mem-sub-${subId}-${today}`,
+          }
+        );
 
         const now           = new Date().toISOString();
         const nextBillingDate = addOneMonth(sub.nextBillingDate);
 
         await docSnap.ref.update({
+          currentPeriodStart: today,
           nextBillingDate,
           lastBillingDate:   today,
           lastBillingStatus: intent.status,
