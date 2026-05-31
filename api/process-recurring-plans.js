@@ -23,6 +23,7 @@
 import Stripe from "stripe";
 import { getFirestore, calculateNextChargeDate, sendJson } from "./_recurring.js";
 import { sendEmail, buildRecurringReceiptEmail } from "./_mailer.js";
+import { assignStaffToBooking } from "./auto-assign-staff.js";
 
 // ── Stripe init ───────────────────────────────────────────────────────────────
 
@@ -154,6 +155,16 @@ export default async function handler(req, res) {
       };
 
       await db.collection("bookings").doc(newBookingId).set(newBooking);
+
+      // ── Auto-assign staff to the new booking (fire-and-forget) ────────────
+      // Runs after the booking is persisted so assignStaffToBooking can read it.
+      // Non-fatal: a failure here does not roll back the charge or the booking.
+      assignStaffToBooking(db, newBookingId).catch((err) => {
+        console.error(
+          `[process-recurring-plans] Auto-assign failed for booking ${newBookingId} (plan ${planDoc.id}):`,
+          err?.message || err
+        );
+      });
 
       // ── Advance plan to next occurrence ─────────────────────────────────
       await planDoc.ref.update({
