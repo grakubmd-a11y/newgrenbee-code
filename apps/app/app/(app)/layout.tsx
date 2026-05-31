@@ -32,7 +32,7 @@ function SiteFooter() {
 
         {/* Brand */}
         <div className="md:col-span-1 space-y-3">
-          <Link href="/" className="inline-block">
+          <Link href="/us" className="inline-block">
             <span className="text-lg font-extrabold text-white tracking-tight">
               Gren<span className="text-emerald-400">bee</span>
             </span>

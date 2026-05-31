@@ -526,11 +526,21 @@ export default function BookingWizard({
   const [step, setStep] = useState<WizardStep>(1);
 
   // ── Step 1: Schedule ──
+  // Helper: returns "YYYY-MM-DD" in the user's LOCAL timezone (not UTC).
+  // Using toISOString() would give the UTC date which can be one day ahead
+  // for users in UTC-N timezones during evening hours.
+  function localDateString(d: Date): string {
+    const y  = d.getFullYear();
+    const m  = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  }
+
   // Default to tomorrow (skip today to avoid same-day fee surprises)
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toISOString().split("T")[0];
+    return localDateString(d);
   });
   const [selectedSlot, setSelectedSlot] = useState("09:00");
   const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>("idle");
@@ -540,7 +550,9 @@ export default function BookingWizard({
   const [sameDayFee, setSameDayFee] = useState(DEFAULT_sameDayFee);
 
   // ── Same-day & 2-tech ──
-  const today   = useMemo(() => new Date().toISOString().split("T")[0], []);
+  // Use local date — toISOString() returns UTC which causes off-by-one errors
+  // for users in UTC-N timezones (e.g. MDT = UTC-6) during evening hours.
+  const today     = useMemo(() => localDateString(new Date()), []);
   const isSameDay = selectedDate === today;
   const isTwoTech = useMemo(
     () => clientRequiresTwoTechs(bookingParams.serviceId, bookingParams.selectedFactors),
