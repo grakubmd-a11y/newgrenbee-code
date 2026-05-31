@@ -179,8 +179,8 @@ export default function HomePage() {
         <SiteNavbar />
 
         {/* ── 1. HERO ──────────────────────────────────────────────────────── */}
-        <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[300px] flex items-center">
-          {/* Background photo — absolute, ancho completo */}
+        <section className="relative w-full overflow-hidden bg-gray-950 text-white min-h-[92vh] flex items-center">
+          {/* Background photo */}
           {cms?.heroPhotoUrl ? (
             <img
               src={cms.heroPhotoUrl}
@@ -191,52 +191,103 @@ export default function HomePage() {
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           ) : null}
-          {/* Fallback gradient — shows when no photo or photo fails to load */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-emerald-950/40 to-gray-950" />
-          {/* Dark overlay — lighter when photo is set */}
-          <div className={`absolute inset-0 ${cms?.heroPhotoUrl ? "bg-gray-950/55" : "bg-gray-950/20"}`} />
+          {/* Fallback gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-emerald-950/50 to-gray-900" />
+          {/* Overlay — stronger for readability */}
+          <div className={`absolute inset-0 ${cms?.heroPhotoUrl ? "bg-gray-950/65" : "bg-gray-950/10"}`} />
+          {/* Subtle bottom fade to white for smooth transition */}
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-gray-950/60 to-transparent" />
 
-          <div className="relative z-10 w-full px-6 sm:px-10 lg:px-16 py-10 md:py-14">
+          <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 py-16 md:py-24">
             <div className="max-w-2xl">
+
+              {/* Social proof row */}
+              <div className="flex items-center gap-3 mb-5">
+                {/* Avatar stack */}
+                <div className="flex -space-x-2">
+                  {["bg-emerald-400","bg-teal-400","bg-cyan-400","bg-green-400"].map((color, i) => (
+                    <div key={i} className={`w-8 h-8 rounded-full ${color} border-2 border-gray-950 flex items-center justify-center`}>
+                      <Icons.User className="w-4 h-4 text-white" />
+                    </div>
+                  ))}
+                </div>
+                {/* Stars + rating */}
+                <div className="flex items-center gap-1.5">
+                  <div className="flex gap-0.5">
+                    {[1,2,3,4,5].map(n => (
+                      <Icons.Star key={n} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-sm font-semibold text-white">4.9</span>
+                  <span className="text-sm text-gray-400">{t("home.hero.socialProof")}</span>
+                </div>
+              </div>
+
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
-                <Icons.Star className="w-4 h-4 fill-emerald-400 text-emerald-400" />
+              <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-5">
+                <Icons.MapPin className="w-3.5 h-3.5 text-emerald-400" />
                 {t("home.hero.badge")}
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6">
+              {/* Headline */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] text-white mb-5">
                 {heroHeadline}
               </h1>
 
-              <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
+              {/* Subtitle */}
+              <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed max-w-xl">
                 {heroSubtitle}
               </p>
 
               {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <button
                   onClick={() => scrollToEstimator()}
-                  className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors shadow-lg cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-8 py-4 rounded-xl text-base transition-all duration-200 shadow-xl shadow-emerald-900/40 cursor-pointer"
                 >
                   {heroCta}
                   <Icons.ArrowRight className="w-4 h-4" />
                 </button>
-                {phone && (
+                {phone ? (
                   <a
                     href={`tel:${phone.replace(/\D/g, "")}`}
-                    className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-7 py-3.5 rounded-xl text-base transition-colors border border-white/20"
+                    className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-8 py-4 rounded-xl text-base transition-all duration-200 border border-white/20 cursor-pointer"
                   >
                     <Icons.Phone className="w-4 h-4" />
                     {phone}
                   </a>
+                ) : (
+                  <button
+                    onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
+                    className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl text-base transition-all duration-200 border border-white/20 cursor-pointer"
+                  >
+                    {t("home.hero.ctaSecondary")}
+                    <Icons.ChevronDown className="w-4 h-4" />
+                  </button>
                 )}
               </div>
 
-              {/* Trust statement */}
-              <p className="text-sm text-gray-400 flex items-center gap-2">
-                <Icons.CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                {t("home.hero.trustNote")}
+              {/* Urgency micro-copy */}
+              <p className="text-sm text-emerald-300 flex items-center gap-1.5 mb-8">
+                <Icons.Zap className="w-3.5 h-3.5 fill-emerald-400 text-emerald-400 shrink-0" />
+                {t("home.hero.availability")}
               </p>
+
+              {/* Trust badges */}
+              <div className="flex flex-wrap gap-3">
+                {([
+                  { icon: Icons.ShieldCheck, key: "home.hero.trust1" },
+                  { icon: Icons.UserCheck,   key: "home.hero.trust2" },
+                  { icon: Icons.Leaf,        key: "home.hero.trust3" },
+                  { icon: Icons.Clock,       key: "home.hero.trust4" },
+                ] as { icon: React.ElementType; key: string }[]).map(({ icon: Icon, key }) => (
+                  <div key={key} className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-200">
+                    <Icon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    {t(key)}
+                  </div>
+                ))}
+              </div>
+
             </div>
           </div>
         </section>

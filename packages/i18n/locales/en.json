@@ -143,8 +143,15 @@
       "titleHighlight": "Home Cleaning",
       "subtitle": "Grenbee delivers reliable, eco-friendly home services across Utah County. Book online in minutes — same-week availability guaranteed.",
       "ctaPrimary": "Get a Free Quote",
+      "ctaSecondary": "See our services",
       "ctaPhone": "",
-      "trustNote": "Talk to a real person — we typically respond within the hour."
+      "trustNote": "Talk to a real person — we typically respond within the hour.",
+      "socialProof": "· 200+ Utah homeowners served",
+      "availability": "Same-week availability — spots fill fast",
+      "trust1": "Fully Insured",
+      "trust2": "Background-Checked",
+      "trust3": "Eco-Friendly",
+      "trust4": "Same-Week Available"
     },
     "stats": {
       "happyHomeowners": "Service Area",
