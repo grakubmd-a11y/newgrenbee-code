@@ -231,15 +231,16 @@ export async function assignStaffToBooking(db, bookingId, opts = {}) {
       if (hasTime && overlapSet.has(s.id)) continue;
 
       // ── Score ──────────────────────────────────────────────────────────
-      // BUG #3 fix: preferred bonus reduced from 50 → 15 to prevent it from
-      // overwhelming real workload differences.
+      // Preferred bonus: 25 pts ≈ 1 extra job of tolerance.
+      // High enough to favor the client's preferred tech, low enough that a
+      // heavily-loaded preferred tech loses to a free one.
       const jobsToday   = workload[s.id]     || 0;
       const minsToday   = minutesToday[s.id] || 0;
       const isPreferred = s.id === preferredId;
       const score =
         jobsToday * 20
         + Math.round(minsToday / 30)
-        - (isPreferred ? 15 : 0);
+        - (isPreferred ? 25 : 0);
 
       candidates.push({ ...s, score, jobsToday, minsToday });
     }
@@ -300,45 +301,16 @@ export async function assignStaffToBooking(db, bookingId, opts = {}) {
   // ── Two-tech assignment ───────────────────────────────────────────────────
   const ranked = buildRankedCandidates();
 
-  // BUG #2 fix: when requiresTwoStaff=true but only 1 candidate is available,
-  // fall back to single-tech assignment rather than leaving the booking unassigned.
-  // Only mark needs_assignment when 0 candidates are available.
-  if (ranked.length === 0) {
+  // Two-tech jobs require exactly 2 staff. If fewer than 2 are available,
+  // mark as needs_assignment so a human can intervene — never send a single
+  // tech to a job that physically requires two.
+  if (ranked.length < 2) {
     await bookingRef.update({ status: "needs_assignment", updatedAt: now });
     return {
       ok:      false,
       bookingId,
-      reason:  "no_eligible_staff",
-      message: "No available staff for this two-tech job. Booking marked as needs_assignment.",
-    };
-  }
-
-  if (ranked.length === 1) {
-    // Only one tech available — assign as single-tech and continue.
-    const best = ranked[0];
-
-    await bookingRef.update({
-      assignedStaffId:   best.id,
-      assignedStaffName: best.name || "",
-      updatedAt:         now,
-    });
-
-    // BUG #6 fix: log email failures.
-    if (best.email) {
-      const { subject, html } = buildStaffAssignmentEmail(booking, best);
-      sendEmail(best.email, subject, html).catch((err) => {
-        console.error(`[auto-assign-staff] Failed to send assignment email to ${best.email}:`, err?.message || err);
-      });
-    }
-
-    return {
-      ok:                true,
-      bookingId,
-      assignedStaffId:   best.id,
-      assignedStaffName: best.name || "",
-      staffScore:        best.score,
-      totalEligible:     ranked.length,
-      note:              "two_tech_requested_but_only_one_available",
+      reason:  "insufficient_staff_for_two_tech",
+      message: `Need 2 staff members but only ${ranked.length} available. Booking marked as needs_assignment.`,
     };
   }
 
