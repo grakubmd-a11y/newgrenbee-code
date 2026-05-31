@@ -205,7 +205,7 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white mb-6">
-                ❤️❤️❤️❤️❤️ {heroHeadline}
+                {heroHeadline}
               </h1>
 
               <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">

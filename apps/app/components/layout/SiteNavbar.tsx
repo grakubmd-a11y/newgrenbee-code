@@ -71,13 +71,14 @@ export default function SiteNavbar() {
   const [resetSent, setResetSent] = useState(false);
 
   const base = `/${country ?? "us"}`;
+  const navBase = i18n.language === "es" ? `${base}/es` : base;
   const NAV_LINKS = [
-    { label: t("siteNav.services"), href: `${base}/services` },
-    { label: t("siteNav.plans"), href: `${base}/plans` },
-    { label: t("siteNav.areas"), href: `${base}/areas` },
-    { label: t("siteNav.forHosts"), href: `${base}/hosts` },
-    { label: t("siteNav.faq"), href: `${base}/faq` },
-    { label: t("siteNav.contact"), href: `${base}/contact` },
+    { label: t("siteNav.services"), href: `${navBase}/services` },
+    { label: t("siteNav.plans"), href: `${navBase}/plans` },
+    { label: t("siteNav.areas"), href: `${navBase}/areas` },
+    { label: t("siteNav.forHosts"), href: `${navBase}/hosts` },
+    { label: t("siteNav.faq"), href: `${navBase}/faq` },
+    { label: t("siteNav.contact"), href: `${navBase}/contact` },
   ];
 
   useEffect(() => {
@@ -247,7 +248,7 @@ export default function SiteNavbar() {
           <div className="flex items-center h-20">
 
             {/* Logo — extremo izquierdo */}
-            <Link href="/" className="flex items-center shrink-0">
+            <Link href={base} className="flex items-center shrink-0">
               <span className="text-xl font-extrabold text-gray-950 tracking-tight leading-none">
                 Gren<span className="text-emerald-500">bee</span>
               </span>
