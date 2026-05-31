@@ -18,3 +18,5 @@ turbo-build.log
 *.tsbuildinfo
 .env*
 .claude/worktrees/
+__pycache__/
+*.pyc
